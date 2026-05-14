@@ -1,0 +1,40 @@
+package org.bukkit.craftbukkit.entity;
+
+import net.minecraft.world.entity.boss.enderdragon.EnderDragonPart;
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.entity.ComplexEntityPart;
+import org.bukkit.entity.ComplexLivingEntity;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.cardboardpowered.bridge.world.entity.EntityBridge;
+
+public class CraftComplexPart extends CraftEntity implements ComplexEntityPart {
+
+    public CraftComplexPart(CraftServer server, EnderDragonPart entity) {
+        super(entity);
+    }
+
+    @Override
+    public EnderDragonPart getHandle() {
+        return (EnderDragonPart) this.entity;
+    }
+
+    @Override
+    public ComplexLivingEntity getParent() {
+        return (ComplexLivingEntity) ((EntityBridge)this.getHandle().parentMob).getBukkitEntity();
+    }
+
+    @Override
+    public void setLastDamageCause(EntityDamageEvent cause) {
+        this.getParent().setLastDamageCause(cause);
+    }
+
+    @Override
+    public EntityDamageEvent getLastDamageCause() {
+        return this.getParent().getLastDamageCause();
+    }
+
+    @Override
+    public boolean isValid() {
+        return this.getParent().isValid();
+    }
+}

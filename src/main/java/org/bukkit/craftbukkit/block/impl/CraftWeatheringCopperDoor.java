@@ -1,0 +1,94 @@
+package org.bukkit.craftbukkit.block.impl;
+
+import com.google.common.base.Preconditions;
+import io.papermc.paper.annotation.GeneratedClass;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.WeatheringCopperDoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.type.Door;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
+import org.jspecify.annotations.NullMarked;
+
+import java.util.Set;
+
+@NullMarked
+@GeneratedClass
+public class CraftWeatheringCopperDoor extends CraftBlockData implements Door {
+    private static final EnumProperty<Direction> FACING = WeatheringCopperDoorBlock.FACING;
+
+    private static final EnumProperty<DoubleBlockHalf> HALF = WeatheringCopperDoorBlock.HALF;
+
+    private static final EnumProperty<DoorHingeSide> HINGE = WeatheringCopperDoorBlock.HINGE;
+
+    private static final BooleanProperty OPEN = WeatheringCopperDoorBlock.OPEN;
+
+    private static final BooleanProperty POWERED = WeatheringCopperDoorBlock.POWERED;
+
+    public CraftWeatheringCopperDoor(BlockState state) {
+        super(state);
+    }
+
+    @Override
+    public BlockFace getFacing() {
+        return this.get(FACING, BlockFace.class);
+    }
+
+    @Override
+    public void setFacing(final BlockFace blockFace) {
+        Preconditions.checkArgument(blockFace != null, "blockFace cannot be null!");
+        Preconditions.checkArgument(blockFace.isCartesian() && blockFace.getModY() == 0, "Invalid face, only cartesian horizontal face are allowed for this property!");
+        this.set(FACING, blockFace);
+    }
+
+    @Override
+    public Set<BlockFace> getFaces() {
+        return this.getValues(FACING, BlockFace.class);
+    }
+
+    @Override
+    public Half getHalf() {
+        return this.get(HALF, Half.class);
+    }
+
+    @Override
+    public void setHalf(final Half half) {
+        Preconditions.checkArgument(half != null, "half cannot be null!");
+        this.set(HALF, half);
+    }
+
+    @Override
+    public Hinge getHinge() {
+        return this.get(HINGE, Hinge.class);
+    }
+
+    @Override
+    public void setHinge(final Hinge hinge) {
+        Preconditions.checkArgument(hinge != null, "hinge cannot be null!");
+        this.set(HINGE, hinge);
+    }
+
+    @Override
+    public boolean isOpen() {
+        return this.get(OPEN);
+    }
+
+    @Override
+    public void setOpen(final boolean open) {
+        this.set(OPEN, open);
+    }
+
+    @Override
+    public boolean isPowered() {
+        return this.get(POWERED);
+    }
+
+    @Override
+    public void setPowered(final boolean powered) {
+        this.set(POWERED, powered);
+    }
+}

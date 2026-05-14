@@ -1,0 +1,58 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'
+  push:
+    branches: [main, master]
+    paths:
+      - 'build.gradle'
+      - 'gradle.lockfile'
+      - 'gradle.properties'
+      - 'settings.gradle'
+
+jobs:
+  cve-scan:
+    name: CVE & License Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: OWASP Dependency Check
+        run: ./gradlew dependencyCheckAnalyze --continue || true
+        continue-on-error: true
+
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: build/reports/dependency-check-report.html
+
+      - name: License audit
+        run: |
+          ALLOWED="MIT|Apache-2.0|BSD-3-Clause|LGPL-2.1-only|CC0-1.0"
+          ./gradlew dependencies --configuration api > build/deps.txt
+          echo "=== Dependency License Check ==="
+          FAILED=0
+          while IFS= read -r line; do
+            if echo "$line" | grep -qE "^[a-zA-Z].*---" && ! echo "$line" | grep -qEi "($ALLOWED)"; then
+              DEP=$(echo "$line" | cut -d' ' -f1)
+              if [ -n "$DEP" ]; then
+                echo "[UNKNOWN] $DEP - license not detected"
+                FAILED=1
+              fi
+            fi
+          done < build/deps.txt
+          if [ "$FAILED" -eq 1 ]; then
+            echo "::warning::Some dependencies have unknown licenses. Please review manually."
+          else
+            echo "All dependencies appear to have allowed licenses."
+          fi

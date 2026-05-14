@@ -1,0 +1,289 @@
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+
+plugins {
+    id 'fabric-loom' version '1.14-SNAPSHOT'
+    id 'maven-publish'
+    id 'com.gradleup.shadow' version '8.3.6'
+    id 'java-library'
+    id "com.peterabeles.gversion" version "1.10.3"
+    id "com.modrinth.minotaur" version "2+"
+    id 'org.owasp.dependencycheck' version '12.1.8'
+}
+
+gversion {
+  srcDir = "src/main/java/"
+  classPackage = "org.cardboardpowered"
+  className = "GitVersion"
+}
+project.compileJava.dependsOn(createVersionFile)
+
+//sourceCompatibility = JavaVersion.VERSION_21
+//targetCompatibility = JavaVersion.VERSION_21
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+configurations { 
+    extraLibs
+    removeLibs
+    metest
+}
+
+
+loom {
+    accessWidenerPath = file("src/main/resources/bukkitfabric.accesswidener")
+}
+
+repositories {
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://repo.codemc.io/repository/maven-releases/' }
+	maven { url = 'https://repo.spongepowered.org/maven' }
+	maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+	maven { url = 'https://maven.izzel.io/releases' }
+    mavenCentral()
+}
+
+configurations.all {
+    // Check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+// Paper-API
+def PAPER_VER_A = "1.21.11-R0.1-SNAPSHOT"
+def PAPER_VER_B = "1.21.11-R0.1-20260120.191825-59"
+
+def PAPER_API_VER = "io.papermc.paper:paper-api:" + PAPER_VER_B
+
+dependencies {
+    minecraft("com.mojang:minecraft:${project.minecraft_version}") {
+    	exclude module: 'commons-logging'
+    }
+    mappings loom.officialMojangMappings()
+    modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
+    // modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+    
+    // Make a collection of all api modules we wish to use
+    Set<String> apiModules = [
+    	"fabric-api-base",
+    	"fabric-networking-api-v1",
+    	"fabric-screen-handler-api-v1"
+    ]
+
+    DefaultExternalModuleDependency ic = new DefaultExternalModuleDependency("com.javazilla.mods", "icommon-fabric-1.21.9", "1.21.9", null)
+    ic.setChanging(true) // Make sure we get the latest version of iCommon
+
+    // include(modImplementation(ic))
+    modImplementation(ic)
+	
+	// TODO: Maven repo this
+	compileOnly fileTree(dir: 'libs', include: 'icommon-configuration-1.0.jar')
+
+	modImplementation fileTree(dir: 'libs', include: 'icommon-configuration-1.0.jar')
+
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    modImplementation fileTree(dir: 'libs', include: 'CardboardMohistRemapper-0.4.jar')
+    extraLibs fileTree(dir: 'libs', include: 'CardboardMohistRemapper-0.4.jar')
+	
+	modImplementation "io.izzel:tools:1.3.0"
+    extraLibs "io.izzel:tools:1.3.0"
+
+    extraLibs fileTree(dir: 'libs', include: 'commons-lang-2.6.jar')
+    extraLibs fileTree(dir: 'libs', include: 'adventure-exam.jar')
+    extraLibs group: "com.googlecode.json-simple", name: "json-simple", version: "1.1.1"
+
+    extraLibs("org.yaml:snakeyaml:1.33")
+
+	// Paper-API libs
+	modImplementation(PAPER_API_VER)
+	
+	modImplementation("net.md-5:bungeecord-chat:1.21-R0.2")
+	modImplementation("net.kyori:adventure-api:4.25.0")
+	modImplementation("net.kyori:adventure-text-serializer-gson:4.25.0")
+	modImplementation("net.kyori:adventure-text-serializer-legacy:4.25.0")
+	modImplementation("net.kyori:adventure-text-serializer-plain:4.25.0")
+	modImplementation("net.kyori:adventure-text-minimessage:4.25.0")
+
+    compileOnly fileTree(dir: 'libs', include: 'commons-lang-2.6.jar')
+    compileOnly group: "org.jetbrains", name: "annotations", version: "18.0.0"
+    compileOnly group: "com.googlecode.json-simple", name: "json-simple", version: "1.1.1"
+
+	compileOnly "io.leangen.geantyref:geantyref:1.3.16"
+	include(modImplementation("io.leangen.geantyref:geantyref:1.3.16"))
+
+    // NMS Remapping
+    extraLibs fileTree(dir: 'libs', include: "srglib-0.1.2.jar")
+    include(modImplementation("net.md-5:SpecialSource:1.11.2"))
+
+    compileOnly fileTree(dir: 'libs', include: "srglib-0.1.2.jar")
+    
+    include(modImplementation("net.neoforged:srgutils:1.0.9")) // Mappings handling
+    include(modImplementation("net.neoforged:AutoRenamingTool:2.0.3")) // Remap plugins
+    include(modImplementation('net.neoforged.installertools:cli-utils:2.1.4'))
+    
+    include(modImplementation('net.fabricmc:mapping-io:0.8.0'))
+
+    // Remap reflection
+    include(modImplementation("io.papermc:reflection-rewriter:0.0.3"))
+    include(modImplementation("io.papermc:reflection-rewriter-runtime:0.0.3"))
+    include(modImplementation("io.papermc:reflection-rewriter-proxy-generator:0.0.3"))
+
+    // Fabric Permissions API.
+    include(modImplementation('me.lucko:fabric-permissions-api:0.5.0'))
+    
+    // Configurate
+    include(modImplementation('org.spongepowered:configurate-core:4.2.0'))
+    include(modImplementation('org.spongepowered:configurate-hocon:4.2.0'))
+    
+    // Remove parts that are included with Minecraft or Downloaded
+    removeLibs group: "com.google.guava", name: "guava", version: "21.0"
+    removeLibs group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    removeLibs group: 'org.apache.commons', name: 'commons-collections4', version: '4.2'
+    removeLibs group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    removeLibs group: 'commons-lang', name: 'commons-lang', version: '2.6'
+    removeLibs group: 'commons-logging', name: 'commons-logging', version: '1.2'
+    removeLibs group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
+    removeLibs group: 'junit', name: 'junit', version: '4.10'
+
+    configurations.api.extendsFrom( (configurations.extraLibs) )
+}
+
+configurations.implementation {
+    exclude group: 'commons-logging', module: 'commons-logging'
+}
+
+configure([tasks.compileJava]) {
+    sourceCompatibility = 21
+    options.release = 21
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(sourceSets.main.resources.srcDirs) {
+        include "fabric.mod.json"
+        if(System.env.BUILD_NUMBER){
+            expand "version": System.env.BUILD_NUMBER
+        }
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "fabric.mod.json"
+    }
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
+	options.deprecation = false
+	options.compilerArgs << '-Xlint:-deprecation'
+	options.compilerArgs << '-Xlint:-removal'
+	options.compilerArgs << '-Xlint:-dep-ann'
+	options.compilerArgs << '-XDignore.symbol.file'
+	
+	println(options.compilerArgs)
+}
+
+dependencyCheck {
+    failBuildOnCVSS = 7
+}
+
+jar {
+	duplicatesStrategy = DuplicatesStrategy.WARN
+    from "LICENSE"
+    from {
+        (configurations.extraLibs - configurations.removeLibs).filter{ it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    exclude("**/mojang-translations/")
+}
+
+shadowJar {
+    configurations = [project.configurations.api]
+    dependencies {
+      exclude(dependency('com.mojang:minecraft:*'))
+      exclude(dependency('org.objectweb:asm:*'))
+      exclude(dependency('com.google.guava:guava:*'))
+    }
+}
+
+modrinth {
+    token = System.getenv("MODRINTH") // This is the default. Remember to have the MODRINTH_TOKEN environment variable set or else this will fail, or set it to whatever you want - just make sure it stays private!
+    projectId = "MLYQ9VGP"
+    versionNumber = "1.21.11-" + System.env.BUILD_NUMBER
+    versionType = "beta"
+    uploadFile = remapJar // With Loom, this MUST be set to `remapJar` instead of `jar`!
+    gameVersions = ["1.21.11"]
+    loaders = ["fabric"]
+}
+
+
+ext.getURLofDependencyArtifact = {
+	project.configurations.modImplementation.dependencies.each { dep ->
+		if (dep.name.contains('paper')) {
+			println(dep.name)
+			println(dep)
+			def urls = [
+				'https://repo.papermc.io/repository/maven-snapshots/',
+				'https://repo.codemc.io/repository/nms-local/',
+				'https://repo.codemc.io/repository/maven-releases/'
+			]
+
+			for (String url : urls) {
+				def jarUrl = String.format("%s%s/%s/%s/%s-%s.jar", url.toString(), dep.group.replace('.', '/'), dep.name, dep.version, dep.name, dep.version)
+				try {
+					def jarfile = new URL(jarUrl)
+					def inStream = jarfile.openStream();
+					if (inStream != null) {
+						println(String.format("%s:%s:%s", dep.group, dep.name, dep.version) + " -> " + jarUrl)
+						return jarUrl
+					}
+				} catch (Exception ignored) {
+				}
+			}
+		}
+	}
+}
+
+ext.downloadPaperFile = {
+	def fileURL = new URL("https://repo.papermc.io/repository/maven-snapshots/io/papermc/paper/paper-api/" + PAPER_VER_A +"/paper-api-" + PAPER_VER_B + ".jar")
+    // def fileURL = new URL("https://web.archive.org/web/20250518123011/https://repo.papermc.io/repository/maven-snapshots/io/papermc/paper/paper-api/1.21.4-R0.1-SNAPSHOT/paper-api-1.21.4-R0.1-20250511.205801-225.jar")
+    def localFile = file("repos/tempp/paper-api-" + PAPER_VER_B + ".jar")
+
+    localFile.getParentFile().mkdirs()
+    fileURL.withInputStream { i ->
+		localFile.withOutputStream { o ->
+			o << i
+		}
+    }
+}
+
+// Make sure paper-api on the repo is kept updated.
+publishing {
+//	configurations.api.setCanBeResolved(true)
+	// downloadPaperFile()
+    
+    //publications {
+    //    mavenJava(MavenPublication) {
+	//		groupId = 'io.papermc.paper'
+    //        artifactId = PAPER_VER_A
+	//		version = PAPER_VER_B
+	//		artifact file("repos/tempp/paper-api-" + PAPER_VER_B + ".jar")
+    //    }
+    //}
+    //repositories {
+    //    maven {
+    //        // change URLs to point to your repos, e.g. http://my.org/repo
+    //        def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
+    //        def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+    //        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+    //    }
+    //}
+}

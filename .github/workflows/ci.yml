@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
+        if: runner.os != 'Windows'
+
+      - name: Compile Java
+        run: ./gradlew compileJava
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Build
+        run: ./gradlew build -x test
+
+  security-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: OWASP Dependency Check
+        run: ./gradlew dependencyCheckAnalyze --continue
+
+      - name: Upload dependency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-report
+          path: build/reports/dependency-check-report.html
+
+  license-audit:
+    name: License Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Generate dependency list
+        run: ./gradlew dependencies --configuration api > build/dependencies.txt
+
+      - name: Check licenses
+        run: |
+          ALLOWED="MIT|Apache-2.0|BSD-3-Clause|LGPL-2.1-only|CC0-1.0"
+          echo "=== Dependency License Check ==="
+          while IFS= read -r line; do
+            if echo "$line" | grep -qEi "($ALLOWED)"; then
+              echo "[PASS] $line"
+            elif echo "$line" | grep -qE "^[a-zA-Z]"; then
+              echo "[WARN] License unknown for: $line"
+            fi
+          done < build/dependencies.txt
+          echo "=== License check complete ==="
