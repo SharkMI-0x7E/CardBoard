@@ -450,42 +450,125 @@ Q4: Does the Mixin access Fabric API injected fields?
 
 **Why this matters:** `release-please` scans all commits since the last release tag and uses each commit's conventional message to generate the changelog and release notes. A single mega-commit = a single meaningless changelog line.
 
+**Official Conventional Commits FAQ says:** "If the commit conforms to more than one of the commit types, go back and make multiple commits whenever possible. Part of the benefit of Conventional Commits is its ability to drive us to make more organized commits and PRs."
+
+### Branch Strategy: GitHub Flow
+
+We use **GitHub Flow** (not Git Flow) — the simplest and most common workflow for CI/CD projects:
+
+```
+main (always deployable)
+  └── feature/your-feature  (branch off main)
+       └── commits (multiple, batched logically)
+            └── PR → review → squash-merge to main
+```
+
+| Branch | Purpose | Rules |
+|--------|---------|-------|
+| `main` | Production-ready, always deployable | Never commit directly. Only via PR merge. |
+| `feature/*` | New features, bug fixes | Branch from main, PR back to main. Delete after merge. |
+
+**No `develop`, `release/*`, or `hotfix/*` branches.** We keep it simple. Every push to main triggers CI and potentially release-please.
+
+### Commit Granularity Guide
+
+**One commit = one logical change.** Here's how to decide:
+
+| Scenario | Should be 1 commit | Should be N commits |
+|----------|-------------------|---------------------|
+| Fix a bug in 1 file | ✅ | ❌ |
+| Add a feature across 3 files | ✅ (all related) | ❌ |
+| Fix a bug + add a feature | ❌ | ✅ (2 commits: fix + feat) |
+| Refactor + add docs | ❌ | ✅ (2 commits: refactor + docs) |
+| Add feature + update config | ✅ (if config is for the feature) | ✅ (if config is unrelated) |
+| Debug logging (temporary) | ✅ (1 commit, easy to revert later) | ❌ |
+
+**Rule of thumb:** If you can't write a single clear commit message that covers all changes, split them.
+
 ### Commit Workflow
 
 ```
-1. Create feature branch: git checkout -b feature/your-feature
-2. Make changes (follow CLAUDE.md behavior guidelines below)
+1. Create feature branch:
+   git checkout -b feature/your-feature
+
+2. Make changes (follow CLAUDE.md behavior guidelines)
+
 3. Run local checks:
    ./gradlew compileJava          # Compilation check
    ./gradlew test                  # Run tests
    ./gradlew build -x test         # Build verification
-4. Commit EACH logical change separately with conventional commits:
-   git commit -m "fix: resolve mixin conflict in ServerPlayerMixin"
-   git add src/main/java/org/cardboardpowered/compat/
+
+4. Stage and commit EACH logical change separately:
+   git add src/main/java/org/cardboardpowered/compat/ModCompatibilityDatabase.java
+   git add src/main/java/org/cardboardpowered/compat/ModCompatibilityRule.java
    git commit -m "feat: add mod compatibility database"
+
    git add src/main/resources/cardboard/mod-compatibility.yml
    git commit -m "config: add mod-compatibility.yml with 8 known mod rules"
-5. Push and open PR
+
+   git add src/main/java/org/cardboardpowered/CardboardConfig.java
+   git commit -m "config: add auto_conflict_resolution setting"
+
+5. Push and open PR:
+   git push origin feature/your-feature
+   # Open PR on GitHub → get review → squash-merge to main
 ```
 
 ### Conventional Commit Format
 
 ```
-<type>: <description>
+<type>(<optional scope>): <description>
 
 <optional body>
+
+<optional footer(s)>
 ```
 
-| Type | When to use | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat: add mod compatibility database` |
-| `fix` | Bug fix | `fix: resolve mixin conflict in BoatItemMixin` |
-| `refactor` | Code restructuring (no behavior change) | `refactor: replace @Overwrite with @Inject in LevelMixin` |
-| `docs` | Documentation only | `docs: update AGENTS.md with CI/CD workflow` |
-| `build` | Build system changes | `build: add OWASP dependency check` |
-| `ci` | CI/CD changes | `ci: add release-please workflow` |
-| `debug` | Debug logging (temporary) | `debug: add MOTD debug logs in ServerStatusPacketListenerImplMixin` |
-| `config` | Configuration changes | `config: add auto_conflict_resolution setting` |
+| Type | SemVer Impact | When to use | Example |
+|------|---------------|-------------|---------|
+| `feat` | MINOR | New feature | `feat: add mod compatibility database` |
+| `fix` | PATCH | Bug fix | `fix: resolve mixin conflict in BoatItemMixin` |
+| `refactor` | none | Code restructuring (no behavior change) | `refactor: replace @Overwrite with @Inject in LevelMixin` |
+| `docs` | none | Documentation only | `docs: update AGENTS.md with CI/CD workflow` |
+| `build` | none | Build system changes | `build: add OWASP dependency check` |
+| `ci` | none | CI/CD changes | `ci: add release-please workflow` |
+| `debug` | none | Debug logging (temporary) | `debug: add MOTD debug logs in ServerStatusPacketListenerImplMixin` |
+| `config` | none | Configuration changes | `config: add auto_conflict_resolution setting` |
+| `perf` | none | Performance improvement | `perf: cache event listener list to reduce GC pressure` |
+| `test` | none | Adding/fixing tests | `test: add unit tests for ModCompatibilityDatabase` |
+| `style` | none | Formatting, whitespace | `style: fix indentation in ServerPlayerMixin` |
+| `chore` | none | Maintenance tasks | `chore: update gradle wrapper to 8.12` |
+
+**Breaking changes** — append `!` after type/scope, or add `BREAKING CHANGE:` footer:
+
+```
+feat(api)!: change event API signature
+
+BREAKING CHANGE: PlayerInteractEvent constructor now takes 3 args instead of 2
+```
+
+This triggers a MAJOR version bump in SemVer.
+
+### Versioning Strategy
+
+Our version format: `{minecraft_version}-{mod_version}` (e.g., `1.21.11-SharkMI`)
+
+```
+gradle.properties:
+  mod_version = 1.21.11-SharkMI
+  archives_base_name = Cardboard-SharkMI
+```
+
+**How release-please handles versioning:**
+- Currently using `release-type: simple` — this is a generic mode that doesn't auto-increment versions
+- For Java/Maven projects, `release-type: java` or `release-type: maven` is recommended
+- release-please scans commits since last tag, determines the next version based on conventional commits:
+  - `fix:` → PATCH bump (e.g., 1.0.0 → 1.0.1)
+  - `feat:` → MINOR bump (e.g., 1.0.0 → 1.1.0)
+  - `BREAKING CHANGE` → MAJOR bump (e.g., 1.0.0 → 2.0.0)
+- The generated version is written to a release PR, and when merged, creates a `v*` tag
+
+**TODO:** Consider switching `release-please.yml` from `release-type: simple` to `release-type: java` for proper SemVer auto-increment.
 
 ### Local Pre-commit Checklist
 
@@ -506,6 +589,20 @@ git diff --cached | grep -iE "password|secret|token|api_key"
 ```
 
 **Fails above = cannot commit. No exceptions.**
+
+### PR Workflow
+
+```
+1. Push feature branch to GitHub
+2. Open PR against main
+3. CI runs: build + test + security scan (ci.yml)
+4. Get code review
+5. Squash-merge to main (squash keeps main history clean)
+6. Delete feature branch
+7. release-please automatically updates changelog
+```
+
+**Squash-merge note:** When merging a PR with multiple commits, GitHub's squash-merge combines them into one commit on main. The PR title becomes the commit message. This is fine — the individual commits in the PR serve as review history, and the squash commit on main keeps the main branch history clean.
 
 ### PR Template Requirements
 
@@ -542,27 +639,28 @@ See `.github/PULL_REQUEST_TEMPLATE.md` for the full checklist.
 # Build without tests (faster for local iteration)
 ./gradlew build -x test
 
-# Output: build/libs/Cardboard-1.21.11.jar
+# Output: build/libs/Cardboard-SharkMI-1.21.11-SharkMI.jar
 ```
 
-**Full Release Workflow:**
+**Full Release Workflow (5 steps):**
 
 ```
-Step 1: Developers push commits to main (each with conventional commit message)
+Step 1: Developer pushes commits to feature branch
     │
     ▼
-Step 2: release-please.yml triggers on push to main
+Step 2: Open PR → CI runs (ci.yml) → Code review → Squash-merge to main
+    │
+    ▼
+Step 3: release-please.yml triggers on push to main
     ├─ Scans ALL commits since last release tag
     ├─ Parses conventional commit messages (feat:, fix:, etc.)
+    ├─ Determines next version based on SemVer rules
     ├─ Generates/updates CHANGELOG.md
-    └─ Creates/updates a "Release vX.Y.Z" PR on GitHub
+    └─ Creates/updates a "chore(main): release X.Y.Z" PR on GitHub
     │
     ▼
-Step 3: Human reviews and merges the Release PR
-    │
-    ▼
-Step 4: Merging the PR creates a v* tag (e.g., v1.21.11-1.0.0)
-    │
+Step 4: Human reviews and merges the Release PR
+    │  (This creates a v* tag, e.g., v1.21.11-SharkMI-1.0.0)
     ▼
 Step 5: release.yml triggers on the v* tag
     ├─ Builds the fat jar on ubuntu-latest
@@ -570,12 +668,19 @@ Step 5: release.yml triggers on the v* tag
     └─ Creates GitHub Release with jar file + checksum attached
 ```
 
-**Key point:** release-please collects ALL commits between the last release tag and HEAD. Each commit's message becomes one line in the release notes. This is why batched commits matter.
+**Key insight:** release-please collects ALL commits between the last release tag and HEAD. Each commit's message becomes one line in the release notes. This is why batched commits matter — each commit = one meaningful changelog entry.
 
-**CI automates the rest:**
-- PRs trigger full build + test + security scan (ci.yml)
-- Tags (`v*`) trigger GitHub Release with jar upload + SHA256 (release.yml)
-- `release-please` maintains changelog via conventional commits (release-please.yml)
+**Current release-please config analysis:**
+
+```yaml
+# Current: .github/workflows/release-please.yml
+release-type: simple  # ← Generic mode, no auto-versioning
+```
+
+`release-type: simple` is a catch-all mode that doesn't understand Java project structure. It won't auto-increment `mod_version` in `gradle.properties`. For proper SemVer support, we should consider switching to `release-type: java` or `release-type: maven`, which would:
+- Automatically bump version in `gradle.properties`
+- Generate proper CHANGELOG.md
+- Create release PR with correct version number
 
 ### GitHub Workflows
 
