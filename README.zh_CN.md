@@ -2,20 +2,25 @@
 
 <img width="130" src="https://cardboardpowered.org/assets/cardboard-box.png">
 
-# Cardboard SharkMI
+# Cardboard (SharkMI Fork)
 
-[![Join Discord](https://img.shields.io/badge/Discord-加入-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
+**在 Fabric 服务器上运行 Bukkit / Spigot / Paper 插件**
+
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
+[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/SharkMI-0x7E/CardBoard/ci.yml?branch=main)](.github/workflows/ci.yml)
-
-**[CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard) 的 SharkMI 分支**
-
-**让 Bukkit/Spigot/Paper 插件在 Fabric 服务器上运行**
-
-[English](README.md) | [中文](README.zh_CN.md)
+[![Discord](https://img.shields.io/badge/Discord-社区讨论-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
 
 </div>
+
+> **这是一个社区维护的分支 (Fork)**，由 [SharkMI](https://github.com/SharkMI-0x7E) 基于 [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard) 维护。
+>
+> 本分支包含了一些尚未被上游合并的兼容性修复。
+
+### 🐛 问题与反馈
+
+- **与 Fork 相关的 Bug 或建议** → 请提交到 [本仓库的 Issues](https://github.com/SharkMI-0x7E/CardBoard/issues)。
+- **一般性讨论或疑问** → 欢迎加入 [Cardboard Discord 社区](https://discord.gg/tddTWXZtaP)（上游社区）。
 
 ---
 
@@ -28,7 +33,7 @@
 - **carpet-tis-addition 兼容**：修复了船物品放置冲突
 - **Fabric API NPE 修复**：解决了 Fabric API 字段注入时序导致的崩溃
 - **OWASP 安全扫描**：在构建流程中集成了 OWASP Dependency-Check
-- **改进的文档**：添加了全面的开发者指南（plan.md、AGENTS.md）
+- **改进的文档**：更详细的描述项目 并添加中文版README
 
 ---
 

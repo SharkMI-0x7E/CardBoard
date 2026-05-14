@@ -10,6 +10,8 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cardboardpowered.CardboardConfig;
+import org.cardboardpowered.compat.ModCompatibilityDatabase;
+import org.cardboardpowered.compat.ModCompatibilityRule;
 import org.cardboardpowered.library.Libraries;
 import org.cardboardpowered.library.Library;
 import org.cardboardpowered.library.LibraryManager;
@@ -26,6 +28,7 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
     private final Logger logger = LogManager.getLogger("Cardboard");
     public static boolean libload = true;
     private static boolean read_plugins = false;
+    private static ModCompatibilityDatabase compatDatabase;
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -43,6 +46,14 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
         logger.info("Loading Libraries...");
         Libraries.loadLibs();
         JarReader.readEvents();
+        
+        if (CardboardConfig.autoConflictResolution) {
+            compatDatabase = ModCompatibilityDatabase.load();
+            compatDatabase.generateStartupReport();
+        } else {
+            logger.info("Automatic mod conflict resolution is disabled.");
+        }
+        
         if (pl.exists()) {
         	try {
                 JarReader.readPlugins(pl);
@@ -75,6 +86,16 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
         if (CardboardConfig.disabledMixins.contains(mixinClassName)) {
             logger.info("Disabling mixin '" + mixin + "', was forced disabled in config.");
             return false;
+        }
+
+        if (compatDatabase != null && CardboardConfig.autoConflictResolution) {
+            for (String modId : compatDatabase.getLoadedKnownMods()) {
+                ModCompatibilityRule rule = compatDatabase.getRuleForMod(modId).orElse(null);
+                if (rule != null && rule.getDisabledMixins().contains(mixinClassName)) {
+                    logger.info("Disabling mixin '" + mixin + "' due to compatibility rule for mod: " + rule.getModName());
+                    return false;
+                }
+            }
         }
 
         if (mixin.equals("world.item.consume_effects.TeleportRandomlyConsumeEffectMixin")) {

@@ -1,0 +1,71 @@
+# Cardboard Mod Compatibility Database
+# This file contains known compatibility rules for common Fabric mods.
+# Cardboard uses this database to automatically handle mixin conflicts.
+
+# Enable/disable automatic conflict resolution
+auto-conflict-resolution: true
+
+known-conflicts:
+  # Carpet TIS Addition - All conflicts resolved via @Inject replacement
+  - mod-id: carpet-tis-addition
+    mod-name: Carpet TIS Addition
+    status: COMPATIBLE
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: All conflicts resolved via @Inject replacement
+
+  # MiniMOTD - ServerListPingEvent uses @ModifyArg
+  - mod-id: minimotd-fabric
+    mod-name: MiniMOTD
+    status: COMPATIBLE
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: ServerStatusPacketListenerImplMixin uses @ModifyArg, preserves other mods changes
+
+  # Fabric API - Required dependency for most Fabric mods
+  - mod-id: fabric-api
+    mod-name: Fabric API
+    status: COMPATIBLE
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: Fabric API fields accessed via reflection to avoid load order issues
+
+  # Lithium - Performance optimization mod
+  - mod-id: lithium
+    mod-name: Lithium
+    status: NEEDS_INVESTIGATION
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: Compatibility not yet tested. Report issues if found.
+
+  # Sodium - Rendering optimization mod
+  - mod-id: sodium
+    mod-name: Sodium
+    status: NEEDS_INVESTIGATION
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: Server-side only mod, should not conflict with Cardboard
+
+  # Iris - Shader mod
+  - mod-id: iris
+    mod-name: Iris
+    status: NEEDS_INVESTIGATION
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: Client-side mod, should not conflict with Cardboard
+
+  # Architectury API - Common API layer
+  - mod-id: architectury
+    mod-name: Architecutury API
+    status: CONFLICT_RESOLVED
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: ChatEvent handling conflict resolved
+
+  # Dynmap - Web map plugin compatibility
+  - mod-id: dynmap
+    mod-name: Dynmap
+    status: CONFLICT_RESOLVED
+    disabled-mixins: []
+    priority-overrides: {}
+    notes: ChatEvent handling conflict resolved

@@ -67,6 +67,15 @@ public class CardboardConfig {
 				.keys("add-mods-command")
 				.values("true")
 			)
+			.addSection(new ConfigSection("auto-conflict-resolution")
+				.comments(
+						"# Automatic Mod Conflict Resolution",
+						"# When enabled, Cardboard automatically reads the mod-compatibility.yml",
+						"# and handles known mixin conflicts with other Fabric mods."
+				)
+				.keys("auto_conflict_resolution")
+				.values("true")
+			)
 			.addSection(new ConfigSection("prefix-loggers")
 				.comments(
 						"# Console Logging - ",
@@ -163,6 +172,7 @@ public class CardboardConfig {
 	public static boolean addModsCommand = true;
 	public static boolean addPluginPrefixToLogger = true;
 	public static boolean shouldStripConsoleColor = false;
+	public static boolean autoConflictResolution = true;
 
     public static void setup() throws Exception {
         File fabDir = FabricLoader.getInstance().getConfigDir().toFile();
@@ -198,6 +208,7 @@ public class CardboardConfig {
         addModsCommand = config.getOrDefault("add-mods-command", true);
         addPluginPrefixToLogger = config.getOrDefault("prefix-plugin-logger", true);
         shouldStripConsoleColor = config.getOrDefault("should-strip-console-color", false);
+        autoConflictResolution = config.getOrDefault("auto_conflict_resolution", true);
         
         if (shouldStripConsoleColor && isBetterConsole()) {
         	shouldStripConsoleColor = false;

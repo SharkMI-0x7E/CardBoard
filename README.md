@@ -2,20 +2,25 @@
 
 <img width="130" src="https://cardboardpowered.org/assets/cardboard-box.png">
 
-# Cardboard SharkMI
+# Cardboard (SharkMI Fork)
 
-[![Join Discord](https://img.shields.io/badge/Discord-Join-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
+**Run Bukkit / Spigot / Paper plugins on Fabric servers**
+
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
+[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/SharkMI-0x7E/CardBoard/ci.yml?branch=main)](.github/workflows/ci.yml)
-
-**SharkMI fork of [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard)**
-
-**Run Bukkit/Spigot/Paper plugins on Fabric servers**
-
-[English](README.md) | [Chinese](README.zh_CN.md)
+[![Discord](https://img.shields.io/badge/Discord-Community-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
 
 </div>
+
+> **This is a community fork** maintained by [SharkMI](https://github.com/SharkMI-0x7E), based on [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard).
+>
+> It includes additional compatibility fixes that have not yet been merged upstream.
+
+### 🐛 Issues & Feedback
+
+- **Fork-specific bugs or suggestions** → Please open an [Issue in this repository](https://github.com/SharkMI-0x7E/CardBoard/issues).
+- **General discussion or questions** → Feel free to join the [Cardboard Discord](https://discord.gg/tddTWXZtaP) (the upstream community).
 
 ---
 
@@ -28,7 +33,6 @@ This is a fork of the official [Cardboard](https://github.com/CardboardPowered/c
 - **carpet-tis-addition compatibility**: Fixed boat item placement conflicts
 - **Fabric API NPE fix**: Resolved crash caused by Fabric API field injection timing
 - **OWASP security scanning**: Integrated OWASP Dependency-Check into the build pipeline
-- **Improved documentation**: Added comprehensive developer guides (plan.md, AGENTS.md)
 
 ---
 
