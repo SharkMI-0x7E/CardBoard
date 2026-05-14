@@ -50,7 +50,9 @@ public class ServerStatusPacketListenerImplMixin {
         CraftServer.INSTANCE.getPluginManager().callEvent(event);
 
         // Check if plugin set custom MOTD
-        boolean motdChanged = !event.getMotd().isEmpty() && !event.getMotd().equals("A Minecraft Server");
+        boolean motdChanged = !event.getMotd().isEmpty() 
+			&& !event.getMotd().equals("A Minecraft Server") 
+			&& !event.getMotd().equals(server.getMotd());
         boolean hasCustomIcon = event.icon != null && event.icon.value != null;
 
         LOGGER.info("[MOTD-DEBUG] motdChanged={}, hasCustomIcon={}, event.motd='{}'", motdChanged, hasCustomIcon, event.getMotd());
