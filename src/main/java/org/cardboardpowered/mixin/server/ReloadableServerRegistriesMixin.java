@@ -38,6 +38,12 @@ public class ReloadableServerRegistriesMixin {
 	/**
 	 * @author Cardboard
 	 * @reason Implement Paper's "Add RegistryAccess for managing Registries".patch
+	 *
+	 * TODO: Cannot replace with @Inject - this @Overwrite completely replaces the
+	 * scheduleRegistryLoad method to integrate Paper's RegistryAccess system for
+	 * managing reloadable registries. It uses PaperRegistryAccess to register
+	 * reloadable registries and PaperRegistryListenerManager for event listeners
+	 * during registry loading.
 	 */
     @SuppressWarnings("unchecked")
     @Overwrite

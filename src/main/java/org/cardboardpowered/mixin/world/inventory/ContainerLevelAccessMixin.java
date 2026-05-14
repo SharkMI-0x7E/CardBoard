@@ -32,6 +32,12 @@ public interface ContainerLevelAccessMixin extends ContainerLevelAccessBridge {
     /**
      * @reason Add new methods
      * @author BukkitFabric
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite rewrites the create() factory
+     * method to return an anonymous class that implements ContainerLevelAccessBridge
+     * interface with getWorld(), getPosition(), and getLocation() methods for Bukkit
+     * API compatibility. The original lambda-based implementation cannot be extended
+     * to add bridge interface methods.
      */
     @Overwrite
     static ContainerLevelAccess create(final Level world, final BlockPos blockposition) {

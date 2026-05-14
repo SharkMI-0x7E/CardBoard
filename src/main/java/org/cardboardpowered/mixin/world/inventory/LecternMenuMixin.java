@@ -11,14 +11,13 @@ import org.bukkit.craftbukkit.inventory.CraftInventoryView;
 import org.bukkit.craftbukkit.inventory.CraftInventoryLectern;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import org.cardboardpowered.bridge.world.entity.EntityBridge;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LecternMenu.class)
 public class LecternMenuMixin extends AbstractContainerMenuMixin {
@@ -46,44 +45,30 @@ public class LecternMenuMixin extends AbstractContainerMenuMixin {
         return bukkitEntity;
     }
 
-    /**
-     * @reason .
-     * @author .
-     */
-    @Overwrite
-    public boolean clickMenuButton(Player entityhuman, int i) {
-        int j;
+    @Inject(method = "clickMenuButton", at = @At("HEAD"), cancellable = true)
+    public void cardboard$onClickMenuButton(Player entityhuman, int i, CallbackInfoReturnable<Boolean> cir) {
+        if (i != 3) return;
 
-        if (i >= 100) {
-            j = i - 100;
-            ((LecternMenu)(Object)this).setData(0, j);
-            return true;
-        } else {
-            switch (i) {
-                case 1:
-                    j = this.lecternData.get(0);
-                    ((LecternMenu)(Object)this).setData(0, j - 1);
-                    return true;
-                case 2:
-                    j = this.lecternData.get(0);
-                    ((LecternMenu)(Object)this).setData(0, j + 1);
-                    return true;
-                case 3:
-                    if (!entityhuman.mayBuild()) return false;
-
-                    PlayerTakeLecternBookEvent event = new PlayerTakeLecternBookEvent(player, ((CraftInventoryLectern) getBukkitView().getTopInventory()).getHolder());
-                    Bukkit.getServer().getPluginManager().callEvent(event);
-                    if (event.isCancelled()) return false;
-
-                    ItemStack itemstack = this.lectern.removeItemNoUpdate(0);
-                    this.lectern.setChanged();
-                    if (!entityhuman.getInventory().add(itemstack))  entityhuman.drop(itemstack, false);
-
-                    return true;
-                default:
-                    return false;
-            }
+        if (!entityhuman.mayBuild()) {
+            cir.setReturnValue(false);
+            cir.cancel();
         }
+
+        PlayerTakeLecternBookEvent event = new PlayerTakeLecternBookEvent(player, ((CraftInventoryLectern) getBukkitView().getTopInventory()).getHolder());
+        Bukkit.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            cir.setReturnValue(false);
+            cir.cancel();
+        }
+
+        ItemStack itemstack = this.lectern.removeItemNoUpdate(0);
+        this.lectern.setChanged();
+        if (!entityhuman.getInventory().add(itemstack)) {
+            entityhuman.drop(itemstack, false);
+        }
+
+        cir.setReturnValue(true);
+        cir.cancel();
     }
 
     @Inject(method = "stillValid", at = @At("HEAD"), cancellable = true)

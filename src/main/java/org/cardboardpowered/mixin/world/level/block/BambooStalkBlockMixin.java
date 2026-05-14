@@ -43,8 +43,13 @@ public class BambooStalkBlockMixin extends Block {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Cardboard
+     * @reason Fire BlockSpreadEvent for bamboo growth
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite rewrites the growBamboo method
+     * to use CraftEventFactory.handleBlockSpreadEvent for each bamboo block placement,
+     * allowing event cancellation to prevent bamboo growth. The original method's growth
+     * logic is preserved but wrapped in event checks.
      */
     @Overwrite
     public void growBamboo(BlockState state, Level world, BlockPos pos, RandomSource random, int height) {

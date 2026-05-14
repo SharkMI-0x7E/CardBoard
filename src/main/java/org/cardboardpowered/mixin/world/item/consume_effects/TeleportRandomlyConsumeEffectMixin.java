@@ -4,19 +4,14 @@ import net.minecraft.world.item.consume_effects.TeleportRandomlyConsumeEffect;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(value = TeleportRandomlyConsumeEffect.class, priority = 900)
-public class TeleportRandomlyConsumeEffectMixin { // extends Item {
+public class TeleportRandomlyConsumeEffectMixin {
 
-	// TODO
-	
-	/*
-    public MixinChorusFruitItem(net.minecraft.item.Item.Settings settings) {
-        super(settings);
-    }
+    // TODO: This Mixin requires @Overwrite to fire Bukkit PlayerTeleportEvent.
+    // The commented code below shows the implementation that intercepts chorus fruit
+    // teleportation and fires PlayerTeleportEvent with cancellation support.
+    // Re-enable when ready: uncomment and add @Overwrite annotation.
 
-    /**
-     * @reason .
-     * @author .
-     *
+    /*
     @Overwrite
     public ItemStack finishUsing(ItemStack itemstack, World world, LivingEntity entity) {
         ItemStack itemstack1 = super.finishUsing(itemstack, world, entity);
@@ -48,6 +43,7 @@ public class TeleportRandomlyConsumeEffectMixin { // extends Item {
         if (entity instanceof PlayerEntity) ((PlayerEntity) entity).getItemCooldownManager().set(itemstack, 20);
 
         return itemstack1;
-    }*/
+    }
+    */
 
 }

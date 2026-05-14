@@ -1,23 +1,10 @@
 package org.cardboardpowered.mixin.world.inventory;
 
-import net.minecraft.world.entity.player.Player;
-import org.bukkit.craftbukkit.event.CraftEventFactory;
-import org.cardboardpowered.bridge.world.entity.EntityBridge;
-import org.cardboardpowered.bridge.world.inventory.AbstractContainerMenuBridge;
-import org.bukkit.craftbukkit.inventory.CraftInventoryCrafting;
-import org.bukkit.craftbukkit.inventory.CraftInventoryView;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Optional;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -29,17 +16,24 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.craftbukkit.inventory.CraftInventoryCrafting;
+import org.bukkit.craftbukkit.inventory.CraftInventoryView;
+import org.cardboardpowered.bridge.world.entity.EntityBridge;
+import org.cardboardpowered.bridge.world.inventory.AbstractContainerMenuBridge;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Optional;
 
 @Mixin(CraftingMenu.class)
 public class CraftingMenuMixin extends AbstractContainerMenuMixin {
 
-	// Lnet/minecraft/screen/CraftingScreenHandler;input:Lnet/minecraft/inventory/RecipeInputInventory;
-	
-	// Lnet/minecraft/screen/AbstractCraftingScreenHandler;craftingInventory:Lnet/minecraft/inventory/RecipeInputInventory;
-	
-    //@Shadow public RecipeInputInventory input;
-    // @Shadow public CraftingResultInventory result;
     @Shadow public ContainerLevelAccess access;
     @Shadow public net.minecraft.world.entity.player.Player player;
 
@@ -83,7 +77,13 @@ public class CraftingMenuMixin extends AbstractContainerMenuMixin {
     }
 
     /**
-     * @reason Call PreCraftEvent
+     * TODO: @Overwrite is required here because this method needs complete logic replacement
+     * to trigger Bukkit's PreCraftEvent. Cannot be replaced with @Inject as it requires:
+     * - Executing within ContainerLevelAccess context
+     * - Full replacement of recipe resolution and event firing flow
+     * - Custom slot update behavior via aBF helper method
+     * 
+     * @reason Call PreCraftEvent when crafting inventory slots change
      * @author cardboard
      */
     @Overwrite

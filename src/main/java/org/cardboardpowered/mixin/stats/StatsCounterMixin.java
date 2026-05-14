@@ -20,8 +20,10 @@ package org.cardboardpowered.mixin.stats;
 
 import org.bukkit.event.Cancellable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatsCounter;
 import net.minecraft.world.entity.player.Player;
@@ -30,17 +32,14 @@ import org.bukkit.craftbukkit.event.CraftEventFactory;
 @Mixin(value = StatsCounter.class, priority = 900)
 public class StatsCounterMixin {
 
-    /**
-     * @reason handleStatisticsIncrease
-     * @author .
-     */
-    @Overwrite
-    public void increment(Player player, Stat<?> statistic, int i) {
+    @Inject(method = "increment", at = @At("HEAD"), cancellable = true)
+    private void cardboard$onIncrement(Player player, Stat<?> statistic, int i, CallbackInfo ci) {
         int j = (int) Math.min((long) this.getValue(statistic) + (long) i, 2147483647L);
 
         Cancellable cancellable = CraftEventFactory.handleStatisticsIncrease(player, statistic, this.getValue(statistic), j);
-        if (cancellable != null && cancellable.isCancelled()) return;
-        this.setValue(player, statistic, j);
+        if (cancellable != null && cancellable.isCancelled()) {
+            ci.cancel();
+        }
     }
 
     @Shadow

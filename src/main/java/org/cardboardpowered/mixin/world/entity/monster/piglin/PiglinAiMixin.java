@@ -34,8 +34,13 @@ import org.bukkit.craftbukkit.event.CraftEventFactory;
 public class PiglinAiMixin {
 
     /**
-     * @reason .
+     * @reason Fire EntityPickupItemEvent for piglin item pickup
      * @author Cardboard
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely replaces the
+     * pickUpItem method to fire EntityPickupItemEvent before a piglin picks up an
+     * item, allowing event cancellation. The original method's item processing logic
+     * (admire, eat, equip) must be preserved while adding event checks.
      */
     @Overwrite
     public static void pickUpItem(ServerLevel world, Piglin entitypiglin, ItemEntity entityitem) {

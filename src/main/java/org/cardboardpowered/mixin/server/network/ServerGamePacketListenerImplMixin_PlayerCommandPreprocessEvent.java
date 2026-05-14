@@ -36,6 +36,7 @@ public abstract class ServerGamePacketListenerImplMixin_PlayerCommandPreprocessE
 
 	// Lnet/minecraft/server/network/ServerPlayNetworkHandler;handleCommandExecution(Lnet/minecraft/network/packet/c2s/play/ChatCommandSignedC2SPacket;Lnet/minecraft/network/message/LastSeenMessageList;)V
 	
+	// TODO: @Overwrite retained - complete command processing logic with signature validation, cannot be split into @Inject
 	/**
 	 * @reason PlayerCommandPreprocessEvent
 	 * @author Cardboard mod

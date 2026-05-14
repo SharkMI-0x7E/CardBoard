@@ -55,6 +55,11 @@ public class BuiltInRegistriesMixin {
 	/**
 	 * @author Cardboard Mod
 	 * @reason PaperRegistryAccess
+	 *
+	 * TODO: Cannot replace with @Inject - this @Overwrite replaces the createContents
+	 * method to initialize Bukkit's org.bukkit.Registry class and integrate Paper's
+	 * RegistryAccess system for locking reference holders during registry bootstrap.
+	 * The original method is extended with Paper-specific registry management.
 	 */
     @Overwrite
     public static void createContents() {

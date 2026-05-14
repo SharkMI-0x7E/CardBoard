@@ -61,6 +61,12 @@ public class PlayerListMixin_ChatEvent {
     /**
      * @author cardboard
      * @reason Alternative chat events
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely replaces the
+     * broadcastChatMessage method to fire AsyncPlayerChatEvent and deprecated
+     * PlayerChatEvent with full message formatting, recipient filtering, and async
+     * execution support. The original broadcast logic is replaced with Bukkit's event
+     * system and Waitable execution model.
      */
     @Overwrite
     public void broadcastChatMessage(PlayerChatMessage message, Predicate<ServerPlayer> shouldSendFiltered, ServerPlayer sender/*, MessageSourceProfile sourceProfile*/, ChatType.Bound params) {

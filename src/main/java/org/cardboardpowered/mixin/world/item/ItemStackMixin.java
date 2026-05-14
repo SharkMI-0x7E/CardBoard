@@ -122,6 +122,11 @@ public abstract class ItemStackMixin implements ItemStackBridge {
     /**
      * @author cardboard
      * @reason BlockPlaceEvent
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely rewrites the useOn
+     * method to capture block state changes and fire BlockPlaceEvent with cancellation
+     * support. It uses LevelBridge to capture block states during item placement and
+     * rolls back changes if the event is cancelled.
      */
     @Overwrite
     public InteractionResult useOn(UseOnContext context) {

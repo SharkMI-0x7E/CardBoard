@@ -26,6 +26,12 @@ public class ResetProfessionMixin {
     /**
      * @reason Fire VillagerCareerChangeEvent
      * @author cardboard
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely replaces the
+     * create() method to fire VillagerCareerChangeEvent when a villager loses their
+     * job site. It allows event cancellation and profession modification, which
+     * requires rewriting the entire behavior logic rather than just injecting at
+     * a specific point.
      */
     @Overwrite
     public static BehaviorControl<Villager> create() {

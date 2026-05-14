@@ -245,6 +245,7 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
      * @author cardboard
      * @reason PlayerTeleportEvent
      */
+    // TODO: @Overwrite retained - complete teleport validation with PlayerTeleportEvent firing and relative position handling, cannot be safely split
     @Overwrite
     //public void requestTeleport(double d0, double d1, double d2, float f, float f1, Set<PositionFlag> set) {
     public void teleport( PositionMoveRotation pos, Set<Relative> flags) {
@@ -260,8 +261,8 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
         
         Vec3 poss = pos.position();
         double x = poss.x;
-        double y = poss.x;
-        double z = poss.x;
+        double y = poss.y;
+        double z = poss.z;
         
         float yaw = pos.yRot();
         float pitch = pos.xRot();

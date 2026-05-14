@@ -79,6 +79,11 @@ public abstract class ServerScoreboardMixin extends Scoreboard implements Server
     /**
      * @author Cardboard
      * @reason bukkitize scoreboard
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite rewrites startTrackingObjective
+     * to send scoreboard packets only to players using this specific scoreboard instance
+     * (Bukkit's per-player scoreboard isolation). The original method broadcasts to all
+     * players, which breaks Bukkit's scoreboard API contract.
      */
     @Overwrite
     public void startTrackingObjective(Objective objective) {
@@ -95,6 +100,11 @@ public abstract class ServerScoreboardMixin extends Scoreboard implements Server
     /**
      * @author Cardboard
      * @reason bukkitize scoreboard
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite rewrites stopTrackingObjective
+     * to send removal packets only to players using this specific scoreboard instance
+     * (Bukkit's per-player scoreboard isolation). The original method broadcasts to all
+     * players, which breaks Bukkit's scoreboard API contract.
      */
     @Overwrite
     public void stopTrackingObjective(Objective objective) {

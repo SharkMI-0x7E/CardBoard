@@ -12,8 +12,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.entity.SheepDyeWoolEvent;
 import org.cardboardpowered.util.MixinInfo;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import org.cardboardpowered.bridge.world.entity.EntityBridge;
 
@@ -24,29 +26,35 @@ public class DyeItemMixin {
     @Shadow
     public DyeColor dyeColor;
 
-    /**
-     * @reason .
-     * @author .
-     */
     @SuppressWarnings("deprecation")
-    @Overwrite
-    public InteractionResult interactLivingEntity(ItemStack itemstack, Player entityhuman, LivingEntity entityliving, InteractionHand enumhand) {
-        if (!(entityliving instanceof Sheep)) return InteractionResult.PASS;
+    @Inject(method = "interactLivingEntity", at = @At("HEAD"), cancellable = true)
+    private void cardboard$onInteractLivingEntity(ItemStack itemstack, Player entityhuman, LivingEntity entityliving, InteractionHand enumhand, CallbackInfoReturnable<InteractionResult> ci) {
+        if (!(entityliving instanceof Sheep entitysheep)) {
+            return;
+        }
 
-        Sheep entitysheep = (Sheep) entityliving;
         if (entitysheep.isAlive() && !entitysheep.isSheared() && entitysheep.getColor() != this.dyeColor) {
             if (!entityhuman.level().isClientSide()) {
                 byte bColor = (byte) this.dyeColor.getId();
-                SheepDyeWoolEvent event = new SheepDyeWoolEvent((org.bukkit.entity.Sheep) ((EntityBridge)entitysheep).getBukkitEntity(), org.bukkit.DyeColor.getByWoolData(bColor));
+                SheepDyeWoolEvent event = new SheepDyeWoolEvent(
+                    (org.bukkit.entity.Sheep) ((EntityBridge) entitysheep).getBukkitEntity(),
+                    org.bukkit.DyeColor.getByWoolData(bColor)
+                );
                 Bukkit.getServer().getPluginManager().callEvent(event);
-                if (event.isCancelled()) return InteractionResult.PASS;
 
-                entitysheep.setColor(DyeColor.byId((byte) event.getColor().getWoolData()));
-                itemstack.shrink(1);
+                if (event.isCancelled()) {
+                    ci.setReturnValue(InteractionResult.PASS);
+                    ci.cancel();
+                    return;
+                }
+
+                // 如果事件修改了颜色，更新dyeColor字段让原始方法使用
+                DyeColor newColor = DyeColor.byId((byte) event.getColor().getWoolData());
+                if (newColor != this.dyeColor) {
+                    this.dyeColor = newColor;
+                }
             }
-            return InteractionResult.SUCCESS; // ActionResult.success(entityhuman.getWorld().isClient);
         }
-        return InteractionResult.PASS;
     }
 
 }

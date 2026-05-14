@@ -26,6 +26,12 @@ public class LegacyQueryHandlerMixin {
     /**
      * @reason Add ServerListPingEvent
      * @author bukkit4fabric
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely rewrites the
+     * channelRead method to intercept legacy ping packets (1.3.x-1.6) and fire
+     * ServerListPingEvent before responding. The original method handles raw ByteBuf
+     * parsing and protocol-specific response formatting, which cannot be split into
+     * multiple injection points.
      */
     @Overwrite
     public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {

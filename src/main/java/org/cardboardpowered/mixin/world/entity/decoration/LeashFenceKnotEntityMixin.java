@@ -28,6 +28,12 @@ public class LeashFenceKnotEntityMixin {
     /**
      * @author Cardboard mod
      * @reason PlayerLeashEntityEvent
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely rewrites the
+     * interact method to fire PlayerLeashEntityEvent and PlayerUnleashEntityEvent
+     * with cancellation support. The original method handles both leashing and
+     * unleashing logic with event checks that cannot be split into separate
+     * injection points.
      */
     @Overwrite
     public InteractionResult interact(Player entityhuman, InteractionHand enumhand) {

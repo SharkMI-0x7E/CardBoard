@@ -46,6 +46,11 @@ public class RegistryDataLoaderMixin {
     /**
      * @author Cardboard
      * @reason Paper: add method to get the value for pre-filling builders in the reg mod API
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely replaces the
+     * createContext method to add Paper's lookupForValueCopyViaBuilders() method
+     * which provides HolderLookup.Provider for registry builders. The original
+     * method is extended with Paper-specific registry context functionality.
      */
     @Overwrite
     private static RegistryOps.RegistryInfoLookup createContext(List<HolderLookup.RegistryLookup<?>> registries, List<Loader<?>> additionalRegistries) {

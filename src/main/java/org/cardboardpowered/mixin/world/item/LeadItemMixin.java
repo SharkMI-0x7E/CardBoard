@@ -35,8 +35,13 @@ public class LeadItemMixin extends Item {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Cardboard
+     * @reason Fire HangingPlaceEvent and PlayerLeashEntityEvent
+     *
+     * TODO: Cannot replace with @Inject - this @Overwrite completely rewrites the
+     * bindPlayerMobs method to fire HangingPlaceEvent when creating a leash knot
+     * and PlayerLeashEntityEvent for each mob being leashed, with cancellation
+     * support for both events.
      */
     @Overwrite
     public static InteractionResult bindPlayerMobs(net.minecraft.world.entity.player.Player player, Level world, BlockPos pos) {
