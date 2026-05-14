@@ -701,7 +701,7 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
         }
     }
 
-    @Inject(at = @At("HEAD"), cancellable = true)
+    @Inject(method = "handleSetCarriedItem", at = @At("HEAD"), cancellable = true)
     private void cardboard$handleSetCarriedItem(ServerboundSetCarriedItemPacket packetplayinhelditemslot, CallbackInfo ci) {
         PacketUtils.ensureRunningOnSameThread(packetplayinhelditemslot, get(), this.player.level());
         if (packetplayinhelditemslot.getSlot() >= 0 && packetplayinhelditemslot.getSlot() < Inventory.getSelectionSize()) {
