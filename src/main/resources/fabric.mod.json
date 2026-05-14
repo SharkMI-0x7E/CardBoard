@@ -3,14 +3,19 @@
   "id": "cardboard",
   "version": "${version}",
 
-  "name": "Cardboard",
-  "description": "An implementation of the popular Spigot/Paper API for Fabric",
+  "name": "Cardboard SharkMI",
+  "description": "SharkMI fork of Cardboard - An implementation of the popular Spigot/Paper API for Fabric, with enhanced mixin compatibility and performance improvements",
   "authors": [
+    "SharkMI",
     "Isaiah"
   ],
+  "contributors": [
+    "SharkMI-0x7E"
+  ],
   "contact": {
-    "homepage": "https://cardboardpowered.org/",
-    "sources": "https://github.com/CardboardPowered/"
+    "homepage": "https://github.com/SharkMI-0x7E/CardBoard",
+    "sources": "https://github.com/SharkMI-0x7E/CardBoard",
+    "issues": "https://github.com/SharkMI-0x7E/CardBoard/issues"
   },
 
   "license": "GPLv3",
