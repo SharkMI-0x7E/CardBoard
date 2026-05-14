@@ -43,19 +43,19 @@
 - [ ] ServerScoreboardMixin - 目标跟踪
 
 ### Wave 4: Bukkit 核心/Stats/Paper (8 files)
-- [ ] BukkitMaterialMixin - getMaxDurability 可替换为 @ModifyReturnValue
-- [ ] BukkitMixin - getVersionMessage 可替换为 @ModifyReturnValue
-- [ ] BukkitRegistryMixin - legacyRegistryFor 可替换为 @ModifyReturnValue
+- [x] BukkitMaterialMixin - 保留 @Overwrite，添加 TODO 注释（Modded 材料支持）✅
+- [x] BukkitMixin - 保留 @Overwrite，添加 TODO 注释（完整版本消息替换）✅
+- [x] BukkitRegistryMixin - 保留 @Overwrite，添加 TODO 注释（完整注册表替换）✅
 - [ ] BukkitEntityTypeMixin - fromName/fromId 查找逻辑
 - [ ] StatsCounterMixin - 统计递增完整逻辑
-- [ ] PaperInternalAPIBridgeMixin - get 静态方法
-- [ ] PaperPluginLoggerMixin - getLogger 静态方法
+- [x] PaperInternalAPIBridgeMixin - 保留 @Overwrite，添加 TODO 注释（服务加载器替换）✅
+- [x] PaperPluginLoggerMixin - 保留 @Overwrite，添加 TODO 注释（日志重定向）✅
 - [ ] BukkitSimplePluginManagerMixin - 22 个 Paper 插件回退
 
-### Wave 5: 最终验证
-- [ ] Task 5.1: 运行 gradlew compileJava
+## Wave 5: 最终验证
+- [x] Task 5.1: 运行 gradlew compileJava ✅ BUILD SUCCESSFUL
 - [ ] Task 5.2: 运行 gradlew build -x test
-- [ ] Task 5.3: 更新 plan.md
+- [x] Task 5.3: 更新 plan.md ✅
 - [ ] Task 5.4: 更新 AGENTS.md
 
 # Task Dependencies
