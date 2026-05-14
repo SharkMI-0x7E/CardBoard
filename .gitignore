@@ -33,9 +33,9 @@ build/
 repos/tempp/*
 lib/
 
-AGENTS.md
+# AI assistant docs (tracked)
 CLAUDE.md
+
+# Build artifacts and auto-generated
 plan.md
-
-
 ./trae
