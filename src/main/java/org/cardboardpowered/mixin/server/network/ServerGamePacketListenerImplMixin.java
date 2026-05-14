@@ -700,12 +700,8 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
         }
     }
 
-    /**
-     * @reason .
-     * @author .
-     */
-    @Overwrite
-    public void handleSetCarriedItem(ServerboundSetCarriedItemPacket packetplayinhelditemslot) {
+    @Inject(at = @At("HEAD"), cancellable = true)
+    private void cardboard$handleSetCarriedItem(ServerboundSetCarriedItemPacket packetplayinhelditemslot, CallbackInfo ci) {
         PacketUtils.ensureRunningOnSameThread(packetplayinhelditemslot, get(), this.player.level());
         if (packetplayinhelditemslot.getSlot() >= 0 && packetplayinhelditemslot.getSlot() < Inventory.getSelectionSize()) {
             PlayerItemHeldEvent event = new PlayerItemHeldEvent(this.getPlayer(), this.player.inventory.selected, packetplayinhelditemslot.getSlot());
@@ -713,14 +709,16 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
             if (event.isCancelled()) {
                 this.send(new ClientboundSetHeldSlotPacket(this.player.inventory.selected));
                 this.player.resetLastActionTime();
+                ci.cancel();
                 return;
             }
-            if (this.player.inventory.selected != packetplayinhelditemslot.getSlot() && this.player.getUsedItemHand() == InteractionHand.MAIN_HAND) this.player.stopUsingItem();
-            this.player.inventory.selected = packetplayinhelditemslot.getSlot();
-            this.player.resetLastActionTime();
+            if (this.player.inventory.selected != packetplayinhelditemslot.getSlot() && this.player.getUsedItemHand() == InteractionHand.MAIN_HAND) {
+                this.player.stopUsingItem();
+            }
         } else {
             System.out.println(this.player.getName().getString() + " tried to set an invalid carried item");
             this.disconnect(Component.nullToEmpty("Invalid hotbar selection (Hacking?)")); // CraftBukkit
+            ci.cancel();
         }
     }
 

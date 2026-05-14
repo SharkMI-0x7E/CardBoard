@@ -75,6 +75,10 @@ public class BukkitMaterialMixin implements BukkitMaterialBridge {
 	/**
 	 * @author Cardboard
 	 * @reason Support Modded Materials
+	 *
+	 * TODO: Cannot replace with @ModifyReturnValue - this adds modded material
+	 * support via isModded() check, which fundamentally extends the original logic
+	 * rather than simply post-processing the return value.
 	 */
 	@Overwrite
     public short getMaxDurability() {
@@ -88,6 +92,10 @@ public class BukkitMaterialMixin implements BukkitMaterialBridge {
 	/**
 	 * @author Cardboard
 	 * @reason Support Modded Materials
+	 *
+	 * TODO: Cannot replace with @ModifyReturnValue - this @Overwrite removes the
+	 * Preconditions.checkArgument(legacy, ...) guard from the original, allowing
+	 * getId() to be called on modern materials.
 	 */
     @Overwrite
     public int getId() {

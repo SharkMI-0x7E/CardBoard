@@ -1,0 +1,37 @@
+- [ ] Task 1.1: ServerGamePacketListenerImplMixin 编译通过且无 @Overwrite
+- [ ] Task 1.2: ServerGamePacketListenerImplMixin_PlayerCommandPreprocessEvent 编译通过且无 @Overwrite
+- [ ] Task 1.3: ServerGamePacketListenerImplMixin_PlayerMove 编译通过且无 @Overwrite
+- [ ] Task 1.4: ServerLoginPacketListenerImplMixin 编译通过且无 @Overwrite
+- [ ] Task 1.5: LegacyQueryHandlerMixin 编译通过且无 @Overwrite
+- [ ] Task 1.6: DedicatedServerMixin 编译通过且无 @Overwrite
+- [ ] Task 2.1: ExplosionMixin 编译通过且无 @Overwrite
+- [ ] Task 2.2: LevelStorageSource_LevelStorageAccessMixin 编译通过且无 @Overwrite
+- [ ] Task 2.3: LecternMenuMixin 编译通过且无 @Overwrite
+- [ ] Task 2.4: ContainerLevelAccessMixin 编译通过且无 @Overwrite（或评估后保留）
+- [ ] Task 2.5: DyeItemMixin 编译通过且无 @Overwrite
+- [ ] Task 2.6: EndCrystalItemMixin 编译通过且无 @Overwrite
+- [ ] Task 2.7: EnderpearlItemMixin 编译通过且无 @Overwrite
+- [ ] Task 2.8: LeadItemMixin 编译通过且无 @Overwrite
+- [ ] Task 2.9: ProjectileWeaponItemMixin 编译通过且无 @Overwrite
+- [ ] Task 2.10: SnowballItemMixin 编译通过且无 @Overwrite
+- [ ] Task 3.1: ItemStackMixin 编译通过且无 @Overwrite
+- [ ] Task 3.2: BambooStalkBlockMixin 编译通过且无 @Overwrite
+- [ ] Task 3.3: ResetProfessionMixin 编译通过且无 @Overwrite
+- [ ] Task 3.4: LeashFenceKnotEntityMixin 编译通过且无 @Overwrite
+- [ ] Task 3.5: PiglinAiMixin 编译通过且无 @Overwrite
+- [ ] Task 3.6: BuiltInRegistriesMixin 编译通过且无 @Overwrite
+- [ ] Task 3.7: RegistryDataLoaderMixin 编译通过且无 @Overwrite
+- [ ] Task 3.8: ServerScoreboardMixin 编译通过且无 @Overwrite
+- [ ] Task 4.1: BukkitMaterialMixin 编译通过且无 @Overwrite
+- [ ] Task 4.2: BukkitMixin 编译通过且无 @Overwrite
+- [ ] Task 4.3: BukkitRegistryMixin 编译通过且无 @Overwrite
+- [ ] Task 4.4: BukkitEntityTypeMixin 编译通过且无 @Overwrite
+- [ ] Task 4.5: StatsCounterMixin 编译通过且无 @Overwrite
+- [ ] Task 4.6: PaperInternalAPIBridgeMixin 编译通过且无 @Overwrite
+- [ ] Task 4.7: PaperPluginLoggerMixin 编译通过且无 @Overwrite
+- [ ] Task 4.8: BukkitSimplePluginManagerMixin 编译通过（评估是否保留 @Overwrite）
+- [ ] gradlew compileJava 通过，零错误
+- [ ] gradlew build -x test 通过，零错误
+- [ ] Grep @Overwrite 在 mixin 目录中仅剩余已注释或特殊保留的（目标：0 个活跃的 @Overwrite）
+- [ ] plan.md 已更新 Phase 1 完成状态
+- [ ] AGENTS.md Mixin Category Map 已更新

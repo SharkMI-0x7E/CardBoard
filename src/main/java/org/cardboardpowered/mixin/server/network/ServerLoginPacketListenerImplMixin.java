@@ -144,6 +144,7 @@ public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginP
 	 * @author cardboard
 	 * @reason Bukkit login changes
 	 */
+	// TODO: Cannot replace with @Inject - requires replicating full vanilla key validation + encryption + authentication flow which uses private fields and methods not accessible via @Shadow
 	@Overwrite
 	public void handleKey(ServerboundKeyPacket packet) {
 		Validate.validState(this.state == ServerLoginPacketListenerImpl.State.KEY, "Unexpected key packet", new Object[0]);
@@ -348,7 +349,7 @@ public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginP
 	 * @author cardboard mod
 	 * @reason
 	 */
-	// TODO: Overwrite can be replaced with something else.
+	// TODO: Cannot replace with @Inject - wraps around login completion flow with Bukkit event handling, requires access to private state
 	@Overwrite
 	private void verifyLoginAndFinishConnectionSetup(GameProfile profile) {
 		PlayerList playerList = this.server.getPlayerList();

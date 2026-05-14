@@ -205,7 +205,7 @@ debug-print-all-calls: false
 - [BukkitTeam](https://bukkit.org/)、[Spigot](https://spigotmc.org/) 和 [Paper](https://papermc.io/) 的 API 工作
 - [Glowstone](https://glowstone.net) 的库加载器
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
-- 所有 [Cardboard 贡献者](../../graphs/contributors)
+- 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 
 ## 合作伙伴
 

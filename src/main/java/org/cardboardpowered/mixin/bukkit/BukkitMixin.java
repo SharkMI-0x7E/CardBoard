@@ -17,6 +17,9 @@ public class BukkitMixin {
 	 * 
 	 * @author cardboard
 	 * @reason META-INF
+	 *
+	 * TODO: Cannot replace with @ModifyReturnValue - this method completely replaces
+	 * the original Bukkit logic to use Fabric ModMetadata instead of META-INF.
 	 */
 	@Overwrite(remap = false)
     public static String getVersionMessage() {

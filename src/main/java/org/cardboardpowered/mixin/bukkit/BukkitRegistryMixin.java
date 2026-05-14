@@ -15,6 +15,11 @@ import java.util.Objects;
 @Mixin(value = Registry.class, remap = false)
 public interface BukkitRegistryMixin {
 	
+	/**
+	 * TODO: Cannot replace with @ModifyReturnValue - this static method completely
+	 * replaces the original Bukkit legacyRegistryFor logic to use Paper's
+	 * RegistryAccess instead of Bukkit's internal registry resolution.
+	 */
 	@Overwrite(remap = false)
     private static <A extends Keyed> Registry<A> legacyRegistryFor(final Class<A> clazz) {
         return Objects.requireNonNull(RegistryAccess.registryAccess().getRegistry(clazz),

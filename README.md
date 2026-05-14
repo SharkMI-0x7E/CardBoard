@@ -205,7 +205,7 @@ See [plan.md](plan.md) for detailed plans:
 - [BukkitTeam](https://bukkit.org/), [Spigot](https://spigotmc.org/), and [Paper](https://papermc.io/) for their work on the API
 - [Glowstone](https://glowstone.net) for the library loader
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource), [SrgLib by Techcable & Orion](https://github.com/OrionMinecraft/SrgLib), [MinecraftMapping by Phase](https://github.com/phase/MinecraftMapping/)
-- All [Cardboard contributors](../../graphs/contributors)
+- All [Cardboard contributors](https://github.com/CardboardPowered/cardboard)
 
 ## Partners
 

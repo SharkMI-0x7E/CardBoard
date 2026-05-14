@@ -14,6 +14,9 @@ public interface PaperInternalAPIBridgeMixin {
      * 
      * @author Cardboard
      * @reason Avoid Services
+     *
+     * TODO: Cannot replace with @ModifyReturnValue - this static method completely replaces
+     * the original Paper service loader logic with direct access to PaperServerInternalAPIBridge.INSTANCE.
      */
 	@Overwrite(remap = false)
     static InternalAPIBridge get() {

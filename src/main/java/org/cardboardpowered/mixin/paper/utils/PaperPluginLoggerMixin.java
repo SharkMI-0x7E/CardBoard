@@ -34,6 +34,10 @@ public class PaperPluginLoggerMixin {
 	/**
 	 * @author cardboard
 	 * @reason plugin logger
+	 *
+	 * TODO: Cannot replace with @ModifyReturnValue - this static method completely replaces
+	 * the original PaperPluginLogger.getLogger() logic to redirect to BukkitLogger instead
+	 * of creating a Paper-specific logger.
 	 */
     @Overwrite
     @NotNull
