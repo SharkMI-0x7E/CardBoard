@@ -5,13 +5,24 @@ import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cardboardpowered.CardboardConfig;
 import org.cardboardpowered.compat.ModCompatibilityDatabase;
 import org.cardboardpowered.compat.ModCompatibilityRule;
+import org.cardboardpowered.conflict.ConflictReport;
+import org.cardboardpowered.conflict.MixinAnnotationScanner;
+import org.cardboardpowered.conflict.MixinConfigScanner;
+import org.cardboardpowered.conflict.MixinConflictDetector;
+import org.cardboardpowered.conflict.model.MixinClassInfo;
+import org.cardboardpowered.conflict.model.MixinConfigData;
+import org.cardboardpowered.conflict.model.MixinConflict;
 import org.cardboardpowered.library.Libraries;
 import org.cardboardpowered.library.Library;
 import org.cardboardpowered.library.LibraryManager;
@@ -29,6 +40,8 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
     public static boolean libload = true;
     private static boolean read_plugins = false;
     private static ModCompatibilityDatabase compatDatabase;
+    private static List<MixinConflict> scanResults = Collections.emptyList();
+    private static Set<String> fatalMixinSet = new HashSet<>();
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -54,6 +67,10 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
             logger.info("Automatic mod conflict resolution is disabled.");
         }
         
+        if (CardboardConfig.runtimeConflictScan) {
+            runConflictScan();
+        }
+        
         if (pl.exists()) {
         	try {
                 JarReader.readPlugins(pl);
@@ -68,6 +85,47 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
     @Deprecated
     public static void loadLibs() {
     	Libraries.loadLibs();
+    }
+    
+    /**
+     * Phase 3: Runtime Mixin conflict scan.
+     * Called early in onLoad() to cache results for shouldApplyMixin().
+     */
+    private void runConflictScan() {
+        long startTime = System.currentTimeMillis();
+        try {
+            logger.info("Starting runtime Mixin conflict scan...");
+            
+            MixinConfigScanner configScanner = new MixinConfigScanner();
+            List<MixinConfigData> configs = configScanner.scanAllMods();
+            
+            MixinAnnotationScanner asmScanner = new MixinAnnotationScanner();
+            List<MixinClassInfo> classInfos = asmScanner.scanAllConfigs(configs);
+            
+            MixinConflictDetector detector = new MixinConflictDetector(null, compatDatabase);
+            List<MixinConflict> conflicts = detector.detect(classInfos);
+            
+            scanResults = conflicts != null ? conflicts : Collections.emptyList();
+            fatalMixinSet = detector.getFatalMixinSet();
+            
+            int cardboardCount = (int) classInfos.stream()
+                    .filter(c -> c.sourceModId != null && c.sourceModId.toLowerCase().contains("cardboard"))
+                    .count();
+            long otherMods = classInfos.stream()
+                    .map(c -> c.sourceModId)
+                    .filter(id -> id != null && !id.toLowerCase().contains("cardboard"))
+                    .distinct()
+                    .count();
+            
+            ConflictReport report = new ConflictReport(scanResults, cardboardCount, (int) otherMods, System.currentTimeMillis() - startTime);
+            report.printConsole();
+            
+            if (CardboardConfig.conflictScanJsonOutput) {
+                report.writeJson();
+            }
+        } catch (Exception e) {
+            logger.warn("Mixin conflict scan failed: {}. Mixins will load without conflict checks.", e.getMessage());
+        }
     }
     
     @Deprecated
@@ -95,6 +153,13 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
                     logger.info("Disabling mixin '" + mixin + "' due to compatibility rule for mod: " + rule.getModName());
                     return false;
                 }
+            }
+        }
+
+        if (!scanResults.isEmpty() && CardboardConfig.autoDisableFatalConflicts) {
+            if (fatalMixinSet.contains(mixinClassName)) {
+                logger.warn("Auto-disabling mixin '" + mixin + "' due to FATAL conflict");
+                return false;
             }
         }
 
