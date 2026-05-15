@@ -219,12 +219,7 @@ debug-print-all-calls: false
 - [Glowstone](https://glowstone.net) 的库加载器
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
 - 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
-
-## 合作伙伴
-
-本项目与 [Apex Hosting](https://billing.apexminecrafthosting.com/aff.php?aff=3548) 合作！加入我们的测试服务器：`cardboardmod.apexmc.co:25666`
-
-[![Apex Hosting](https://cdn.apexminecrafthosting.com/img/theme/apex-hosting-mobile.png)](https://billing.apexminecrafthosting.com/aff.php?aff=3548)
+- 所有 [SharkMI Fork 贡献者](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
 
 ## 许可证
 

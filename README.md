@@ -218,12 +218,7 @@ See [plan.md](plan.md) for detailed plans:
 - [Glowstone](https://glowstone.net) for the library loader
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource), [SrgLib by Techcable & Orion](https://github.com/OrionMinecraft/SrgLib), [MinecraftMapping by Phase](https://github.com/phase/MinecraftMapping/)
 - All [Cardboard contributors](https://github.com/CardboardPowered/cardboard)
-
-## Partners
-
-This project is partnered with [Apex Hosting](https://billing.apexminecrafthosting.com/aff.php?aff=3548)! Join our test server: `cardboardmod.apexmc.co:25666`
-
-[![Apex Hosting](https://cdn.apexminecrafthosting.com/img/theme/apex-hosting-mobile.png)](https://billing.apexminecrafthosting.com/aff.php?aff=3548)
+- All [SharkMI fork contributors](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
 
 ## License
 
