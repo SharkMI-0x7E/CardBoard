@@ -231,7 +231,7 @@ modrinth {
     // TODO: Create a Modrinth page for SharkMI fork and update this projectId
     // Current projectId is from the official Cardboard project - do NOT publish to it
     projectId = "MLYQ9VGP"
-    versionNumber = "1.21.11-SharkMI-" + System.env.BUILD_NUMBER
+    versionNumber = "1.21.11-" + System.env.BUILD_NUMBER
     versionType = "beta"
     uploadFile = remapJar // With Loom, this MUST be set to `remapJar` instead of `jar`!
     gameVersions = ["1.21.11"]
