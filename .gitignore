@@ -39,3 +39,5 @@ CLAUDE.md
 # Build artifacts and auto-generated
 plan.md
 ./trae
+
+./docs/phase3-mixin-conflict-detector.md
