@@ -1,0 +1,46 @@
+package org.cardboardpowered.conflict;
+
+import java.util.Set;
+
+/**
+ * Centralized Mixin/MixinExtras annotation descriptor constants.
+ * All descriptors use full JVM internal format to avoid scattered hardcoding.
+ */
+public final class MixinAnnotationDescriptor {
+
+    private MixinAnnotationDescriptor() {}
+
+    // Core Mixin annotations
+    public static final String MIXIN = "Lorg/spongepowered/asm/mixin/Mixin;";
+    public static final String OVERWRITE = "Lorg/spongepowered/asm/mixin/Overwrite;";
+    public static final String INJECT = "Lorg/spongepowered/asm/mixin/injection/Inject;";
+    public static final String REDIRECT = "Lorg/spongepowered/asm/mixin/injection/Redirect;";
+    public static final String MODIFY_ARG = "Lorg/spongepowered/asm/mixin/injection/ModifyArg;";
+    public static final String MODIFY_VARIABLE = "Lorg/spongepowered/asm/mixin/injection/ModifyVariable;";
+    public static final String MODIFY_RETURN_VALUE = "Lorg/spongepowered/asm/mixin/injection/ModifyReturnValue;";
+    public static final String SHADOW = "Lorg/spongepowered/asm/mixin/Shadow;";
+    public static final String UNIQUE = "Lorg/spongepowered/asm/mixin/Unique;";
+    public static final String WRAP_WITH_CONDITION = "Lorg/spongepowered/asm/mixin/injection/WrapWithCondition;";
+
+    // MixinExtras annotations
+    public static final String ME_WRAP_WITH_CONDITION = "Lcom/llamalad7/mixinextras/spongepowered/WrapWithCondition;";
+    public static final String ME_WRAP_OPERATION = "Lcom/llamalad7/mixinextras/spongepowered/WrapOperation;";
+    public static final String ME_MODIFY_EXPRESSION_VALUE = "Lcom/llamalad7/mixinextras/spongepowered/ModifyExpressionValue;";
+
+    // At annotation
+    public static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";
+
+    // Set of all known method-level injection annotations (excludes @Mixin, @Shadow, @Unique)
+    public static final Set<String> KNOWN_INJECT_ANNOTATIONS = Set.of(
+        OVERWRITE,
+        INJECT,
+        REDIRECT,
+        MODIFY_ARG,
+        MODIFY_VARIABLE,
+        MODIFY_RETURN_VALUE,
+        WRAP_WITH_CONDITION,
+        ME_WRAP_WITH_CONDITION,
+        ME_WRAP_OPERATION,
+        ME_MODIFY_EXPRESSION_VALUE
+    );
+}

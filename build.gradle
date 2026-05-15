@@ -119,6 +119,14 @@ dependencies {
     extraLibs fileTree(dir: 'libs', include: "srglib-0.1.2.jar")
     include(modImplementation("net.md-5:SpecialSource:1.11.2"))
 
+    // ASM for Mixin conflict detection (Phase 3)
+    implementation "org.ow2.asm:asm:9.8"
+    implementation "org.ow2.asm:asm-tree:9.8"
+
+    // JUnit 5 for Phase 3 unit tests
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
     compileOnly fileTree(dir: 'libs', include: "srglib-0.1.2.jar")
     
     include(modImplementation("net.neoforged:srgutils:1.0.9")) // Mappings handling
@@ -194,6 +202,10 @@ tasks.withType(JavaCompile) {
 
 dependencyCheck {
     failBuildOnCVSS = 7
+}
+
+test {
+    useJUnitPlatform()
 }
 
 jar {
