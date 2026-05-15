@@ -33,6 +33,7 @@ This is a fork of the official [Cardboard](https://github.com/CardboardPowered/c
 - **carpet-tis-addition compatibility**: Fixed boat item placement conflicts
 - **Fabric API NPE fix**: Resolved crash caused by Fabric API field injection timing
 - **OWASP security scanning**: Integrated OWASP Dependency-Check into the build pipeline
+- **Mixin conflict detection tool**: Built-in runtime scanner that detects mixin conflicts across all loaded mods at startup (6 detection rules, FATAL/HIGH/MEDIUM/LOW severity levels, console + JSON report output, optional auto-disable for fatal conflicts)
 
 ---
 
@@ -98,10 +99,17 @@ auto-conflict-resolution: true
 # Force-disabled mixins (for resolving conflicts)
 mixin-force-disable: []
 
+# Mixin conflict detection
+runtime-conflict-scan: true
+conflict-scan-json-output: false
+auto-disable-fatal-conflicts: false
+
 # Debug options
 debug-print-event-call: false
 debug-print-all-calls: false
 ```
+
+For detailed conflict detection configuration, see [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md).
 
 ## Building
 
@@ -192,9 +200,9 @@ We welcome contributions of all kinds.
 
 See [plan.md](plan.md) for detailed plans:
 
-- Phase 1: Replace all `@Overwrite` (46 files)
-- Phase 2: Mod compatibility database
-- Phase 3: Mixin conflict detection tool
+- Phase 1: Replace all `@Overwrite` (46 files) ✅ **Completed**
+- Phase 2: Mod compatibility database ✅ **Completed**
+- Phase 3: Mixin conflict detection tool ✅ **Completed**
 - Phase 4: Performance optimization and code quality improvements
 
 ## Documentation

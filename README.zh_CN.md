@@ -34,6 +34,7 @@
 - **Fabric API NPE 修复**：解决了 Fabric API 字段注入时序导致的崩溃
 - **OWASP 安全扫描**：在构建流程中集成了 OWASP Dependency-Check
 - **改进的文档**：更详细的描述项目 并添加中文版README
+- **Mixin 冲突检测工具**：内置运行时扫描器，在服务器启动时自动检测所有已加载 Mod 的 Mixin 冲突（6 条检测规则，FATAL/HIGH/MEDIUM/LOW 四级分类，控制台 + JSON 报告输出，可选自动禁用 FATAL 冲突）
 
 ---
 
@@ -99,10 +100,17 @@ auto-conflict-resolution: true
 # 强制禁用的 Mixin（解决冲突用）
 mixin-force-disable: []
 
+# Mixin 冲突检测
+runtime-conflict-scan: true
+conflict-scan-json-output: false
+auto-disable-fatal-conflicts: false
+
 # 调试选项
 debug-print-event-call: false
 debug-print-all-calls: false
 ```
+
+详细的冲突检测配置说明，请参阅 [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md)。
 
 ## 构建说明
 
@@ -193,9 +201,9 @@ debug-print-all-calls: false
 
 详见 [plan.md](plan.md)：
 
-- Phase 1: 全面清理 `@Overwrite`（46 个文件）
-- Phase 2: Mod 兼容性数据库
-- Phase 3: Mixin 冲突检测工具
+- Phase 1: 全面清理 `@Overwrite`（46 个文件）✅ **已完成**
+- Phase 2: Mod 兼容性数据库 ✅ **已完成**
+- Phase 3: Mixin 冲突检测工具 ✅ **已完成**
 - Phase 4: 性能优化与代码质量提升
 
 ## 文档
