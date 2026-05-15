@@ -1,0 +1,11 @@
+- [x] ConflictReportEntry DTO 类创建成功，字段完整，fromConflict() 方法正确转换 - [report/ConflictReportEntry.java](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/conflict/report/ConflictReportEntry.java)
+- [x] ConflictReport 类创建成功，构造函数接收 List<MixinConflict> 和统计信息 - [ConflictReport.java](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/conflict/ConflictReport.java)
+- [x] 控制台报告按级别分区输出（FATAL/HIGH/MEDIUM/LOW）- appendLevelSection() 按级别分组打印
+- [x] 已解决冲突放在 "Resolved Conflicts" 单独分区 - groupConflicts() 将 isResolved=true 的冲突放入 resolvedConflicts 列表，appendConflict() 中 isResolved 参数控制显示 Resolved 前缀
+- [x] 无冲突时输出 "No conflicts detected" - buildConsoleReport() 中 unresolvedCount==0 && resolvedConflicts.isEmpty() 时输出
+- [x] 终端行长度控制生效（~75 字符限制，长文本换行对齐）- appendWrappedLine() 方法实现换行逻辑，MAX_LINE_LENGTH=75
+- [x] JSON 报告包含 timestamp、scanDurationMs、cardboardMixinCount、otherModCount - JsonReport 内部类包含所有字段
+- [x] JSON 报告冲突数组按级别分组（fatal/high/medium/low）- JsonConflicts 内部类按级别分组，buildJsonReport() 中 stream filter 填充
+- [x] JSON 使用 DTO 序列化，不输出 MixinMethod 嵌套对象 - ConflictReportEntry DTO 只保留关键字段，fromConflict() 提取 annotationType/priority
+- [x] JSON 文件写入到 config/cardboard/conflict-report.json - writeJson() 使用 FabricLoader.getConfigDir().resolve("cardboard") 路径
+- [x] gradlew compileJava 编译通过 - BUILD SUCCESSFUL

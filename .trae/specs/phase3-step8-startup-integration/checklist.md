@@ -1,0 +1,11 @@
+- [x] 新增 scanResults 和 fatalMixinSet 静态字段 - [CardboardMixinPlugin.java:L38-L39](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/mixin/CardboardMixinPlugin.java#L38-L39)
+- [x] 必要的 import 语句已添加（MixinConflict, MixinAnnotationScanner, MixinConfigScanner, MixinConflictDetector, ConflictReport 等）
+- [x] onLoad() 中在 compatDatabase 加载后、插件加载前插入扫描代码 - [CardboardMixinPlugin.java:L78-L81](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/mixin/CardboardMixinPlugin.java#L78-L81)
+- [x] 使用 CardboardConfig.runtimeConflictScan 控制扫描开关
+- [x] 扫描流程：configScanner.scanAllMods() → asmScanner.scanAllConfigs() → detector.detect() → report.printConsole() - runConflictScan() 方法
+- [x] scanResults 和 fatalMixinSet 存储到静态字段
+- [x] CardboardConfig.conflictScanJsonOutput 控制 JSON 输出
+- [x] 整个扫描流程在 try-catch 中，失败记录 WARN 日志
+- [x] shouldApplyMixin() 中在 compatDatabase 检查后插入 FATAL 冲突检查 - [CardboardMixinPlugin.java:L160-L165](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/mixin/CardboardMixinPlugin.java#L160-L165)
+- [x] CardboardConfig.autoDisableFatalConflicts + fatalMixinSet.contains() 控制自动禁用
+- [x] gradlew compileJava 编译通过 - BUILD SUCCESSFUL

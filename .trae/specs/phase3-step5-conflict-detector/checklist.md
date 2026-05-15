@@ -1,0 +1,13 @@
+- [x] MixinConflictDetector 类创建成功，包含 detect(List<MixinClassInfo>) 方法
+- [x] R1 规则（双 @Overwrite FATAL）正确检测 - detectOverwriteOverwrite() 实现完成
+- [x] R2 规则（@Overwrite vs @Inject HIGH）正确检测 - detectOverwriteInject() 实现完成
+- [x] R3 规则（@Overwrite vs @Redirect HIGH）正确检测 - detectOverwriteRedirect() 实现完成
+- [x] R4 规则（双 @Redirect MEDIUM）正确检测，@At target 精确匹配生效 - detectRedirectRedirect() 按 method|atTarget 键分组
+- [x] R5 规则（双 @ModifyArg MEDIUM）正确检测，@At target 精确匹配生效 - detectModifyArgModifyArg() 按 method|atTarget 键分组
+- [x] R6 规则（多 @Inject 共存 LOW）正确检测，阈值 5 个生效 - detectInjectInject() 检查 uniqueMods.size() > INJECT_LOW_THRESHOLD
+- [x] 通配符展开功能正确工作（如 method_* 展开为匹配列表）- expandWildcardMethods() + matchWildcard() 将通配符转正则匹配
+- [x] 自冲突过滤生效（同一 Mod 不报告跨 Mod 冲突）- isCrossModConflict() 检查 sourceModId 不同，filterSelfConflicts() 过滤
+- [x] 预构建 fatalMixinSet 包含所有 FATAL 冲突的 Cardboard Mixin 类名 - buildLookupStructures() 中遍历 conflicts 添加到 fatalMixinSet
+- [x] 预构建 conflictMethodMap 支持 O(1) 查找 - buildLookupStructures() 中构建 targetClass#method -> mixinClass 集合映射
+- [x] 与 ModCompatibilityDatabase 集成，已知冲突被正确标记 isResolved=true - markKnownConflicts() 使用 compatDatabase.getRuleForMod() 匹配
+- [x] gradlew compileJava 编译通过 - BUILD SUCCESSFUL

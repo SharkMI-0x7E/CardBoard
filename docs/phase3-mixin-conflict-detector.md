@@ -1,7 +1,7 @@
 # Phase 3: Mixin 冲突检测工具 - 详细实施计划
 
 > **版本**: 1.0
-> **创建日期**: 2026-07-02
+> **创建日期**: 2026-5-14
 > **前置依赖**: Phase 1 (部分完成), Phase 2 (已完成)
 > **预计工期**: 3-4 周
 
@@ -213,6 +213,13 @@ public enum ConflictLevel {
 **跳过列表**:
 - `minecraft`、`fabricloader`、`java`、`cardboard`（自身在 Step 3 单独扫描）
 
+**JAR 扫描性能优化 (v1.0)**:
+- **快速预检机制**: 在打开 JAR 进行完整 ASM 扫描之前，先快速检查 JAR 内是否存在 `*.mixins.json` 文件
+- 如果 JAR 中没有 `*.mixins.json` → **直接跳过整个 JAR 的后续 ASM 字节码分析**，节省大量扫描时间
+- 预检步骤: 使用 `ZipFile.entries()` 快速遍历，遇到第一个 `*.mixins.json` 即停止预检并标记为 "has mixins"
+- 预检耗时通常 < 50ms/JAR，完整 ASM 扫描可能 > 500ms/JAR，节省约 10 倍时间
+- 开发环境目录不需要预检（目录内文件数量通常有限）
+
 **验证**: 能正确列出所有 Mod 的 Mixin 配置和类列表
 
 ---
@@ -235,11 +242,33 @@ public enum ConflictLevel {
    - `@ModifyVariable` → 目标方法
    - `@ModifyReturnValue` → 目标方法
    - `@WrapWithCondition` (MixinExtras) → 目标方法
-5. 返回 `MixinClassInfo` 对象
+   - `@WrapOperation` (MixinExtras) → 目标方法
+   - `@ModifyExpressionValue` (MixinExtras) → 目标方法
 
-**已有基础设施**:
-- 项目已有 ASM 依赖（`RemapUtils.java` 中大量使用）
-- 项目已有 JAR 扫描代码（`JarReader.java`）
+**注解处理策略 (v1.0 鲁棒性优先)**:
+- 已知注解 (上述列表) → 正常提取并记录到 `MixinClassInfo`
+- 未知注解 → **跳过并记录一条 DEBUG 日志**，避免程序崩溃
+- 确保工具本身在遇到未来新增的 Mixin/MixinExtras 注解时不会报错
+- DEBUG 日志格式: `Unknown mixin annotation: {descriptor} in {className}.{methodName}`
+
+**关键实现细节**:
+- **注解描述符集中化**: 所有 Mixin 注解的描述符（如 `Lorg/spongepowered/asm/mixin/Overwrite;`）集中在 `MixinAnnotationDescriptor` 常量类中，不硬编码散落
+- **`@At` 嵌套注解解析**: `@Inject(method="use", at=@At(value="INVOKE", target="..."))` 中 `@At` 是嵌套 `AnnotationNode`，需从 `AnnotationNode.values` 列表中找到 `at=` key，然后递归解析其内部的 `value=` 和 `target=` 字段
+- **`@Mixin` 优先级提取**: 从 `@Mixin` 注解的 `values` 中找到 `priority=` key（默认 1000），处理 `Integer` 类型
+- **跳过 `@Shadow`**: `@Shadow` 字段/方法不参与冲突检测，显式跳过，避免无用处理
+
+**性能优化**:
+- **ASM API 分层**: 先用 `ClassVisitor`（流式，省内存）快速过滤出 Mixin 类，再用 `ClassNode`（树式）详细解析有注解的方法
+- **包名快速过滤**: Cardboard JAR 中包含大量非 Mixin 类（Bukkit API 实现等），遍历时只处理 `mixin/` 包下的 `.class` 文件
+- **解析结果缓存**: 按类全限定名 `Map<String, MixinClassInfo>` 缓存，避免重复 ASM 开销
+
+**复用现有基础设施**:
+- 复用 `JarReader.java` 的 `JarFile.stream()` 遍历 `.class` 条目的模式
+- 复用 `RemapUtils` 中的 `MyMappingResolver` 和 `MappingResolver` 做映射转换
+
+**ASM 依赖注意**:
+- `build.gradle` 中 `exclude(dependency('org.objectweb:asm:*'))` 排除了 ASM，ASM 通过 SpecialSource 等间接引入
+- Step 3 需要**显式声明** ASM 依赖以确保版本可控: `implementation "org.ow2.asm:asm:9.8"` 和 `implementation "org.ow2.asm:asm-tree:9.8"`
 
 **验证**: 能正确解析 Cardboard 自身的 236 个 Mixin 类的注解
 
@@ -262,6 +291,20 @@ public enum ConflictLevel {
 MappingResolver resolver = FabricLoader.getInstance().getMappingResolver();
 String mojangName = resolver.mapClassName("intermediary", intermediaryName);
 ```
+
+**映射转换降级策略 (v1.0)**:
+- 正常情况 → 返回 Mojang 映射名称
+- 转换失败（MappingNotFoundException 等）→ **降级输出格式: `intermediary(unresolved):{originalName}`**
+  - 例如: `intermediary(unresolved):class_1234`
+  - 同时记录 WARN 日志: `Failed to map class "class_1234": {reason}`
+- 降级后的名称仍可用于冲突比较（至少保证同一个 intermediary 名能匹配到）
+- 保留原始 intermediary 名称，方便开发者后续排查映射缺失问题
+
+**关键实现细节**:
+- **复用 RemapUtils.MyMappingResolver**: 项目已有 `RemapUtils.getMyMappingResolver()` 封装了 MappingResolver。直接复用该实例，不重复初始化
+- **输入格式约定**: Step 3 的 `parseTargetClasses` 已将 JVM 描述符转为点号格式。Step 4 接收点号格式输入（如 `net.minecraft.world.entity.vehicle.BoatItem`），不接收 JVM 描述符
+- **intermediary 名称缓存**: 维护 `Map<String, String>` 缓存，同一个类名只查一次 MappingResolver
+- **方法名映射的可行性注意**: `MappingResolver` 主要映射类名。方法名映射可能需要额外 tiny-mapping 文件，如果不可用则降级为原始方法名
 
 **验证**: 能正确转换已知 Mod 的 Mixin 目标类名
 
@@ -286,16 +329,26 @@ String mojangName = resolver.mapClassName("intermediary", intermediaryName);
 
 **算法流程**:
 ```
-1. 按目标类分组所有 Mixin
+1. 按目标类分组所有 Mixin（按 sourceModId + targetClass）
 2. 对每个目标类:
    a. 按目标方法分组
    b. 对每个目标方法:
-      - 收集所有 @Overwrite → 如果 >1 个 → FATAL
-      - 收集所有 @Overwrite + 其他注入 → HIGH
-      - 收集所有 @Redirect/@ModifyArg 的 INVOKE 目标 → 如果重复 → MEDIUM
-      - 收集所有 @Inject → 如果 >1 个 → LOW (信息)
-3. 生成 MixinConflict 列表
+      - 收集所有 @Overwrite → 如果 >1 个且来自不同 Mod → FATAL
+      - 收集所有 @Overwrite + 其他注入 → 如果来自不同 Mod → HIGH
+      - 收集所有 @Redirect/@ModifyArg 的 INVOKE 目标 → 按 @At target 精确匹配 → 如果重复 → MEDIUM
+      - 收集所有 @Inject → 如果 >5 个来自不同 Mod → LOW (信息)
+3. 过滤: 排除 sourceModId 相同的组合（自冲突不是跨 Mod 冲突）
+4. 合并已有规则: 如果某个冲突在 mod-compatibility.yml 中已有处理 → 标记 isResolved=true
+5. 生成 MixinConflict 列表
 ```
+
+**关键实现细节**:
+- **@At target 精确匹配**: 两个 `@Redirect` 的 `method` 都是 `use`，但 `@At(INVOKE, target="LItemStack;isEmpty()Z")` 不同 → 不算冲突。只有 method + @At target 都相同才算
+- **通配符处理**: `method` 字段支持通配符（如 `method_7836` 或 `*`）。需要先展开通配符为精确方法名列表，再做冲突匹配，避免漏检
+- **自冲突过滤**: 同一 Mod 的两个 Mixin 类 @Overwrite 同一方法不属于"跨 Mod 冲突"，应排除。检测条件: `cardboard.sourceModId != other.sourceModId`
+- **已有规则优先**: `mod-compatibility.yml` 中的规则应在检测结果中标记为 `isResolved=true, resolutionNote="Disabled in mod-compatibility.yml"`
+- **R6 阈值控制**: @Inject 共存通常无害。只在 @Inject 数量超过 5 个时报告 LOW，避免大量噪音
+- **预构建快速查找**: 避免在 `shouldApplyMixin` 中做 O(N) 遍历。预构建 `Map<String, Set<String>>`（目标类+方法 → 冲突 Mixin 集合），`shouldApplyMixin` 只做 O(1) 查找
 
 **验证**: 能正确检测已知冲突（carpet-tis-addition、minimotd、fabric-api）
 
@@ -367,6 +420,11 @@ String mojangName = resolver.mapClassName("intermediary", intermediaryName);
 - MEDIUM → "Check if both @Redirect are needed, adjust priority if necessary"
 - LOW → "No action needed, both @Inject should coexist"
 
+**关键实现细节**:
+- **JSON 序列化用 Gson**: 项目已有 Gson。`MixinConflict.cardboardMethod` 和 `otherMethod` 是 `MixinMethod` 对象，直接序列化会输出嵌套 JSON。应使用 DTO 转换（如 `ConflictReportEntry`），只保留关键字段（类名、注解类型、目标方法）
+- **控制台报告行长度限制**: Windows 终端默认 ~80 字符宽度。每条冲突信息应控制在 ~75 字符内，长信息（如修复建议）换行并对齐到缩进位置
+- **已解决冲突单独分区**: `isResolved=true` 的冲突应放在 "Resolved Conflicts (N)" 分区，与未解决的分开。管理员能看到工具自动处理了哪些冲突
+
 **验证**: 报告格式正确，信息完整，可读性好
 
 ---
@@ -393,8 +451,14 @@ conflict_scan_json_output: false
 
 # Auto-disable FATAL conflict mixins
 # Only applies to FATAL level conflicts (double @Overwrite)
-auto_disable_fatal_conflicts: true
+# Default: false (admins should review report before auto-disabling)
+auto_disable_fatal_conflicts: false
 ```
+
+**关键实现细节**:
+- **与现有配置系统保持一致**: 使用现有的 `ConfigSection` + `ConfigEntry` DSL 模式（如 `addSection(new ConfigSection("mixin-conflict-detection"))`），不直接硬编码 YAML
+- **配置项命名一致性**: 现有配置使用下划线（如 `auto_conflict_resolution`）。新增配置项保持一致风格
+- **默认值考虑生产环境**: `auto_disable_fatal_conflicts` 默认值为 `false`。自动禁用 Mixin 可能改变服务器行为，管理员应先看到报告再决定是否启用
 
 **验证**: 配置项可正确读取，默认值合理
 
@@ -420,12 +484,25 @@ public void onLoad(String mixinPackage) {
     }
     
     // Phase 3: Runtime conflict scan
+    // MUST run early in onLoad() - results cached as static for shouldApplyMixin()
     if (CardboardConfig.runtimeConflictScan) {
-        MixinConflictScanner scanner = new MixinConflictScanner();
-        scanResults = scanner.scanAndReport();
-        
-        if (CardboardConfig.conflictScanJsonOutput) {
-            scanner.writeJsonReport();
+        try {
+            MixinAnnotationScanner asmScanner = new MixinAnnotationScanner();
+            MixinConfigScanner configScanner = new MixinConfigScanner();
+            List<MixinConfigData> configs = configScanner.scanAllMods();
+            List<MixinClassInfo> classInfos = asmScanner.scanAllConfigs(configs);
+            
+            MixinConflictDetector detector = new MixinConflictDetector();
+            scanResults = detector.detect(classInfos);
+            
+            ConflictReport report = new ConflictReport(scanResults);
+            report.printConsole();
+            
+            if (CardboardConfig.conflictScanJsonOutput) {
+                report.writeJson();
+            }
+        } catch (Exception e) {
+            logger.warn("Mixin conflict scan failed: {}. Mixins will load without conflict checks.", e.getMessage());
         }
     }
 }
@@ -437,21 +514,24 @@ public void onLoad(String mixinPackage) {
 public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
     // ... existing disabledMixins and compatDatabase checks ...
     
-    // Phase 3: Auto-disable FATAL conflicts
+    // Phase 3: Auto-disable FATAL conflicts (O(1) lookup via pre-built set)
     if (scanResults != null && CardboardConfig.autoDisableFatalConflicts) {
-        for (MixinConflict conflict : scanResults) {
-            if (conflict.level == ConflictLevel.FATAL &&
-                conflict.cardboardMixin.equals(mixinClassName)) {
-                logger.warn("Auto-disabling mixin '" + mixinClassName + 
-                    "' due to FATAL conflict with " + conflict.otherModId);
-                return false;
-            }
+        if (FATAL_MIXIN_SET.contains(mixinClassName)) {
+            logger.warn("Auto-disabling mixin '" + mixinClassName + 
+                "' due to FATAL conflict");
+            return false;
         }
     }
     
     return true;
 }
 ```
+
+**关键实现细节**:
+- **扫描在 onLoad() 早期执行**: `shouldApplyMixin()` 在 Mixin 加载过程中会被调用数百次。扫描必须在 `onLoad()` 中一次性完成，结果缓存到 `static` 变量，`shouldApplyMixin()` 只做 O(1) 查找
+- **复用现有的 shouldApplyMixin 模式**: 现有代码第 91-98 行已有兼容数据库检查逻辑。新增的冲突检测应合并到同一个流程中，不重复遍历
+- **扫描失败不阻止服务器启动**: 整个扫描流程在 try-catch 中，失败时记录 WARN 并返回空结果，不阻止 Mixin 加载
+- **预构建 Set 快速查找**: 在 `detect()` 完成后预构建 `Set<String> FATAL_MIXIN_SET`（包含所有 FATAL 冲突的 Cardboard Mixin 类名）。`shouldApplyMixin` 只做 `FATAL_MIXIN_SET.contains()` O(1) 操作，避免每次调用都做 N 次遍历
 
 **验证**: 启动时自动扫描，FATAL 冲突自动禁用，报告正确输出
 
@@ -473,6 +553,11 @@ public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 | 双 @Overwrite 场景 (模拟) | 检测为 FATAL，自动禁用 |
 | runtime_conflict_scan = false | 不扫描，无输出 |
 | conflict_scan_json_output = true | 生成 JSON 报告文件 |
+
+**测试策略**:
+- **单元测试优先**: 先为 `MixinAnnotationScanner`、`MixinConflictDetector`、`MappingBridge` 写单元测试，再跑端到端。集成测试需要 Fabric 运行时，调试困难
+- **模拟字节码测试 ASM 解析**: 用 ASM `ClassWriter` 动态生成带 Mixin 注解的测试类字节码，验证 `analyzeClass()` 的解析正确性。不需要依赖真实的 Minecraft 类
+- **历史场景标注**: 部分测试场景（如 fabric-api RecipeMapMixin、carpet BoatItemMixin）可能已被 Phase 2 修复。Step 9 应标注哪些是"历史已修复"场景，避免混淆
 
 **验证方法**:
 1. `gradlew build` 编译通过
@@ -516,11 +601,11 @@ Step 1: 数据模型
 
 | 风险 | 概率 | 影响 | 缓解措施 |
 |------|------|------|---------|
-| ASM 字节码分析遇到非标准 Mixin 注解 | 中 | 低 | 对未知注解跳过并记录 warning |
-| 映射转换失败（intermediary → Mojang） | 中 | 中 | 降级为原始名称比较，标记为 "unresolved mapping" |
+| ASM 字节码分析遇到非标准 Mixin 注解 | 中 | 低 | **对未知注解跳过并记录 DEBUG 日志**，确保 v1.0 鲁棒性 |
+| 映射转换失败（intermediary → Mojang） | 中 | 中 | **降级输出 `intermediary(unresolved):class_1234`**，保留原始信息供排查 |
 | 开发环境 getRootPath() 返回目录而非 JAR | 高 | 低 | 同时处理 JAR 和目录两种情况 |
-| 扫描耗时过长 | 低 | 中 | 缓存映射转换结果，跳过无 Mixin 的 Mod |
-| MixinExtras 注解 (@WrapWithCondition 等) | 中 | 低 | 单独处理 MixinExtras 注解描述符 |
+| 扫描耗时过长 | 低 | 中 | **JAR 预检机制**: 先检查 `*.mixins.json` 是否存在，无则跳过 ASM 扫描 |
+| MixinExtras 注解 (@WrapWithCondition, @WrapOperation, @ModifyExpressionValue) | 中 | 低 | v1.0 已知注解列表中已包含，未来新增注解走 DEBUG 日志降级 |
 | Fabric 内部 Mod (fabric-api 分模块) | 低 | 低 | 跳过 `fabric-` 前缀的内部 Mod 或合并处理 |
 
 ---

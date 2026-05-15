@@ -1,0 +1,6 @@
+- [x] build.gradle 中添加了 JUnit 5 测试依赖（junit-jupiter 5.10.0 + junit-platform-launcher）
+- [x] 测试目录结构创建成功（src/test/java/org/cardboardpowered/conflict/）
+- [x] MixinConflictDetector 单元测试覆盖 R1/R2/自冲突过滤/空输入 - [ConflictDetectorUnitTest.java](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/test/java/org/cardboardpowered/conflict/ConflictDetectorUnitTest.java) 共 6 个测试
+- [x] MappingBridge 单元测试覆盖降级策略和 normalizeClassName - [MappingBridgeUnitTest.java](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/test/java/org/cardboardpowered/conflict/MappingBridgeUnitTest.java) 共 7 个测试
+- [x] `gradlew test` 测试通过 - 13 tests completed, 0 failed
+- [x] `gradlew compileJava` 编译通过 - BUILD SUCCESSFUL

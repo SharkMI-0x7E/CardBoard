@@ -1,0 +1,5 @@
+- [x] DEFAULT_CONF 中新增 "mixin-conflict-detection" ConfigSection，包含注释说明 - [CardboardConfig.java:L79-L87](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/CardboardConfig.java#L79-L87)
+- [x] 3 个配置键和默认值正确设置（runtime_conflict_scan: true, conflict_scan_json_output: false, auto_disable_fatal_conflicts: false）
+- [x] 新增 3 个静态字段：runtimeConflictScan, conflictScanJsonOutput, autoDisableFatalConflicts - [CardboardConfig.java:L186-L188](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/CardboardConfig.java#L186-L188)
+- [x] setup() 中正确读取 3 个配置项的值并赋值到静态字段 - [CardboardConfig.java:L225-L227](file:///e:/pythonxiangmuwenjianjia/cardboard-ver-1.21.11/src/main/java/org/cardboardpowered/CardboardConfig.java#L225-L227)
+- [x] gradlew compileJava 编译通过 - BUILD SUCCESSFUL
