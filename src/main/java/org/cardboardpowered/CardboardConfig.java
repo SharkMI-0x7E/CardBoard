@@ -68,15 +68,24 @@ public class CardboardConfig {
 				.values("true")
 			)
 			.addSection(new ConfigSection("auto-conflict-resolution")
-				.comments(
-						"# Automatic Mod Conflict Resolution",
-						"# When enabled, Cardboard automatically reads the mod-compatibility.yml",
-						"# and handles known mixin conflicts with other Fabric mods."
-				)
-				.keys("auto_conflict_resolution")
-				.values("true")
+			.comments(
+					"# Automatic Mod Conflict Resolution",
+					"# When enabled, Cardboard automatically reads the mod-compatibility.yml",
+					"# and handles known mixin conflicts with other Fabric mods."
 			)
-			.addSection(new ConfigSection("prefix-loggers")
+			.keys("auto_conflict_resolution")
+			.values("true")
+		)
+		.addSection(new ConfigSection("mixin-conflict-detection")
+			.comments(
+					"# Mixin Conflict Detection",
+					"# When enabled, Cardboard scans all loaded mods at startup",
+					"# and reports potential Mixin conflicts."
+			)
+			.keys("runtime_conflict_scan", "conflict_scan_json_output", "auto_disable_fatal_conflicts")
+			.values("true", "false", "false")
+		)
+		.addSection(new ConfigSection("prefix-loggers")
 				.comments(
 						"# Console Logging - ",
 						"# \tLog Prefix: Add a prefix to loggers with the plugins's ID like in Paper (ex: '[Essentials]')",
@@ -173,6 +182,9 @@ public class CardboardConfig {
 	public static boolean addPluginPrefixToLogger = true;
 	public static boolean shouldStripConsoleColor = false;
 	public static boolean autoConflictResolution = true;
+	public static boolean runtimeConflictScan = true;
+	public static boolean conflictScanJsonOutput = false;
+	public static boolean autoDisableFatalConflicts = false;
 
     public static void setup() throws Exception {
         File fabDir = FabricLoader.getInstance().getConfigDir().toFile();
@@ -209,6 +221,9 @@ public class CardboardConfig {
         addPluginPrefixToLogger = config.getOrDefault("prefix-plugin-logger", true);
         shouldStripConsoleColor = config.getOrDefault("should-strip-console-color", false);
         autoConflictResolution = config.getOrDefault("auto_conflict_resolution", true);
+        runtimeConflictScan = config.getOrDefault("runtime_conflict_scan", true);
+        conflictScanJsonOutput = config.getOrDefault("conflict_scan_json_output", false);
+        autoDisableFatalConflicts = config.getOrDefault("auto_disable_fatal_conflicts", false);
         
         if (shouldStripConsoleColor && isBetterConsole()) {
         	shouldStripConsoleColor = false;
