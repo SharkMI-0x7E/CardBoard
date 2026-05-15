@@ -8,30 +8,46 @@ on:
 permissions:
   contents: write
 
+env:
+  JAVA_VERSION: '21'
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true"
+
 jobs:
   release:
-    name: Build & Publish Release
+    name: Build & Release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 21
-          cache: gradle
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
 
-      - name: Grant execute permission
+      - name: Extract Version from Tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Release version: ${VERSION}"
+
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build fat jar
+      - name: Build Fat Jar
         run: ./gradlew build -x test
 
-      - name: Find built jar
+      - name: Find Built JAR
         id: find-jar
         run: |
-          JAR=$(find build/libs -name "Cardboard-*.jar" ! -name "*-sources.jar" ! -name "*-dev.jar" | head -n1)
+          JAR=$(find build/libs -name "CardBoard-Fork-SharkMI-*.jar" ! -name "*-sources.jar" ! -name "*-dev.jar" | head -n1)
           echo "jar_path=$JAR" >> $GITHUB_OUTPUT
           echo "jar_name=$(basename $JAR)" >> $GITHUB_OUTPUT
 
@@ -42,11 +58,48 @@ jobs:
           echo "checksum=$SHA" >> $GITHUB_OUTPUT
           echo "$SHA  ${{ steps.find-jar.outputs.jar_name }}" > build/checksums.txt
 
+      - name: Collect Commit History
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "First release, collecting all commits..."
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            echo "Collecting commits from ${PREV_TAG} to ${GITHUB_REF_NAME}..."
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREV_TAG}..HEAD)
+          fi
+
+          {
+            echo "changelog<<EOF"
+            echo "## Changes since last release"
+            echo ""
+            echo "${COMMITS}"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          name: CardBoard Fork SharkMI ${{ steps.get_version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
           files: |
             ${{ steps.find-jar.outputs.jar_path }}
             build/checksums.txt
-          generate_release_notes: true
-          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+
+      - name: Publish to Modrinth
+        if: ${{ secrets.MODRINTH_TOKEN != '' }}
+        run: ./gradlew modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+
+      - name: Publish Success Summary
+        if: success()
+        run: |
+          echo "Release successful!"
+          echo "Version: ${{ steps.get_version.outputs.version }}"
+          echo "GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
