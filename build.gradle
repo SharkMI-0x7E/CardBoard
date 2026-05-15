@@ -227,16 +227,33 @@ shadowJar {
 }
 
 modrinth {
-    token = System.getenv("MODRINTH") // This is the default. Remember to have the MODRINTH_TOKEN environment variable set or else this will fail, or set it to whatever you want - just make sure it stays private!
+    token = System.getenv("MODRINTH_TOKEN")
     // TODO: Create a Modrinth page for SharkMI fork and update this projectId
     // Current projectId is from the official Cardboard project - do NOT publish to it
     projectId = "MLYQ9VGP"
-    versionNumber = "1.21.11-" + System.env.BUILD_NUMBER
-    versionType = "beta"
-    uploadFile = remapJar // With Loom, this MUST be set to `remapJar` instead of `jar`!
-    gameVersions = ["1.21.11"]
+    versionNumber = project.mod_version
+    versionName = "CardBoard Fork SharkMI ${project.mod_version}"
+    versionType = "release"
+    uploadFile = remapJar
+    gameVersions = [project.minecraft_version]
     loaders = ["fabric"]
+
+    changelog = provider {
+        def changelogFile = file("CHANGELOG.md")
+        if (changelogFile.exists()) {
+            return changelogFile.text
+        }
+        return "Version ${project.mod_version} - See GitHub for details."
+    }.get()
+
+    dependencies {
+        required.project "fabric-api"
+    }
+
+    syncBodyFrom = rootProject.file("README.md").text
 }
+
+tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
 
 
 ext.getURLofDependencyArtifact = {
