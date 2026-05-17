@@ -138,13 +138,10 @@ debug-print-all-calls: false
 
 | Minecraft 版本 | Fabric 版本 | 分支 | 状态 |
 |---------------|-------------|------|------|
-| 1.21.11 | 0.16+ | ver/1.21.11 | 开发中 |
-| 1.21.8 | 0.16+ | ver/1.21.8 | 活跃维护 |
-| 1.21.4 | 0.16+ | ver/1.21.4 | 低维护 |
-| 1.21.1 | 0.16+ | ver/1.21 | 低维护 |
-| <= 1.20 | - | - | 不再支持 |
+| 1.21.11 | 0.16+ | ver/1.21.11 | 活跃维护 |
+| <= 1.21.8 | - | - | 不再支持 |
 
-详见 [Supported Versions](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions)。
+本 Fork 专注于最新 Minecraft 版本，不再维护旧版本。上游版本支持详见 [Supported Versions](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions)。
 
 ## 插件兼容性
 
@@ -197,16 +194,9 @@ debug-print-all-calls: false
 - 代码注释使用英文
 - 新增 Mixin 时使用 `@Inject` 而非 `@Overwrite`
 
-## 开发路线图
-
-详见 [plan.md](plan.md)：
-
-- Phase 1: 全面清理 `@Overwrite`（46 个文件）✅ **已完成**
-- Phase 2: Mod 兼容性数据库 ✅ **已完成**
-- Phase 3: Mixin 冲突检测工具 ✅ **已完成**
-- Phase 4: 性能优化与代码质量提升
-
 ## 文档
+
+> **注意**：本 Fork 的完整文档仍在编写中，目前请优先参考下方上游资源。
 
 - [Wiki](https://github.com/CardboardPowered/cardboard/wiki)
 - [API Javadoc](https://cardboardpowered.org/javadoc/)
