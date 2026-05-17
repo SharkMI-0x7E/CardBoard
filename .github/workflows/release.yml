@@ -17,6 +17,8 @@ jobs:
     name: Build & Release
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
     steps:
       - name: Checkout Repository
@@ -92,10 +94,8 @@ jobs:
           prerelease: false
 
       - name: Publish to Modrinth
-        if: ${{ secrets.MODRINTH_TOKEN != '' }}
+        if: env.MODRINTH_TOKEN != ''
         run: ./gradlew modrinth
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
       - name: Publish Success Summary
         if: success()
