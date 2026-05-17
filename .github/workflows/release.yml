@@ -67,17 +67,131 @@ jobs:
 
           if [ -z "$PREV_TAG" ]; then
             echo "First release, collecting all commits..."
-            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            COMMIT_RANGE=""
           else
             echo "Collecting commits from ${PREV_TAG} to ${GITHUB_REF_NAME}..."
-            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREV_TAG}..HEAD)
+            COMMIT_RANGE="${PREV_TAG}..HEAD"
           fi
 
+          # Helper: categorize commits by conventional commit prefix
+          categorize_commits() {
+            local pattern="$1"
+            git log --pretty=format:"%s (%h)" --no-merges ${COMMIT_RANGE} | grep -iE "^$pattern" | sed -E "s/^$pattern//" | sed 's/^/- /'
+          }
+
+          FEATURES=$(categorize_commits 'feat(\([^)]*\))?:[[:space:]]*')
+          BUGFIXES=$(categorize_commits 'fix(\([^)]*\))?:[[:space:]]*')
+          PERF=$(categorize_commits 'perf(\([^)]*\))?:[[:space:]]*')
+          REFACTORS=$(categorize_commits 'refactor(\([^)]*\))?:[[:space:]]*')
+          BUILDS=$(categorize_commits 'build(\([^)]*\))?:[[:space:]]*')
+          CICD=$(categorize_commits 'ci(\([^)]*\))?:[[:space:]]*')
+          DOCS=$(categorize_commits 'docs(\([^)]*\))?:[[:space:]]*')
+          CONFIGS=$(categorize_commits 'config(\([^)]*\))?:[[:space:]]*')
+          TESTS=$(categorize_commits 'test(\([^)]*\))?:[[:space:]]*')
+          STYLES=$(categorize_commits 'style(\([^)]*\))?:[[:space:]]*')
+          CHORES=$(categorize_commits 'chore(\([^)]*\))?:[[:space:]]*')
+          DEBUGS=$(categorize_commits 'debug(\([^)]*\))?:[[:space:]]*')
+
+          # Other = commits that don't match conventional commit
+          ALL_PATTERN='^(feat|fix|perf|refactor|build|ci|docs|config|test|style|chore|debug)(\([^)]*\))?:[[:space:]]*'
+          OTHERS=$(git log --pretty=format:"%s (%h)" --no-merges ${COMMIT_RANGE} | grep -viE "$ALL_PATTERN" | sed 's/^/- /')
+
+          # Contributors
+          CONTRIBUTORS=$(git log --pretty=format:"%an" --no-merges ${COMMIT_RANGE} | sort | uniq -c | sort -rn | sed -E 's/^[[:space:]]*([0-9]+)[[:space:]]+(.*)$/\2 (`\1`)/')
+          TOTAL_COMMITS=$(git log --oneline --no-merges ${COMMIT_RANGE} | wc -l)
+
+          # Build markdown body
           {
             echo "changelog<<EOF"
-            echo "## Changes since last release"
             echo ""
-            echo "${COMMITS}"
+            echo "## What's Changed"
+            echo ""
+
+            if [ -n "$FEATURES" ]; then
+              echo "### :sparkles: Features"
+              echo "$FEATURES"
+              echo ""
+            fi
+
+            if [ -n "$BUGFIXES" ]; then
+              echo "### :bug: Bug Fixes"
+              echo "$BUGFIXES"
+              echo ""
+            fi
+
+            if [ -n "$PERF" ]; then
+              echo "### :zap: Performance"
+              echo "$PERF"
+              echo ""
+            fi
+
+            if [ -n "$REFACTORS" ]; then
+              echo "### :recycle: Refactors"
+              echo "$REFACTORS"
+              echo ""
+            fi
+
+            if [ -n "$CONFIGS" ]; then
+              echo "### :gear: Configuration"
+              echo "$CONFIGS"
+              echo ""
+            fi
+
+            if [ -n "$BUILDS" ]; then
+              echo "### :package: Build"
+              echo "$BUILDS"
+              echo ""
+            fi
+
+            if [ -n "$CICD" ]; then
+              echo "### :rocket: CI/CD"
+              echo "$CICD"
+              echo ""
+            fi
+
+            if [ -n "$DOCS" ]; then
+              echo "### :memo: Documentation"
+              echo "$DOCS"
+              echo ""
+            fi
+
+            if [ -n "$TESTS" ]; then
+              echo "### :test_tube: Tests"
+              echo "$TESTS"
+              echo ""
+            fi
+
+            if [ -n "$STYLES" ]; then
+              echo "### :art: Style"
+              echo "$STYLES"
+              echo ""
+            fi
+
+            if [ -n "$CHORES" ]; then
+              echo "### :broom: Chores"
+              echo "$CHORES"
+              echo ""
+            fi
+
+            if [ -n "$DEBUGS" ]; then
+              echo "### :bug: Debug"
+              echo "$DEBUGS"
+              echo ""
+            fi
+
+            if [ -n "$OTHERS" ]; then
+              echo "### :question: Other"
+              echo "$OTHERS"
+              echo ""
+            fi
+
+            echo "---"
+            echo ""
+            echo "### :busts_in_silhouette: Contributors"
+            echo ""
+            echo "$CONTRIBUTORS" | sed 's/^/- /'
+            echo ""
+            echo "**Total commits:** ${TOTAL_COMMITS}"
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
