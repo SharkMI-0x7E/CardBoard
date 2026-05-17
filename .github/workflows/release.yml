@@ -108,86 +108,86 @@ jobs:
             echo ""
 
             if [ -n "$FEATURES" ]; then
-              echo "### :sparkles: Features"
+              echo "### Features"
               echo "$FEATURES"
               echo ""
             fi
 
             if [ -n "$BUGFIXES" ]; then
-              echo "### :bug: Bug Fixes"
+              echo "### Bug Fixes"
               echo "$BUGFIXES"
               echo ""
             fi
 
             if [ -n "$PERF" ]; then
-              echo "### :zap: Performance"
+              echo "### Performance"
               echo "$PERF"
               echo ""
             fi
 
             if [ -n "$REFACTORS" ]; then
-              echo "### :recycle: Refactors"
+              echo "### Refactors"
               echo "$REFACTORS"
               echo ""
             fi
 
             if [ -n "$CONFIGS" ]; then
-              echo "### :gear: Configuration"
+              echo "### Configuration"
               echo "$CONFIGS"
               echo ""
             fi
 
             if [ -n "$BUILDS" ]; then
-              echo "### :package: Build"
+              echo "### Build"
               echo "$BUILDS"
               echo ""
             fi
 
             if [ -n "$CICD" ]; then
-              echo "### :rocket: CI/CD"
+              echo "### CI/CD"
               echo "$CICD"
               echo ""
             fi
 
             if [ -n "$DOCS" ]; then
-              echo "### :memo: Documentation"
+              echo "### Documentation"
               echo "$DOCS"
               echo ""
             fi
 
             if [ -n "$TESTS" ]; then
-              echo "### :test_tube: Tests"
+              echo "### Tests"
               echo "$TESTS"
               echo ""
             fi
 
             if [ -n "$STYLES" ]; then
-              echo "### :art: Style"
+              echo "### Style"
               echo "$STYLES"
               echo ""
             fi
 
             if [ -n "$CHORES" ]; then
-              echo "### :broom: Chores"
+              echo "### Chores"
               echo "$CHORES"
               echo ""
             fi
 
             if [ -n "$DEBUGS" ]; then
-              echo "### :bug: Debug"
+              echo "### Debug"
               echo "$DEBUGS"
               echo ""
             fi
 
             if [ -n "$OTHERS" ]; then
-              echo "### :question: Other"
+              echo "### Other"
               echo "$OTHERS"
               echo ""
             fi
 
             echo "---"
             echo ""
-            echo "### :busts_in_silhouette: Contributors"
+            echo "### Contributors"
             echo ""
             echo "$CONTRIBUTORS" | sed 's/^/- /'
             echo ""
