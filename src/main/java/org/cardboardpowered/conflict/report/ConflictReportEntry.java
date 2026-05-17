@@ -26,27 +26,27 @@ public class ConflictReportEntry {
 
     public static ConflictReportEntry fromConflict(MixinConflict conflict) {
         ConflictReportEntry entry = new ConflictReportEntry();
-        entry.targetClass = conflict.targetClass;
-        entry.targetMethod = conflict.targetMethod;
-        entry.conflictType = conflict.conflictType;
-        entry.level = conflict.level != null ? conflict.level.name() : "UNKNOWN";
-        entry.cardboardMixin = conflict.cardboardMixinClass;
-        entry.otherModId = conflict.otherModId;
-        entry.otherMixin = conflict.otherMixinClass;
-        entry.suggestion = conflict.suggestion;
-        entry.isResolved = conflict.isResolved;
-        entry.resolutionNote = conflict.resolutionNote;
+        entry.targetClass = conflict.getTargetClass();
+        entry.targetMethod = conflict.getTargetMethod();
+        entry.conflictType = conflict.getConflictType();
+        entry.level = conflict.getLevel() != null ? conflict.getLevel().name() : "UNKNOWN";
+        entry.cardboardMixin = conflict.getCardboardMixinClass();
+        entry.otherModId = conflict.getOtherModId();
+        entry.otherMixin = conflict.getOtherMixinClass();
+        entry.suggestion = conflict.getSuggestion();
+        entry.isResolved = conflict.isResolved();
+        entry.resolutionNote = conflict.getResolutionNote();
 
-        MixinMethod cbMethod = conflict.cardboardMethod;
+        MixinMethod cbMethod = conflict.getCardboardMethod();
         if (cbMethod != null) {
-            entry.cardboardAnnotation = cbMethod.annotationType;
-            entry.cardboardPriority = cbMethod.priority;
+            entry.cardboardAnnotation = cbMethod.getAnnotationType();
+            entry.cardboardPriority = cbMethod.getPriority();
         }
 
-        MixinMethod otherMethod = conflict.otherMethod;
+        MixinMethod otherMethod = conflict.getOtherMethod();
         if (otherMethod != null) {
-            entry.otherAnnotation = otherMethod.annotationType;
-            entry.otherPriority = otherMethod.priority;
+            entry.otherAnnotation = otherMethod.getAnnotationType();
+            entry.otherPriority = otherMethod.getPriority();
         }
 
         return entry;

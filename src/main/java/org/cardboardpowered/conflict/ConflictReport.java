@@ -50,16 +50,16 @@ public class ConflictReport {
 
     private void groupConflicts() {
         for (MixinConflict c : allConflicts) {
-            if (c.isResolved) {
+            if (c.isResolved()) {
                 resolvedConflicts.add(c);
             } else {
-                if (c.level == ConflictLevel.FATAL) {
+                if (c.getLevel() == ConflictLevel.FATAL) {
                     fatalConflicts.add(c);
-                } else if (c.level == ConflictLevel.HIGH) {
+                } else if (c.getLevel() == ConflictLevel.HIGH) {
                     highConflicts.add(c);
-                } else if (c.level == ConflictLevel.MEDIUM) {
+                } else if (c.getLevel() == ConflictLevel.MEDIUM) {
                     mediumConflicts.add(c);
-                } else if (c.level == ConflictLevel.LOW) {
+                } else if (c.getLevel() == ConflictLevel.LOW) {
                     lowConflicts.add(c);
                 }
             }
@@ -137,20 +137,20 @@ public class ConflictReport {
     }
 
     private void appendConflict(StringBuilder sb, MixinConflict conflict, int index, boolean isResolved) {
-        String target = conflict.targetClass + "#" + conflict.targetMethod;
+        String target = conflict.getTargetClass() + "#" + conflict.getTargetMethod();
         sb.append("  [").append(index).append("] Target: ").append(target).append("\n");
 
-        String cbInfo = formatMixinInfo(conflict.cardboardMixinClass, conflict.cardboardMethod);
+        String cbInfo = formatMixinInfo(conflict.getCardboardMixinClass(), conflict.getCardboardMethod());
         appendWrappedLine(sb, INDENT + "Cardboard: " + cbInfo);
 
-        String otherInfo = formatMixinInfo(conflict.otherMixinClass, conflict.otherMethod);
+        String otherInfo = formatMixinInfo(conflict.getOtherMixinClass(), conflict.getOtherMethod());
         String otherPrefix = INDENT + "Other";
-        if (conflict.otherModId != null) {
-            otherPrefix += " (" + conflict.otherModId + ")";
+        if (conflict.getOtherModId() != null) {
+            otherPrefix += " (" + conflict.getOtherModId() + ")";
         }
         appendWrappedLine(sb, otherPrefix + ": " + otherInfo);
 
-        String note = isResolved ? "Resolved: " + conflict.resolutionNote : conflict.suggestion;
+        String note = isResolved ? "Resolved: " + conflict.getResolutionNote() : conflict.getSuggestion();
         String label = isResolved ? INDENT + "Note:" : INDENT + "Suggestion:";
         appendWrappedLine(sb, label + " " + note);
 
@@ -169,8 +169,8 @@ public class ConflictReport {
 
         StringBuilder sb = new StringBuilder(shortName);
         if (method != null) {
-            sb.append(" @").append(method.annotationType);
-            sb.append(" [priority=").append(method.priority).append("]");
+            sb.append(" @").append(method.getAnnotationType());
+            sb.append(" [priority=").append(method.getPriority()).append("]");
         }
         return sb.toString();
     }
@@ -228,8 +228,10 @@ public class ConflictReport {
             Path outputFile = configDir.resolve("conflict-report.json");
             Files.writeString(outputFile, json, StandardCharsets.UTF_8);
             LOGGER.info("Conflict report written to {}", outputFile.toAbsolutePath());
+            LOGGER.debug("Report size: {} bytes, {} conflicts", json.length(), allConflicts.size());
         } catch (IOException e) {
-            LOGGER.error("Failed to write conflict report JSON: {}", e.getMessage());
+            LOGGER.error("Failed to write conflict report JSON to config/cardboard/conflict-report.json: {}", e.getMessage(), e);
+            LOGGER.warn("Conflict report JSON generation failed, but server can continue. Check disk space and permissions.");
         }
     }
 
@@ -247,23 +249,23 @@ public class ConflictReport {
 
         report.conflicts = new JsonConflicts();
         report.conflicts.fatal = allConflicts.stream()
-                .filter(c -> c.level == ConflictLevel.FATAL)
+                .filter(c -> c.getLevel() == ConflictLevel.FATAL)
                 .map(ConflictReportEntry::fromConflict)
                 .collect(Collectors.toList());
         report.conflicts.high = allConflicts.stream()
-                .filter(c -> c.level == ConflictLevel.HIGH)
+                .filter(c -> c.getLevel() == ConflictLevel.HIGH)
                 .map(ConflictReportEntry::fromConflict)
                 .collect(Collectors.toList());
         report.conflicts.medium = allConflicts.stream()
-                .filter(c -> c.level == ConflictLevel.MEDIUM)
+                .filter(c -> c.getLevel() == ConflictLevel.MEDIUM)
                 .map(ConflictReportEntry::fromConflict)
                 .collect(Collectors.toList());
         report.conflicts.low = allConflicts.stream()
-                .filter(c -> c.level == ConflictLevel.LOW)
+                .filter(c -> c.getLevel() == ConflictLevel.LOW)
                 .map(ConflictReportEntry::fromConflict)
                 .collect(Collectors.toList());
         report.conflicts.resolved = allConflicts.stream()
-                .filter(c -> c.isResolved)
+                .filter(c -> c.isResolved())
                 .map(ConflictReportEntry::fromConflict)
                 .collect(Collectors.toList());
 
@@ -289,7 +291,7 @@ public class ConflictReport {
      */
     public List<MixinConflict> getUnresolvedConflicts() {
         return allConflicts.stream()
-                .filter(c -> !c.isResolved)
+                .filter(c -> !c.isResolved())
                 .collect(Collectors.toList());
     }
 

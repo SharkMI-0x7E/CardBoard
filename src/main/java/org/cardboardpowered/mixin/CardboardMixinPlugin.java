@@ -109,10 +109,10 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
             fatalMixinSet = detector.getFatalMixinSet();
             
             int cardboardCount = (int) classInfos.stream()
-                    .filter(c -> c.sourceModId != null && c.sourceModId.toLowerCase().contains("cardboard"))
+                    .filter(c -> c.getSourceModId() != null && c.getSourceModId().toLowerCase().contains("cardboard"))
                     .count();
             long otherMods = classInfos.stream()
-                    .map(c -> c.sourceModId)
+                    .map(c -> c.getSourceModId())
                     .filter(id -> id != null && !id.toLowerCase().contains("cardboard"))
                     .distinct()
                     .count();

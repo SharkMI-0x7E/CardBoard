@@ -49,8 +49,8 @@ class ConflictDetectorUnitTest {
 
         assertFalse(conflicts.isEmpty(), "Should detect FATAL OVERWRITE_OVERWRITE conflict");
         MixinConflict c = conflicts.get(0);
-        assertEquals(ConflictLevel.FATAL, c.level);
-        assertEquals("OVERWRITE_OVERWRITE", c.conflictType);
+        assertEquals(ConflictLevel.FATAL, c.getLevel());
+        assertEquals("OVERWRITE_OVERWRITE", c.getConflictType());
     }
 
     @Test
@@ -79,8 +79,8 @@ class ConflictDetectorUnitTest {
 
         assertFalse(conflicts.isEmpty(), "Should detect HIGH OVERWRITE_INJECT conflict");
         MixinConflict c = conflicts.get(0);
-        assertEquals(ConflictLevel.HIGH, c.level);
-        assertEquals("OVERWRITE_INJECT", c.conflictType);
+        assertEquals(ConflictLevel.HIGH, c.getLevel());
+        assertEquals("OVERWRITE_INJECT", c.getConflictType());
     }
 
     @Test
@@ -177,38 +177,38 @@ class ConflictDetectorUnitTest {
                                            List<MixinMethod> injections, List<MixinMethod> overwrites,
                                            List<MixinMethod> redirects, List<MixinMethod> modifyArgs) {
         MixinClassInfo info = new MixinClassInfo();
-        info.className = className;
-        info.targetClasses = List.of(targetClass);
-        info.sourceModId = modId;
-        info.priority = 1000;
-        info.isMixin = true;
-        info.injections = injections;
-        info.overwrites = overwrites;
-        info.redirects = redirects;
-        info.modifyArgs = modifyArgs;
-        info.modifyVariables = Collections.emptyList();
-        info.modifyReturnValues = Collections.emptyList();
-        info.wrapWithConditions = Collections.emptyList();
+        info.setClassName(className);
+        info.setTargetClasses(new java.util.ArrayList<>(List.of(targetClass)));
+        info.setSourceModId(modId);
+        info.setPriority(1000);
+        info.setMixin(true);
+        info.setInjections(injections);
+        info.setOverwrites(overwrites);
+        info.setRedirects(redirects);
+        info.setModifyArgs(modifyArgs);
+        info.setModifyVariables(Collections.emptyList());
+        info.setModifyReturnValues(Collections.emptyList());
+        info.setWrapWithConditions(Collections.emptyList());
         return info;
     }
 
     private MixinMethod createOverwriteMethod(String methodName, int priority) {
         MixinMethod method = new MixinMethod();
-        method.name = methodName;
-        method.annotationType = "Overwrite";
-        method.targetMethods = List.of(methodName);
-        method.priority = priority;
-        method.atTargets = Collections.emptyList();
+        method.setName(methodName);
+        method.setAnnotationType("Overwrite");
+        method.setTargetMethods(new java.util.ArrayList<>(List.of(methodName)));
+        method.setPriority(priority);
+        method.setAtTargets(new java.util.ArrayList<>());
         return method;
     }
 
     private MixinMethod createInjectMethod(String methodName, int priority) {
         MixinMethod method = new MixinMethod();
-        method.name = methodName + "$inject";
-        method.annotationType = "Inject";
-        method.targetMethods = List.of(methodName);
-        method.priority = priority;
-        method.atTargets = Collections.emptyList();
+        method.setName(methodName + "$inject");
+        method.setAnnotationType("Inject");
+        method.setTargetMethods(new java.util.ArrayList<>(List.of(methodName)));
+        method.setPriority(priority);
+        method.setAtTargets(new java.util.ArrayList<>());
         return method;
     }
 }
