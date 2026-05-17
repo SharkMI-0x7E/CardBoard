@@ -65,12 +65,16 @@ public class MixinConflictDetector {
             String targetClass = entry.getKey();
             List<MixinClassInfo> classInfos = entry.getValue();
 
-            conflicts.addAll(detectOverwriteOverwrite(targetClass, classInfos));
-            conflicts.addAll(detectOverwriteInject(targetClass, classInfos));
-            conflicts.addAll(detectOverwriteRedirect(targetClass, classInfos));
-            conflicts.addAll(detectRedirectRedirect(targetClass, classInfos));
-            conflicts.addAll(detectModifyArgModifyArg(targetClass, classInfos));
-            conflicts.addAll(detectInjectInject(targetClass, classInfos));
+            // Pre-collect all method names mentioned by any mixin in this group for wildcard expansion
+            Set<String> allMethodNames = collectAllMethodNames(classInfos);
+            LOGGER.debug("Target class {} has {} candidate method names for wildcard expansion", targetClass, allMethodNames.size());
+
+            conflicts.addAll(detectOverwriteOverwrite(targetClass, classInfos, allMethodNames));
+            conflicts.addAll(detectOverwriteInject(targetClass, classInfos, allMethodNames));
+            conflicts.addAll(detectOverwriteRedirect(targetClass, classInfos, allMethodNames));
+            conflicts.addAll(detectRedirectRedirect(targetClass, classInfos, allMethodNames));
+            conflicts.addAll(detectModifyArgModifyArg(targetClass, classInfos, allMethodNames));
+            conflicts.addAll(detectInjectInject(targetClass, classInfos, allMethodNames));
         }
 
         // Step 3: Filter self-conflicts (same mod)
@@ -95,10 +99,10 @@ public class MixinConflictDetector {
     private Map<String, List<MixinClassInfo>> groupByTargetClass(List<MixinClassInfo> allClassInfos) {
         Map<String, List<MixinClassInfo>> result = new HashMap<>();
         for (MixinClassInfo info : allClassInfos) {
-            if (!info.isMixin || info.targetClasses == null || info.targetClasses.isEmpty()) {
+            if (!info.isMixin() || info.getTargetClasses() == null || info.getTargetClasses().isEmpty()) {
                 continue;
             }
-            for (String rawTargetClass : info.targetClasses) {
+            for (String rawTargetClass : info.getTargetClasses()) {
                 String normalizedTarget = normalizeClassName(rawTargetClass);
                 result.computeIfAbsent(normalizedTarget, k -> new ArrayList<>()).add(info);
             }
@@ -107,17 +111,29 @@ public class MixinConflictDetector {
     }
 
     /**
+     * Collect all method names mentioned by any mixin in the group.
+     * This provides the candidate set for wildcard expansion.
+     */
+    private Set<String> collectAllMethodNames(List<MixinClassInfo> classInfos) {
+        Set<String> names = new HashSet<>();
+        for (MixinClassInfo info : classInfos) {
+            names.addAll(getAllMethodNames(info));
+        }
+        return names;
+    }
+
+    /**
      * R1: Detect double @Overwrite on the same method (FATAL).
      */
-    private List<MixinConflict> detectOverwriteOverwrite(String targetClass, List<MixinClassInfo> classInfos) {
+    private List<MixinConflict> detectOverwriteOverwrite(String targetClass, List<MixinClassInfo> classInfos, Set<String> allMethodNames) {
         List<MixinConflict> conflicts = new ArrayList<>();
 
         // Collect all overwrites: method name -> list of (classInfo, method)
         Map<String, List<MixinMethodEntry>> overwriteMap = new HashMap<>();
         for (MixinClassInfo info : classInfos) {
-            if (info.overwrites == null) continue;
-            for (MixinMethod method : info.overwrites) {
-                List<String> expandedTargets = expandWildcardMethods(method.targetMethods, info);
+            if (info.getOverwrites() == null) continue;
+            for (MixinMethod method : info.getOverwrites()) {
+                List<String> expandedTargets = expandWildcardMethods(method.getTargetMethods(), allMethodNames);
                 for (String methodName : expandedTargets) {
                     String key = methodName;
                     overwriteMap.computeIfAbsent(key, k -> new ArrayList<>())
@@ -155,11 +171,11 @@ public class MixinConflictDetector {
     /**
      * R2: Detect @Overwrite vs @Inject on the same method (HIGH).
      */
-    private List<MixinConflict> detectOverwriteInject(String targetClass, List<MixinClassInfo> classInfos) {
+    private List<MixinConflict> detectOverwriteInject(String targetClass, List<MixinClassInfo> classInfos, Set<String> allMethodNames) {
         List<MixinConflict> conflicts = new ArrayList<>();
 
-        Map<String, List<MixinMethodEntry>> overwriteMap = collectMethodsByTarget(classInfos, "Overwrite");
-        Map<String, List<MixinMethodEntry>> injectMap = collectMethodsByTarget(classInfos, "Inject");
+        Map<String, List<MixinMethodEntry>> overwriteMap = collectMethodsByTarget(classInfos, "Overwrite", allMethodNames);
+        Map<String, List<MixinMethodEntry>> injectMap = collectMethodsByTarget(classInfos, "Inject", allMethodNames);
 
         for (Map.Entry<String, List<MixinMethodEntry>> owEntry : overwriteMap.entrySet()) {
             String methodName = owEntry.getKey();
@@ -186,11 +202,11 @@ public class MixinConflictDetector {
     /**
      * R3: Detect @Overwrite vs @Redirect on the same method (HIGH).
      */
-    private List<MixinConflict> detectOverwriteRedirect(String targetClass, List<MixinClassInfo> classInfos) {
+    private List<MixinConflict> detectOverwriteRedirect(String targetClass, List<MixinClassInfo> classInfos, Set<String> allMethodNames) {
         List<MixinConflict> conflicts = new ArrayList<>();
 
-        Map<String, List<MixinMethodEntry>> overwriteMap = collectMethodsByTarget(classInfos, "Overwrite");
-        Map<String, List<MixinMethodEntry>> redirectMap = collectMethodsByTarget(classInfos, "Redirect");
+        Map<String, List<MixinMethodEntry>> overwriteMap = collectMethodsByTarget(classInfos, "Overwrite", allMethodNames);
+        Map<String, List<MixinMethodEntry>> redirectMap = collectMethodsByTarget(classInfos, "Redirect", allMethodNames);
 
         for (Map.Entry<String, List<MixinMethodEntry>> owEntry : overwriteMap.entrySet()) {
             String methodName = owEntry.getKey();
@@ -218,19 +234,22 @@ public class MixinConflictDetector {
      * R4: Detect double @Redirect competing on the same INVOKE target (MEDIUM).
      * Uses method + @At target exact matching.
      */
-    private List<MixinConflict> detectRedirectRedirect(String targetClass, List<MixinClassInfo> classInfos) {
+    private List<MixinConflict> detectRedirectRedirect(String targetClass, List<MixinClassInfo> classInfos, Set<String> allMethodNames) {
         List<MixinConflict> conflicts = new ArrayList<>();
 
         // Group by method + @At target key
         Map<String, List<MixinMethodEntry>> redirectGroups = new HashMap<>();
         for (MixinClassInfo info : classInfos) {
-            if (info.redirects == null) continue;
-            for (MixinMethod method : info.redirects) {
-                String atTarget = method.getAtTargetKey();
-                for (String targetMethod : method.targetMethods) {
-                    String key = targetMethod + "|" + atTarget;
-                    redirectGroups.computeIfAbsent(key, k -> new ArrayList<>())
-                            .add(new MixinMethodEntry(info, method));
+            if (info.getRedirects() == null) continue;
+            for (MixinMethod method : info.getRedirects()) {
+                String atTarget = normalizeAtTarget(method.getAtTargetKey());
+                for (String targetMethod : method.getTargetMethods()) {
+                    List<String> expanded = expandWildcardMethods(List.of(targetMethod), allMethodNames);
+                    for (String expandedMethod : expanded) {
+                        String key = expandedMethod + "|" + atTarget;
+                        redirectGroups.computeIfAbsent(key, k -> new ArrayList<>())
+                                .add(new MixinMethodEntry(info, method));
+                    }
                 }
             }
         }
@@ -271,18 +290,21 @@ public class MixinConflictDetector {
     /**
      * R5: Detect double @ModifyArg competing on the same INVOKE target (MEDIUM).
      */
-    private List<MixinConflict> detectModifyArgModifyArg(String targetClass, List<MixinClassInfo> classInfos) {
+    private List<MixinConflict> detectModifyArgModifyArg(String targetClass, List<MixinClassInfo> classInfos, Set<String> allMethodNames) {
         List<MixinConflict> conflicts = new ArrayList<>();
 
         Map<String, List<MixinMethodEntry>> modifyArgGroups = new HashMap<>();
         for (MixinClassInfo info : classInfos) {
-            if (info.modifyArgs == null) continue;
-            for (MixinMethod method : info.modifyArgs) {
-                String atTarget = method.getAtTargetKey();
-                for (String targetMethod : method.targetMethods) {
-                    String key = targetMethod + "|" + atTarget;
-                    modifyArgGroups.computeIfAbsent(key, k -> new ArrayList<>())
-                            .add(new MixinMethodEntry(info, method));
+            if (info.getModifyArgs() == null) continue;
+            for (MixinMethod method : info.getModifyArgs()) {
+                String atTarget = normalizeAtTarget(method.getAtTargetKey());
+                for (String targetMethod : method.getTargetMethods()) {
+                    List<String> expanded = expandWildcardMethods(List.of(targetMethod), allMethodNames);
+                    for (String expandedMethod : expanded) {
+                        String key = expandedMethod + "|" + atTarget;
+                        modifyArgGroups.computeIfAbsent(key, k -> new ArrayList<>())
+                                .add(new MixinMethodEntry(info, method));
+                    }
                 }
             }
         }
@@ -323,10 +345,10 @@ public class MixinConflictDetector {
     /**
      * R6: Detect multiple @Inject coexistence (LOW when >5 different mods).
      */
-    private List<MixinConflict> detectInjectInject(String targetClass, List<MixinClassInfo> classInfos) {
+    private List<MixinConflict> detectInjectInject(String targetClass, List<MixinClassInfo> classInfos, Set<String> allMethodNames) {
         List<MixinConflict> conflicts = new ArrayList<>();
 
-        Map<String, List<MixinMethodEntry>> injectMap = collectMethodsByTarget(classInfos, "Inject");
+        Map<String, List<MixinMethodEntry>> injectMap = collectMethodsByTarget(classInfos, "Inject", allMethodNames);
 
         for (Map.Entry<String, List<MixinMethodEntry>> entry : injectMap.entrySet()) {
             String methodName = entry.getKey();
@@ -334,7 +356,7 @@ public class MixinConflictDetector {
 
             // Count unique mods
             Set<String> uniqueMods = injects.stream()
-                    .map(e -> e.classInfo.sourceModId)
+                    .map(e -> e.classInfo.getSourceModId())
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
 
@@ -369,7 +391,7 @@ public class MixinConflictDetector {
      * Collect methods of a given annotation type, grouped by target method name.
      */
     private Map<String, List<MixinMethodEntry>> collectMethodsByTarget(
-            List<MixinClassInfo> classInfos, String annotationType) {
+            List<MixinClassInfo> classInfos, String annotationType, Set<String> allMethodNames) {
         Map<String, List<MixinMethodEntry>> result = new HashMap<>();
 
         for (MixinClassInfo info : classInfos) {
@@ -377,7 +399,7 @@ public class MixinConflictDetector {
             if (methods == null || methods.isEmpty()) continue;
 
             for (MixinMethod method : methods) {
-                List<String> expandedTargets = expandWildcardMethods(method.targetMethods, info);
+                List<String> expandedTargets = expandWildcardMethods(method.getTargetMethods(), allMethodNames);
                 for (String methodName : expandedTargets) {
                     result.computeIfAbsent(methodName, k -> new ArrayList<>())
                             .add(new MixinMethodEntry(info, method));
@@ -394,19 +416,19 @@ public class MixinConflictDetector {
     private List<MixinMethod> getMethodsByType(MixinClassInfo info, String annotationType) {
         switch (annotationType) {
             case "Overwrite":
-                return info.overwrites;
+                return info.getOverwrites();
             case "Inject":
-                return info.injections;
+                return info.getInjections();
             case "Redirect":
-                return info.redirects;
+                return info.getRedirects();
             case "ModifyArg":
-                return info.modifyArgs;
+                return info.getModifyArgs();
             case "ModifyVariable":
-                return info.modifyVariables;
+                return info.getModifyVariables();
             case "ModifyReturnValue":
-                return info.modifyReturnValues;
+                return info.getModifyReturnValues();
             case "WrapWithCondition":
-                return info.wrapWithConditions;
+                return info.getWrapWithConditions();
             default:
                 return Collections.emptyList();
         }
@@ -416,7 +438,7 @@ public class MixinConflictDetector {
      * Expand wildcard method names to exact matches.
      * Supports patterns like "method_*" or "*" or exact names.
      */
-    private List<String> expandWildcardMethods(List<String> methodPatterns, MixinClassInfo classInfo) {
+    private List<String> expandWildcardMethods(List<String> methodPatterns, Set<String> candidateMethods) {
         List<String> result = new ArrayList<>();
         if (methodPatterns == null || methodPatterns.isEmpty()) {
             return result;
@@ -428,9 +450,9 @@ public class MixinConflictDetector {
             }
 
             if (pattern.equals("*")) {
-                result.addAll(getAllMethodNames(classInfo));
+                result.addAll(candidateMethods);
             } else if (pattern.contains("*")) {
-                result.addAll(matchWildcard(pattern, getAllMethodNames(classInfo)));
+                result.addAll(matchWildcard(pattern, new ArrayList<>(candidateMethods)));
             } else {
                 result.add(pattern);
             }
@@ -444,21 +466,53 @@ public class MixinConflictDetector {
      */
     private List<String> getAllMethodNames(MixinClassInfo info) {
         Set<String> names = new HashSet<>();
-        if (info.overwrites != null)
-            info.overwrites.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
-        if (info.injections != null)
-            info.injections.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
-        if (info.redirects != null)
-            info.redirects.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
-        if (info.modifyArgs != null)
-            info.modifyArgs.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
-        if (info.modifyVariables != null)
-            info.modifyVariables.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
-        if (info.modifyReturnValues != null)
-            info.modifyReturnValues.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
-        if (info.wrapWithConditions != null)
-            info.wrapWithConditions.stream().map(m -> m.targetMethods).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getOverwrites() != null)
+            info.getOverwrites().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getInjections() != null)
+            info.getInjections().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getRedirects() != null)
+            info.getRedirects().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getModifyArgs() != null)
+            info.getModifyArgs().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getModifyVariables() != null)
+            info.getModifyVariables().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getModifyReturnValues() != null)
+            info.getModifyReturnValues().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
+        if (info.getWrapWithConditions() != null)
+            info.getWrapWithConditions().stream().map(m -> m.getTargetMethods()).filter(Objects::nonNull).forEach(names::addAll);
         return new ArrayList<>(names);
+    }
+
+    /**
+     * Normalize an @At target descriptor for consistent comparison.
+     * Strips class name prefix and normalizes slash/dot format.
+     * e.g. "Lnet/minecraft/Class;method()V" -> "method()V"
+     * e.g. "Lnet.minecraft.Class;method()V" -> "method()V"
+     */
+    private String normalizeAtTarget(String target) {
+        if (target == null || target.isEmpty()) {
+            return "";
+        }
+        String normalized = target;
+        // If it starts with L and contains ;, it's a full descriptor
+        if (normalized.startsWith("L") && normalized.contains(";")) {
+            int semiIndex = normalized.indexOf(';');
+            if (semiIndex >= 0 && semiIndex + 1 < normalized.length()) {
+                normalized = normalized.substring(semiIndex + 1);
+            }
+        }
+        // Also handle cases where it's "ClassName.method()V" format
+        int lastDot = normalized.lastIndexOf('.');
+        int lastSlash = normalized.lastIndexOf('/');
+        int lastSep = Math.max(lastDot, lastSlash);
+        if (lastSep >= 0 && lastSep + 1 < normalized.length()) {
+            char nextChar = normalized.charAt(lastSep + 1);
+            // Only strip if next char looks like a method name (not a descriptor like V)
+            if (Character.isJavaIdentifierStart(nextChar)) {
+                normalized = normalized.substring(lastSep + 1);
+            }
+        }
+        return normalized.replace('/', '.').replace('$', '.');
     }
 
     /**
@@ -485,10 +539,10 @@ public class MixinConflictDetector {
      * Check if two MixinClassInfo are from different mods (cross-mod conflict).
      */
     private boolean isCrossModConflict(MixinClassInfo a, MixinClassInfo b) {
-        if (a.sourceModId == null || b.sourceModId == null) {
+        if (a.getSourceModId() == null || b.getSourceModId() == null) {
             return false;
         }
-        return !a.sourceModId.equals(b.sourceModId);
+        return !a.getSourceModId().equals(b.getSourceModId());
     }
 
     /**
@@ -504,11 +558,16 @@ public class MixinConflictDetector {
      * Check if a conflict is a cross-mod conflict.
      */
     private boolean isCrossModConflictByConflict(MixinConflict conflict) {
-        if (conflict.cardboardMethod == null || conflict.otherMethod == null) {
+        if (conflict.getCardboardMethod() == null || conflict.getOtherMethod() == null) {
             return true;
         }
-        // Already filtered during detection, but double-check
-        return true;
+        // Compare mod IDs to ensure it's a cross-mod conflict
+        String cardboardModId = conflict.getCardboardModId();
+        String otherModId = conflict.getOtherModId();
+        if (cardboardModId == null || otherModId == null) {
+            return true;
+        }
+        return !cardboardModId.equals(otherModId);
     }
 
     /**
@@ -520,18 +579,18 @@ public class MixinConflictDetector {
         }
 
         for (MixinConflict conflict : conflicts) {
-            if (conflict.otherModId == null) continue;
+            if (conflict.getOtherModId() == null) continue;
 
-            Optional<ModCompatibilityRule> rule = compatDatabase.getRuleForMod(conflict.otherModId);
+            Optional<ModCompatibilityRule> rule = compatDatabase.getRuleForMod(conflict.getOtherModId());
             if (rule.isPresent()) {
                 ModCompatibilityRule r = rule.get();
                 if (r.getStatus() == ModCompatibilityRule.Status.CONFLICT_RESOLVED) {
-                    conflict.isResolved = true;
-                    conflict.resolutionNote = "Known rule: " + r.getNotes();
+                    conflict.setResolved(true);
+                    conflict.setResolutionNote("Known rule: " + r.getNotes());
                 } else if (r.getStatus() == ModCompatibilityRule.Status.COMPATIBLE) {
-                    if (conflict.level == ConflictLevel.LOW) {
-                        conflict.isResolved = true;
-                        conflict.resolutionNote = "Known compatible: " + r.getNotes();
+                    if (conflict.getLevel() == ConflictLevel.LOW) {
+                        conflict.setResolved(true);
+                        conflict.setResolutionNote("Known compatible: " + r.getNotes());
                     }
                 }
             }
@@ -548,15 +607,15 @@ public class MixinConflictDetector {
         conflictMethodMap = new HashMap<>();
 
         for (MixinConflict conflict : conflicts) {
-            if (conflict.level == ConflictLevel.FATAL) {
-                if (conflict.cardboardMixinClass != null) {
-                    fatalMixinSet.add(conflict.cardboardMixinClass);
+            if (conflict.getLevel() == ConflictLevel.FATAL) {
+                if (conflict.getCardboardMixinClass() != null) {
+                    fatalMixinSet.add(conflict.getCardboardMixinClass());
                 }
             }
 
-            String key = conflict.targetClass + "#" + conflict.targetMethod;
+            String key = conflict.getTargetClass() + "#" + conflict.getTargetMethod();
             conflictMethodMap.computeIfAbsent(key, k -> new HashSet<>())
-                    .add(conflict.cardboardMixinClass != null ? conflict.cardboardMixinClass : "");
+                    .add(conflict.getCardboardMixinClass() != null ? conflict.getCardboardMixinClass() : "");
         }
     }
 
@@ -596,32 +655,35 @@ public class MixinConflictDetector {
                                          MixinMethodEntry a, MixinMethodEntry b,
                                          String suggestion) {
         MixinConflict conflict = new MixinConflict();
-        conflict.conflictType = conflictType;
-        conflict.level = level;
-        conflict.targetClass = targetClass;
-        conflict.targetMethod = targetMethod;
-        conflict.suggestion = suggestion;
+        conflict.setConflictType(conflictType);
+        conflict.setLevel(level);
+        conflict.setTargetClass(targetClass);
+        conflict.setTargetMethod(targetMethod);
+        conflict.setSuggestion(suggestion);
 
         // Determine which is Cardboard and which is other mod
-        if (isCardboardMod(a.classInfo.sourceModId)) {
-            conflict.cardboardMixinClass = a.classInfo.className;
-            conflict.cardboardMethod = a.method;
-            conflict.otherModId = b.classInfo.sourceModId;
-            conflict.otherMixinClass = b.classInfo.className;
-            conflict.otherMethod = b.method;
-        } else if (isCardboardMod(b.classInfo.sourceModId)) {
-            conflict.cardboardMixinClass = b.classInfo.className;
-            conflict.cardboardMethod = b.method;
-            conflict.otherModId = a.classInfo.sourceModId;
-            conflict.otherMixinClass = a.classInfo.className;
-            conflict.otherMethod = a.method;
+        if (isCardboardMod(a.classInfo.getSourceModId())) {
+            conflict.setCardboardMixinClass(a.classInfo.getClassName());
+            conflict.setCardboardMethod(a.method);
+            conflict.setOtherModId(b.classInfo.getSourceModId());
+            conflict.setOtherMixinClass(b.classInfo.getClassName());
+            conflict.setOtherMethod(b.method);
+            conflict.setCardboardModId(a.classInfo.getSourceModId());
+        } else if (isCardboardMod(b.classInfo.getSourceModId())) {
+            conflict.setCardboardMixinClass(b.classInfo.getClassName());
+            conflict.setCardboardMethod(b.method);
+            conflict.setOtherModId(a.classInfo.getSourceModId());
+            conflict.setOtherMixinClass(a.classInfo.getClassName());
+            conflict.setOtherMethod(a.method);
+            conflict.setCardboardModId(b.classInfo.getSourceModId());
         } else {
             // Neither is Cardboard, put first as cardboard side
-            conflict.cardboardMixinClass = a.classInfo.className;
-            conflict.cardboardMethod = a.method;
-            conflict.otherModId = b.classInfo.sourceModId;
-            conflict.otherMixinClass = b.classInfo.className;
-            conflict.otherMethod = b.method;
+            conflict.setCardboardMixinClass(a.classInfo.getClassName());
+            conflict.setCardboardMethod(a.method);
+            conflict.setOtherModId(b.classInfo.getSourceModId());
+            conflict.setOtherMixinClass(b.classInfo.getClassName());
+            conflict.setOtherMethod(b.method);
+            conflict.setCardboardModId(a.classInfo.getSourceModId());
         }
 
         return conflict;
