@@ -137,13 +137,10 @@ Build artifacts are located in `build/libs/`.
 
 | Minecraft Version | Fabric Version | Branch | Status |
 |-------------------|----------------|--------|--------|
-| 1.21.11 | 0.16+ | ver/1.21.11 | In Development |
-| 1.21.8 | 0.16+ | ver/1.21.8 | Active |
-| 1.21.4 | 0.16+ | ver/1.21.4 | Low Maintenance |
-| 1.21.1 | 0.16+ | ver/1.21 | Low Maintenance |
-| <= 1.20 | - | - | No Longer Supported |
+| 1.21.11 | 0.16+ | ver/1.21.11 | Active |
+| <= 1.21.8 | - | - | No Longer Supported |
 
-See [Supported Versions](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions) for more details.
+This fork focuses exclusively on the latest Minecraft version. Older versions are not maintained. See [Supported Versions](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions) for upstream details.
 
 ## Plugin Compatibility
 
@@ -196,16 +193,9 @@ We welcome contributions of all kinds.
 - Use English for code comments
 - Use `@Inject` instead of `@Overwrite` for new mixins
 
-## Roadmap
-
-See [plan.md](plan.md) for detailed plans:
-
-- Phase 1: Replace all `@Overwrite` (46 files) ✅ **Completed**
-- Phase 2: Mod compatibility database ✅ **Completed**
-- Phase 3: Mixin conflict detection tool ✅ **Completed**
-- Phase 4: Performance optimization and code quality improvements
-
 ## Documentation
+
+> **Note**: Comprehensive documentation for this fork is still being written. For now, refer to the upstream resources below.
 
 - [Wiki](https://github.com/CardboardPowered/cardboard/wiki)
 - [API Javadoc](https://cardboardpowered.org/javadoc/)
