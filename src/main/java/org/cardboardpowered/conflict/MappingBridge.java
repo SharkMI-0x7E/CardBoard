@@ -39,7 +39,7 @@ public class MappingBridge {
         if (intermediaryClassName == null || intermediaryClassName.isEmpty()) {
             return "";
         }
-        // Already in named format
+        // Already in named format (doesn't contain class_ and isn't unresolved)
         if (!intermediaryClassName.contains("class_") && !intermediaryClassName.startsWith(UNRESOLVED_PREFIX)) {
             return intermediaryClassName;
         }
@@ -54,7 +54,15 @@ public class MappingBridge {
 
         try {
             MappingResolver resolver = getResolver();
-            String result = resolver.mapClassName("intermediary", intermediaryClassName);
+            // Normalize class name: if it starts with class_ and doesn't contain /, prefix with net/minecraft/
+            String normalizedClassName = intermediaryClassName;
+            if (intermediaryClassName.startsWith("class_") && !intermediaryClassName.contains("/")) {
+                normalizedClassName = "net/minecraft/" + intermediaryClassName;
+                LOGGER.debug("Normalizing class name: {} -> {}", intermediaryClassName, normalizedClassName);
+            }
+            
+            LOGGER.debug("Mapping class: {} (normalized: {})", intermediaryClassName, normalizedClassName);
+            String result = resolver.mapClassName("intermediary", normalizedClassName);
             classCache.put(cacheKey, result);
             return result;
         } catch (Exception e) {
@@ -73,8 +81,14 @@ public class MappingBridge {
         if (namedClassName == null || namedClassName.isEmpty()) {
             return "";
         }
-        // Already in intermediary format
-        if (namedClassName.contains("class_")) {
+        // Already in intermediary format (starts with class_)
+        if (namedClassName.startsWith("class_")) {
+            // Still need to normalize if it's a simple class name without path
+            if (!namedClassName.contains("/")) {
+                String normalized = "net/minecraft/" + namedClassName;
+                LOGGER.debug("Normalizing intermediary class name: {} -> {}", namedClassName, normalized);
+                return normalized;
+            }
             return namedClassName;
         }
 
@@ -88,6 +102,7 @@ public class MappingBridge {
 
         try {
             MappingResolver resolver = getResolver();
+            LOGGER.debug("Mapping class to intermediary: {}", namedClassName);
             String result = resolver.mapClassName("named", namedClassName);
             classCache.put(cacheKey, result);
             return result;
@@ -137,15 +152,24 @@ public class MappingBridge {
         if (className == null || className.isEmpty()) {
             return "";
         }
-        // Check if it looks like an intermediary name
-        if (className.contains("class_") && (className.startsWith("net/minecraft/") || className.startsWith("net.minecraft."))) {
-            return toNamed(className);
-        }
         // Check if it's an unresolved placeholder
         if (className.startsWith(UNRESOLVED_PREFIX)) {
             return className;
         }
-        // Already in named format
+        // Check if it looks like an intermediary name (starts with class_)
+        if (className.startsWith("class_")) {
+            // Normalize path if needed
+            String normalized = className;
+            if (!className.contains("/")) {
+                normalized = "net/minecraft/" + className;
+                LOGGER.debug("Normalizing class name in normalizeClassName: {} -> {}", className, normalized);
+            }
+            // Convert to named if it has proper path
+            if (normalized.startsWith("net/minecraft/") || normalized.startsWith("net.minecraft.")) {
+                return toNamed(normalized);
+            }
+        }
+        // Already in named format or can't be normalized
         return className;
     }
 
