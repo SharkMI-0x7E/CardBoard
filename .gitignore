@@ -26,10 +26,12 @@ build/
 
 # vscode
 .settings/
-.vscode/
 /bin/
 .classpath
 .project
+# Keep .vscode/settings.json for shared IDE templates, ignore rest
+.vscode/*
+!.vscode/settings.json
 repos/tempp/*
 lib/
 
