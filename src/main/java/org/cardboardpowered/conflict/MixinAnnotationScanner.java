@@ -42,9 +42,9 @@ public class MixinAnnotationScanner {
             reader.accept(classNode, org.objectweb.asm.ClassReader.SKIP_CODE | org.objectweb.asm.ClassReader.SKIP_FRAMES);
 
             MixinClassInfo info = new MixinClassInfo();
-            info.className = classNode.name.replace('/', '.');
-            info.sourceModId = sourceModId;
-            info.sourceJarPath = sourceJarPath;
+            info.setClassName(classNode.name.replace('/', '.'));
+            info.setSourceModId(sourceModId);
+            info.setSourceJarPath(sourceJarPath);
 
             // Parse class-level annotations
             if (classNode.visibleAnnotations != null) {
@@ -88,9 +88,9 @@ public class MixinAnnotationScanner {
         }
 
         for (MixinConfigData config : configs) {
-            ModContainer mod = modMap.get(config.sourceModId);
+            ModContainer mod = modMap.get(config.getSourceModId());
             if (mod == null) {
-                LOGGER.warn("Mod '{}' not found in FabricLoader", config.sourceModId);
+                LOGGER.warn("Mod '{}' not found in FabricLoader", config.getSourceModId());
                 continue;
             }
 
@@ -109,7 +109,7 @@ public class MixinAnnotationScanner {
      */
     private List<MixinClassInfo> scanModConfig(MixinConfigData config, Path rootPath) {
         List<MixinClassInfo> results = new ArrayList<>();
-        String packageName = config.packageName != null ? config.packageName.replace('.', '/') : "";
+        String packageName = config.getPackageName() != null ? config.getPackageName().replace('.', '/') : "";
 
         try {
             if (isJarPath(rootPath)) {
@@ -118,7 +118,7 @@ public class MixinAnnotationScanner {
                 results.addAll(scanDirectoryClasses(rootPath, config));
             }
         } catch (IOException e) {
-            LOGGER.warn("Failed to scan mod '{}' for mixin classes: {}", config.sourceModId, e.getMessage());
+            LOGGER.warn("Failed to scan mod '{}' for mixin classes: {}", config.getSourceModId(), e.getMessage());
         }
 
         return results;
@@ -134,7 +134,13 @@ public class MixinAnnotationScanner {
      */
     private List<MixinClassInfo> scanJarClasses(Path jarPath, MixinConfigData config) throws IOException {
         List<MixinClassInfo> results = new ArrayList<>();
-        Path realPath = jarPath.toRealPath();
+        Path realPath = jarPath;
+        try {
+            realPath = jarPath.toRealPath();
+        } catch (java.nio.file.NoSuchFileException e) {
+            // Fabric virtual paths may not support toRealPath
+            LOGGER.debug("toRealPath failed for {}, using original path", jarPath);
+        }
         String pathStr = realPath.toString();
 
         // Handle URI-style paths from FabricLoader
@@ -156,8 +162,8 @@ public class MixinAnnotationScanner {
     }
 
     private void scanJarFile(Path jarFile, MixinConfigData config, List<MixinClassInfo> results) throws IOException {
-        String packageName = config.packageName != null ? config.packageName.replace('.', '/') : "";
-        String sourceModId = config.sourceModId;
+        String packageName = config.getPackageName() != null ? config.getPackageName().replace('.', '/') : "";
+        String sourceModId = config.getSourceModId();
 
         try (JarFile jar = new JarFile(jarFile.toFile())) {
             jar.stream()
@@ -167,7 +173,8 @@ public class MixinAnnotationScanner {
                .forEach(entry -> {
                    try (var in = jar.getInputStream(entry)) {
                        byte[] bytes = in.readAllBytes();
-                       String cacheKey = entry.getName().replace(".class", "").replace('/', '.');
+                       String className = entry.getName().replace(".class", "").replace('/', '.');
+                       String cacheKey = sourceModId + ":" + className;
 
                        MixinClassInfo cached = cache.get(cacheKey);
                        if (cached != null) {
@@ -181,7 +188,7 @@ public class MixinAnnotationScanner {
                            results.add(info);
                        }
                    } catch (IOException e) {
-                       LOGGER.warn("Failed to read class '{}' from JAR: {}", entry.getName(), e.getMessage());
+                       LOGGER.warn("Failed to read class '{}' from JAR of mod '{}': {}", entry.getName(), sourceModId, e.getMessage());
                    }
                });
         }
@@ -192,8 +199,8 @@ public class MixinAnnotationScanner {
      */
     private List<MixinClassInfo> scanDirectoryClasses(Path dirPath, MixinConfigData config) throws IOException {
         List<MixinClassInfo> results = new ArrayList<>();
-        String packageName = config.packageName != null ? config.packageName.replace('.', '/') : "";
-        String sourceModId = config.sourceModId;
+        String packageName = config.getPackageName() != null ? config.getPackageName().replace('.', '/') : "";
+        String sourceModId = config.getSourceModId();
 
         Files.walkFileTree(dirPath, new SimpleFileVisitor<Path>() {
             @Override
@@ -208,7 +215,8 @@ public class MixinAnnotationScanner {
 
                 try {
                     byte[] bytes = Files.readAllBytes(file);
-                    String cacheKey = relativePath.replace(".class", "").replace('/', '.');
+                    String className = relativePath.replace(".class", "").replace('/', '.');
+                    String cacheKey = sourceModId + ":" + className;
 
                     MixinClassInfo cached = cache.get(cacheKey);
                     if (cached != null) {
@@ -222,7 +230,7 @@ public class MixinAnnotationScanner {
                         results.add(info);
                     }
                 } catch (Exception e) {
-                    LOGGER.warn("Failed to analyze class '{}': {}", relativePath, e.getMessage());
+                    LOGGER.warn("Failed to analyze class '{}' in mod '{}': {}", relativePath, sourceModId, e.getMessage());
                 }
 
                 return FileVisitResult.CONTINUE;
@@ -248,7 +256,7 @@ public class MixinAnnotationScanner {
      * Parse @Mixin class-level annotation.
      */
     private void parseMixinAnnotation(AnnotationNode ann, MixinClassInfo info) {
-        info.isMixin = true;
+        info.setMixin(true);
 
         if (ann.values == null) return;
 
@@ -258,9 +266,9 @@ public class MixinAnnotationScanner {
 
             if ("value".equals(key) || "targets".equals(key)) {
                 parseTargetClasses(value, info);
-            } else if ("priority".equals(key)) {
+             } else if ("priority".equals(key)) {
                 if (value instanceof Integer) {
-                    info.priority = (Integer) value;
+                    info.setPriority((Integer) value);
                 }
             }
         }
@@ -271,30 +279,30 @@ public class MixinAnnotationScanner {
      * Handles both single Type and List<Type>.
      */
     private void parseTargetClasses(Object value, MixinClassInfo info) {
-        if (value instanceof Type) {
+         if (value instanceof Type) {
             String className = ((Type) value).getClassName();
-            info.targetClasses.add(className);
+            info.getTargetClasses().add(className);
         } else if (value instanceof List) {
             for (Object item : (List<?>) value) {
                 if (item instanceof Type) {
                     String className = ((Type) item).getClassName();
-                    info.targetClasses.add(className);
-                } else if (item instanceof String) {
+                    info.getTargetClasses().add(className);
+                 } else if (item instanceof String) {
                     // String descriptor format
                     String desc = (String) item;
                     if (desc.startsWith("L") && desc.endsWith(";")) {
-                        info.targetClasses.add(desc.substring(1, desc.length() - 1).replace('/', '.'));
+                        info.getTargetClasses().add(desc.substring(1, desc.length() - 1).replace('/', '.'));
                     } else {
-                        info.targetClasses.add(desc.replace('/', '.'));
+                        info.getTargetClasses().add(desc.replace('/', '.'));
                     }
                 }
             }
         } else if (value instanceof String) {
             String desc = (String) value;
-            if (desc.startsWith("L") && desc.endsWith(";")) {
-                info.targetClasses.add(desc.substring(1, desc.length() - 1).replace('/', '.'));
+             if (desc.startsWith("L") && desc.endsWith(";")) {
+                info.getTargetClasses().add(desc.substring(1, desc.length() - 1).replace('/', '.'));
             } else {
-                info.targetClasses.add(desc.replace('/', '.'));
+                info.getTargetClasses().add(desc.replace('/', '.'));
             }
         }
     }
@@ -318,7 +326,7 @@ public class MixinAnnotationScanner {
         MixinMethod mixinMethod = createMixinMethod(ann, method);
         if (mixinMethod == null) {
             // Unknown annotation - log debug and skip
-            LOGGER.debug("Unknown mixin annotation: {} in {}.{}", desc, info.className, method.name);
+            LOGGER.debug("Unknown mixin annotation: {} in {}.{}", desc, info.getClassName(), method.name);
             return;
         }
 
@@ -335,9 +343,9 @@ public class MixinAnnotationScanner {
             return null;
         }
 
-        MixinMethod mm = new MixinMethod();
-        mm.name = method.name;
-        mm.descriptor = method.desc;
+         MixinMethod mm = new MixinMethod();
+        mm.setName(method.name);
+        mm.setDescriptor(method.desc);
 
         if (ann.values != null) {
             for (int i = 0; i < ann.values.size(); i += 2) {
@@ -346,17 +354,17 @@ public class MixinAnnotationScanner {
 
                 if ("method".equals(key)) {
                     parseMethodTarget(value, mm);
-                } else if ("cancellable".equals(key)) {
+                 } else if ("cancellable".equals(key)) {
                     if (value instanceof Boolean) {
-                        mm.cancellable = (Boolean) value;
+                        mm.setCancellable((Boolean) value);
                     }
                 } else if ("at".equals(key)) {
                     if (value instanceof AnnotationNode) {
                         parseAtAnnotation((AnnotationNode) value, mm);
                     }
-                } else if ("priority".equals(key)) {
+                 } else if ("priority".equals(key)) {
                     if (value instanceof Integer) {
-                        mm.priority = (Integer) value;
+                        mm.setPriority((Integer) value);
                     }
                 }
             }
@@ -370,12 +378,12 @@ public class MixinAnnotationScanner {
      * Can be a single String or List<String>.
      */
     private void parseMethodTarget(Object value, MixinMethod mm) {
-        if (value instanceof String) {
-            mm.targetMethods.add((String) value);
+         if (value instanceof String) {
+            mm.getTargetMethods().add((String) value);
         } else if (value instanceof List) {
             for (Object item : (List<?>) value) {
-                if (item instanceof String) {
-                    mm.targetMethods.add((String) item);
+                 if (item instanceof String) {
+                    mm.getTargetMethods().add((String) item);
                 }
             }
         }
@@ -392,23 +400,23 @@ public class MixinAnnotationScanner {
             String key = (String) atNode.values.get(i);
             Object value = atNode.values.get(i + 1);
 
-            if ("value".equals(key)) {
+             if ("value".equals(key)) {
                 if (value instanceof String) {
-                    mm.atValues.add((String) value);
+                    mm.getAtValues().add((String) value);
                 } else if (value instanceof List) {
                     for (Object item : (List<?>) value) {
                         if (item instanceof String) {
-                            mm.atValues.add((String) item);
+                            mm.getAtValues().add((String) item);
                         }
                     }
                 }
-            } else if ("target".equals(key)) {
+             } else if ("target".equals(key)) {
                 if (value instanceof String) {
-                    mm.atTargets.add((String) value);
+                    mm.getAtTargets().add((String) value);
                 } else if (value instanceof List) {
                     for (Object item : (List<?>) value) {
                         if (item instanceof String) {
-                            mm.atTargets.add((String) item);
+                            mm.getAtTargets().add((String) item);
                         }
                     }
                 }
@@ -421,33 +429,33 @@ public class MixinAnnotationScanner {
      */
     private void dispatchMethodToList(MixinMethod mm, String desc, MixinClassInfo info) {
         if (desc.equals(MixinAnnotationDescriptor.OVERWRITE)) {
-            info.overwrites.add(mm);
-            mm.annotationType = "Overwrite";
+            info.getOverwrites().add(mm);
+            mm.setAnnotationType("Overwrite");
         } else if (desc.equals(MixinAnnotationDescriptor.INJECT)) {
-            info.injections.add(mm);
-            mm.annotationType = "Inject";
+            info.getInjections().add(mm);
+            mm.setAnnotationType("Inject");
         } else if (desc.equals(MixinAnnotationDescriptor.REDIRECT)) {
-            info.redirects.add(mm);
-            mm.annotationType = "Redirect";
+            info.getRedirects().add(mm);
+            mm.setAnnotationType("Redirect");
         } else if (desc.equals(MixinAnnotationDescriptor.MODIFY_ARG)) {
-            info.modifyArgs.add(mm);
-            mm.annotationType = "ModifyArg";
+            info.getModifyArgs().add(mm);
+            mm.setAnnotationType("ModifyArg");
         } else if (desc.equals(MixinAnnotationDescriptor.MODIFY_VARIABLE)) {
-            info.modifyVariables.add(mm);
-            mm.annotationType = "ModifyVariable";
+            info.getModifyVariables().add(mm);
+            mm.setAnnotationType("ModifyVariable");
         } else if (desc.equals(MixinAnnotationDescriptor.MODIFY_RETURN_VALUE)) {
-            info.modifyReturnValues.add(mm);
-            mm.annotationType = "ModifyReturnValue";
+            info.getModifyReturnValues().add(mm);
+            mm.setAnnotationType("ModifyReturnValue");
         } else if (desc.equals(MixinAnnotationDescriptor.WRAP_WITH_CONDITION) ||
                    desc.equals(MixinAnnotationDescriptor.ME_WRAP_WITH_CONDITION)) {
-            info.wrapWithConditions.add(mm);
-            mm.annotationType = "WrapWithCondition";
+            info.getWrapWithConditions().add(mm);
+            mm.setAnnotationType("WrapWithCondition");
         } else if (desc.equals(MixinAnnotationDescriptor.ME_WRAP_OPERATION)) {
-            info.wrapWithConditions.add(mm);
-            mm.annotationType = "WrapOperation";
+            info.getWrapWithConditions().add(mm);
+            mm.setAnnotationType("WrapOperation");
         } else if (desc.equals(MixinAnnotationDescriptor.ME_MODIFY_EXPRESSION_VALUE)) {
-            info.wrapWithConditions.add(mm);
-            mm.annotationType = "ModifyExpressionValue";
+            info.getWrapWithConditions().add(mm);
+            mm.setAnnotationType("ModifyExpressionValue");
         }
     }
 

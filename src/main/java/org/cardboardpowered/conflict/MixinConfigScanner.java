@@ -46,6 +46,14 @@ public class MixinConfigScanner {
                 continue;
             }
 
+            // P1-2: Skip client-only mods
+            // Check mod environment - only scan SERVER and UNIVERSAL mods
+            net.fabricmc.loader.api.metadata.ModEnvironment environment = mod.getMetadata().getEnvironment();
+            if (environment == net.fabricmc.loader.api.metadata.ModEnvironment.CLIENT) {
+                LOGGER.debug("Skipping client-only mod: {}", modId);
+                continue;
+            }
+
             scannedMods++;
             Path rootPath = mod.getRootPath();
             List<MixinConfigData> modConfigs = scanModForConfigs(rootPath, modId);
@@ -54,9 +62,9 @@ public class MixinConfigScanner {
         }
 
         results.sort((a, b) -> {
-            int cmp = a.sourceModId.compareTo(b.sourceModId);
+            int cmp = a.getSourceModId().compareTo(b.getSourceModId());
             if (cmp != 0) return cmp;
-            return a.configFileName.compareTo(b.configFileName);
+            return a.getConfigFileName().compareTo(b.getConfigFileName());
         });
 
         LOGGER.info("Scanned {} mods, found {} mixin configs", scannedMods, totalConfigs);
@@ -88,8 +96,22 @@ public class MixinConfigScanner {
     private List<MixinConfigData> scanJarForConfigs(Path jarPath, String modId) throws IOException {
         List<MixinConfigData> configs = new ArrayList<>();
 
-        // For JAR paths from FabricLoader, we may need to resolve the actual file
-        Path realPath = jarPath.toRealPath();
+        // Try to resolve the real path, but fall back to the original path if it fails
+        Path realPath = jarPath;
+        try {
+            realPath = jarPath.toRealPath();
+        } catch (java.nio.file.NoSuchFileException e) {
+            // This can happen with Fabric virtual paths
+            // Use the path as-is if it looks like a valid JAR file
+            String pathStr = jarPath.toString();
+            if (pathStr.toLowerCase().endsWith(".jar") || pathStr.toLowerCase().endsWith(".zip")) {
+                realPath = jarPath;
+            } else {
+                // Not a JAR file path, skip
+                return configs;
+            }
+        }
+
         String pathStr = realPath.toString();
 
         if (pathStr.startsWith("jar:") || pathStr.startsWith("file:")) {
@@ -178,36 +200,36 @@ public class MixinConfigScanner {
 
             JsonObject root = element.getAsJsonObject();
             MixinConfigData config = new MixinConfigData();
-            config.sourceModId = modId;
-            config.configFileName = configFileName;
-            config.configFilePath = configFilePath;
+            config.setSourceModId(modId);
+            config.setConfigFileName(configFileName);
+            config.setConfigFilePath(configFilePath);
 
             if (root.has("package") && root.get("package").isJsonPrimitive()) {
-                config.packageName = root.get("package").getAsString();
+                config.setPackageName(root.get("package").getAsString());
             }
 
             if (root.has("mixins") && root.get("mixins").isJsonArray()) {
-                config.mixins = parseStringList(root.getAsJsonArray("mixins"));
+                config.setMixins(parseStringList(root.getAsJsonArray("mixins")));
             }
 
             if (root.has("server") && root.get("server").isJsonArray()) {
-                config.server = parseStringList(root.getAsJsonArray("server"));
+                config.setServer(parseStringList(root.getAsJsonArray("server")));
             }
 
             if (root.has("client") && root.get("client").isJsonArray()) {
-                config.client = parseStringList(root.getAsJsonArray("client"));
+                config.setClient(parseStringList(root.getAsJsonArray("client")));
             }
 
             if (root.has("refmap") && root.get("refmap").isJsonPrimitive()) {
-                config.refmap = root.get("refmap").getAsString();
+                config.setRefmap(root.get("refmap").getAsString());
             }
 
             if (root.has("required") && root.get("required").isJsonPrimitive()) {
-                config.required = root.get("required").getAsBoolean();
+                config.setRequired(root.get("required").getAsBoolean());
             }
 
             if (root.has("minVersion") && root.get("minVersion").isJsonPrimitive()) {
-                config.minVersion = root.get("minVersion").getAsString();
+                config.setMinVersion(root.get("minVersion").getAsString());
             }
 
             return config;
