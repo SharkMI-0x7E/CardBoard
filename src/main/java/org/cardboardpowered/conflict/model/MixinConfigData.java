@@ -5,16 +5,46 @@ import java.util.List;
 
 public class MixinConfigData {
 
-    public String packageName;
-    public List<String> mixins = new ArrayList<>();
-    public List<String> server = new ArrayList<>();
-    public List<String> client = new ArrayList<>();
-    public String refmap;
-    public String sourceModId;
-    public String configFileName;
-    public String configFilePath;
-    public boolean required;
-    public String minVersion;
+    private String packageName;
+    private List<String> mixins = new ArrayList<>();
+    private List<String> server = new ArrayList<>();
+    private List<String> client = new ArrayList<>();
+    private String refmap;
+    private String sourceModId;
+    private String configFileName;
+    private String configFilePath;
+    private boolean required;
+    private String minVersion;
+
+    public String getPackageName() { return packageName; }
+    public void setPackageName(String packageName) { this.packageName = packageName; }
+
+    public List<String> getMixins() { return mixins; }
+    public void setMixins(List<String> mixins) { this.mixins = mixins; }
+
+    public List<String> getServer() { return server; }
+    public void setServer(List<String> server) { this.server = server; }
+
+    public List<String> getClient() { return client; }
+    public void setClient(List<String> client) { this.client = client; }
+
+    public String getRefmap() { return refmap; }
+    public void setRefmap(String refmap) { this.refmap = refmap; }
+
+    public String getSourceModId() { return sourceModId; }
+    public void setSourceModId(String sourceModId) { this.sourceModId = sourceModId; }
+
+    public String getConfigFileName() { return configFileName; }
+    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+
+    public String getConfigFilePath() { return configFilePath; }
+    public void setConfigFilePath(String configFilePath) { this.configFilePath = configFilePath; }
+
+    public boolean isRequired() { return required; }
+    public void setRequired(boolean required) { this.required = required; }
+
+    public String getMinVersion() { return minVersion; }
+    public void setMinVersion(String minVersion) { this.minVersion = minVersion; }
 
     public String getFullClassName(String mixinName) {
         if (packageName == null || packageName.isEmpty()) {

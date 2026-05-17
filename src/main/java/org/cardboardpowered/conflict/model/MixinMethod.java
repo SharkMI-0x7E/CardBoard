@@ -5,14 +5,38 @@ import java.util.List;
 
 public class MixinMethod {
 
-    public String name;
-    public String descriptor;
-    public String annotationType;
-    public List<String> targetMethods = new ArrayList<>();
-    public List<String> atValues = new ArrayList<>();
-    public List<String> atTargets = new ArrayList<>();
-    public boolean cancellable;
-    public int priority = 1000;
+    private String name;
+    private String descriptor;
+    private String annotationType;
+    private List<String> targetMethods = new ArrayList<>();
+    private List<String> atValues = new ArrayList<>();
+    private List<String> atTargets = new ArrayList<>();
+    private boolean cancellable;
+    private int priority = 1000;
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescriptor() { return descriptor; }
+    public void setDescriptor(String descriptor) { this.descriptor = descriptor; }
+
+    public String getAnnotationType() { return annotationType; }
+    public void setAnnotationType(String annotationType) { this.annotationType = annotationType; }
+
+    public List<String> getTargetMethods() { return targetMethods; }
+    public void setTargetMethods(List<String> targetMethods) { this.targetMethods = targetMethods; }
+
+    public List<String> getAtValues() { return atValues; }
+    public void setAtValues(List<String> atValues) { this.atValues = atValues; }
+
+    public List<String> getAtTargets() { return atTargets; }
+    public void setAtTargets(List<String> atTargets) { this.atTargets = atTargets; }
+
+    public boolean isCancellable() { return cancellable; }
+    public void setCancellable(boolean cancellable) { this.cancellable = cancellable; }
+
+    public int getPriority() { return priority; }
+    public void setPriority(int priority) { this.priority = priority; }
 
     public boolean isOverwrite() {
         return "Overwrite".equals(annotationType);
