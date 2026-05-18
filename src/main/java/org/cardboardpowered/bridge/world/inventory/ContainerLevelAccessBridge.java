@@ -1,6 +1,6 @@
 /**
  * The Bukkit for Fabric Project
- * Copyright (C) 2020-2025 CardboardPowered.org and contributors
+ * Copyright (C) 2020-2026 CardboardPowered.org and contributors
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public

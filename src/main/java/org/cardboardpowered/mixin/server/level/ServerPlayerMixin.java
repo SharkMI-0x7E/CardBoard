@@ -1,6 +1,6 @@
 /**
  * Cardboard - Spigot/Paper API for Fabric
- * Copyright (C) 2020-2025 Cardboard contributors
+ * Copyright (C) 2020-2026 Cardboard contributors
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

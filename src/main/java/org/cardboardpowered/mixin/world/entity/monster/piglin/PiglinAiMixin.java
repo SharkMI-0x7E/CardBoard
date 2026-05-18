@@ -1,7 +1,7 @@
 /**
  * Cardboard - Paper API for Fabric
- * Copyright (C) 2020-2025 Cardboard Contributors
- * Copyright (C) 2025-2026 SharkMI and contributors
+ * Copyright (C) 2020-2026 Cardboard Contributors
+ * Copyright (C) 2026 SharkMI and contributors
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public

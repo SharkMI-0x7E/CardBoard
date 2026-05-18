@@ -1,6 +1,6 @@
 /**
  * Cardboard - Bukkit for Fabric Project
- * Copyright (C) 2020-2025 Cardboard contributors
+ * Copyright (C) 2020-2026 Cardboard contributors
  */
 package org.cardboardpowered.bridge.world.item.crafting;
 
