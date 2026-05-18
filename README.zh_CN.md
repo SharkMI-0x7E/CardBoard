@@ -8,7 +8,15 @@
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
 [![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/SharkMI-0x7E/CardBoard/ci.yml?branch=main)](.github/workflows/ci.yml)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-00aa00)](https://minecraft.net/)
+[![Java](https://img.shields.io/badge/Java-21%2B-f89820?logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![Gradle](https://img.shields.io/badge/Gradle-8.x-02303a?logo=gradle&logoColor=white)](https://gradle.org/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SharkMI-0x7E/CardBoard/ci.yml?branch=main&logo=github)](.github/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/SharkMI-0x7E/CardBoard?logo=github&color=blue)](../../releases/latest)
+[![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
+[![Forks](https://img.shields.io/github/forks/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=blue)](../../forks)
+[![Issues](https://img.shields.io/github/issues/SharkMI-0x7E/CardBoard?logo=github&color=red)](../../issues)
+[![Modrinth](https://img.shields.io/modrinth/dt/cardboard-sharkmi-fork?logo=modrinth&label=Modrinth&color=1bd96a)](https://modrinth.com/mod/cardboard-sharkmi-fork)
 [![Discord](https://img.shields.io/badge/Discord-社区讨论-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
 
 </div>
@@ -58,7 +66,7 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
 |------|----------|
 | Java | 21+ |
 | Fabric Loader | 0.16+ |
-| Minecraft | 1.21.1+ |
+| Minecraft | 1.21.11 |
 
 ### 安装步骤
 
@@ -67,7 +75,7 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
    - 或使用 [Fabric Server Installer](https://fabricmc.net/use/server/)
 
 2. **下载 Cardboard**
-   - 从 [官网下载页](https://cardboardpowered.org/download/) 或 [GitHub Releases](../../releases) 获取最新 jar
+   - 从 [官网下载页](https://cardboardpowered.org/download/)、[GitHub Releases](../../releases) 或 [Modrinth](https://modrinth.com/mod/cardboard-sharkmi-fork) 获取最新 jar
 
 3. **放入 mods 文件夹**
    ```
@@ -196,10 +204,12 @@ debug-print-all-calls: false
 
 ## 文档
 
-> **注意**：本 Fork 的完整文档仍在编写中，目前请优先参考下方上游资源。
+> **注意**：本 Fork 的完整文档仍在编写中，目前可参考以下资源：
 
-- [Wiki](https://github.com/CardboardPowered/cardboard/wiki)
-- [API Javadoc](https://cardboardpowered.org/javadoc/)
+- [Modrinth 页面](https://modrinth.com/mod/cardboard-sharkmi-fork) — 最新版本和版本历史
+- [GitHub Releases](../../releases) — 发布说明和下载
+- [上游 Wiki](https://github.com/CardboardPowered/cardboard/wiki) — Cardboard 通用文档
+- [API Javadoc](https://cardboardpowered.org/javadoc/) — Bukkit API 参考
 - [支持的 Bukkit 版本](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions)
 - [常见问题 FAQ](https://github.com/CardboardPowered/cardboard/wiki/FAQ)
 
