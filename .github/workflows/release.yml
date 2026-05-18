@@ -111,9 +111,9 @@ jobs:
             local pattern="$1"
             git log --pretty=format:"%s (%h)" --no-merges ${COMMIT_RANGE} | \
               grep -iE "^$pattern" | \
-              sed -E "s/^$pattern//" | \
-              sed -E 's/\(([a-f0-9]{7,40})\)$/([`\1`]('"$REPO_URL"'\/commit\/\1))/' | \
-              sed 's/^/- /'
+              sed -E "s|^$pattern||" | \
+              sed -E 's|\(([a-f0-9]{7,40})\)$|([`\1`]('"$REPO_URL"'/commit/\1))|' | \
+              sed 's|^|- |'
           }
 
           FEATURES=$(categorize_commits 'feat(\([^)]*\))?:[[:space:]]*')
@@ -133,11 +133,11 @@ jobs:
           ALL_PATTERN='^(feat|fix|perf|refactor|build|ci|docs|config|test|style|chore|debug)(\([^)]*\))?:[[:space:]]*'
           OTHERS=$(git log --pretty=format:"%s (%h)" --no-merges ${COMMIT_RANGE} | \
             grep -viE "$ALL_PATTERN" | \
-            sed -E 's/\(([a-f0-9]{7,40})\)$/([`\1`]('"$REPO_URL"'\/commit\/\1))/' | \
-            sed 's/^/- /')
+            sed -E 's|\(([a-f0-9]{7,40})\)$|([`\1`]('"$REPO_URL"'/commit/\1))|' | \
+            sed 's|^|- |')
 
           # Contributors
-          CONTRIBUTORS=$(git log --pretty=format:"%an" --no-merges ${COMMIT_RANGE} | sort | uniq -c | sort -rn | sed -E 's/^[[:space:]]*([0-9]+)[[:space:]]+(.*)$/\2 (`\1`)/')
+          CONTRIBUTORS=$(git log --pretty=format:"%an" --no-merges ${COMMIT_RANGE} | sort | uniq -c | sort -rn | sed -E 's|^[[:space:]]*([0-9]+)[[:space:]]+(.*)$|\2 (`\1`)|')
           TOTAL_COMMITS=$(git log --oneline --no-merges ${COMMIT_RANGE} | wc -l)
 
           # Build markdown body
