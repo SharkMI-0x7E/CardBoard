@@ -209,6 +209,7 @@ We welcome contributions of all kinds.
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource), [SrgLib by Techcable & Orion](https://github.com/OrionMinecraft/SrgLib), [MinecraftMapping by Phase](https://github.com/phase/MinecraftMapping/)
 - All [Cardboard contributors](https://github.com/CardboardPowered/cardboard)
 - All [SharkMI fork contributors](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
+- [Trae SOLO](https://www.trae.ai/) and [OpenCode](https://github.com/opencode-ai/opencode) for AI-assisted development
 
 ## License
 

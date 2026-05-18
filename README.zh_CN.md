@@ -210,6 +210,7 @@ debug-print-all-calls: false
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
 - 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 - 所有 [SharkMI Fork 贡献者](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
+- [Trae SOLO](https://www.trae.ai/) 与 [OpenCode](https://github.com/opencode-ai/opencode) 辅助代码编写
 
 ## 许可证
 
