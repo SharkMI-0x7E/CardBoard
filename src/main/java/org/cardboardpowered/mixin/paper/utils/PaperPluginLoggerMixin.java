@@ -1,6 +1,7 @@
 /**
  * CardboardPowered - Bukkit/Spigot for Fabric
  * Copyright (C) CardboardPowered.org and contributors
+ * Copyright (C) 2025-2026 SharkMI and contributors
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public

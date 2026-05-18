@@ -1,6 +1,7 @@
 /**
  * Cardboard - The Bukkit for Fabric Project
  * Copyright (C) 2020-2025 Cardboard contributors
+ * Copyright (C) 2025-2026 SharkMI and contributors
  */
 package org.cardboardpowered.mixin.world.entity.ai.behavior;
 
