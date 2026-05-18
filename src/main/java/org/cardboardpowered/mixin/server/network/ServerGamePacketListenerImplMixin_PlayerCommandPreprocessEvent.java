@@ -25,6 +25,7 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.cardboardpowered.CardboardConfig;
 import org.cardboardpowered.impl.util.LazyPlayerSet;
+import org.cardboardpowered.util.MixinInfo;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -45,6 +46,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.FutureChain;
 
+@MixinInfo(events = {"PlayerCommandPreprocessEvent"})
 @Mixin(value = ServerGamePacketListenerImpl.class, priority = 800)
 public abstract class ServerGamePacketListenerImplMixin_PlayerCommandPreprocessEvent implements ServerGamePacketListenerImplBridge {
 

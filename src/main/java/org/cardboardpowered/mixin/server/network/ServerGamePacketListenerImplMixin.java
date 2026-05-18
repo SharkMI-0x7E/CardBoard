@@ -21,6 +21,7 @@ import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.cardboardpowered.bridge.world.entity.EntityBridge;
 import org.cardboardpowered.bridge.server.network.ServerGamePacketListenerImplBridge;
 import org.cardboardpowered.bridge.server.level.ServerPlayerBridge;
+import org.cardboardpowered.util.MixinInfo;
 import org.cardboardpowered.bridge.server.level.ServerPlayerGameModeBridge;
 import me.isaiah.common.cmixin.IMixinEntity;
 import net.minecraft.ChatFormatting;
@@ -90,6 +91,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
+@MixinInfo(events = {"PlayerAnimationEvent", "PlayerItemHeldEvent", "PlayerKickEvent", "PlayerMoveEvent", "PlayerResourcePackStatusEvent", "PlayerTeleportEvent", "PlayerToggleFlightEvent", "PlayerToggleSprintEvent", "InventoryCloseEvent"})
 @SuppressWarnings("deprecation")
 @Mixin(value = ServerGamePacketListenerImpl.class, priority = 800)
 public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPacketListenerImpl implements ServerGamePacketListenerImplBridge {

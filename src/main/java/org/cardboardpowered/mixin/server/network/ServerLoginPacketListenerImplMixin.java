@@ -62,6 +62,7 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerPreLoginEvent.Result;
 import org.cardboardpowered.bridge.server.network.ServerConfigurationPacketListenerImplBridge;
+import org.cardboardpowered.util.MixinInfo;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -83,6 +84,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import io.papermc.paper.connection.PaperPlayerLoginConnection;
 
+@MixinInfo(events = {"AsyncPlayerPreLoginEvent", "PlayerPreLoginEvent"})
 @SuppressWarnings("deprecation")
 @Mixin(value = ServerLoginPacketListenerImpl.class, priority = 999)
 public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginPacketListenerImplBridge {

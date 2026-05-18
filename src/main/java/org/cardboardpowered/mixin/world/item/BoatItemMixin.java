@@ -41,12 +41,38 @@ import net.minecraft.world.phys.HitResult;
 
 @MixinInfo(events = {"PlayerInteractEvent"})
 @Mixin(BoatItem.class)
+/**
+ * Intercepts boat item placement to fire Bukkit's {@link PlayerInteractEvent}.
+ *
+ * <p>When a player right-clicks with a boat item, this mixin intercepts
+ * the {@code use} method at HEAD, fires the Bukkit event, and cancels
+ * the vanilla action if the event is cancelled.</p>
+ *
+ * <p><b>Compatibility:</b> This was originally an {@code @Overwrite} that conflicted
+ * with carpet-tis-addition. It has been refactored to use {@code @Inject(at="HEAD", cancellable=true)}
+ * for conflict-free coexistence.</p>
+ *
+ * @see PlayerInteractEvent
+ * @since 1.21.11
+ */
 public abstract class BoatItemMixin extends Item {
 
     public BoatItemMixin(net.minecraft.world.item.Item.Properties settings) {
         super(settings);
     }
 
+    /**
+     * Intercepts boat item use to fire {@link PlayerInteractEvent}.
+     *
+     * <p>Called before vanilla boat placement logic. If the Bukkit event
+     * is cancelled by a plugin, the method returns {@link InteractionResult#PASS}
+     * to prevent boat placement.</p>
+     *
+     * @param world  the world the player is in
+     * @param user   the player using the boat item
+     * @param hand   the hand holding the boat item
+     * @param cir    callback to cancel the vanilla method
+     */
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void cardboard$onPlayerInteract(Level world, Player user, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         ItemStack itemstack = user.getItemInHand(hand);

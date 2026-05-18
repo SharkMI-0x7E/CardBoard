@@ -29,6 +29,7 @@ import org.bukkit.craftbukkit.block.CraftBlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.cardboardpowered.bridge.world.item.ItemStackBridge;
+import org.cardboardpowered.util.MixinInfo;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -54,6 +55,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@MixinInfo(events = {"BlockPlaceEvent", "PlayerItemDamageEvent"})
 @Mixin(value = ItemStack.class, priority = 999)
 public abstract class ItemStackMixin implements ItemStackBridge {
     @Shadow

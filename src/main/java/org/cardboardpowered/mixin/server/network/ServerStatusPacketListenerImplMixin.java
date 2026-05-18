@@ -51,6 +51,21 @@ public class ServerStatusPacketListenerImplMixin {
     @Shadow
     private Connection connection;
 
+    /**
+     * Modifies the server status response to fire Bukkit's {@code ServerListPingEvent}.
+     *
+     * <p>This method uses {@link ModifyArg} instead of {@code @Overwrite} to avoid
+     * conflicts with MiniMOTD and other mods that also modify the server status.
+     * By using {@code @ModifyArg} with {@code require = 0}, Cardboard gracefully
+     * handles cases where another mod has already {@code @Overwrite}n the target method.
+     * If no custom MOTD or icon is set, the original {@link ServerStatus} is returned
+     * unchanged to preserve other mods' modifications.</p>
+     *
+     * @param originalStatus the server status built by vanilla + other mods
+     * @return the modified server status, or original if no custom changes needed
+     * @see CardboardServerListPingEvent
+     * @since 1.21.11
+     */
     @ModifyArg(
         method = "handleStatusRequest",
         at = @At(

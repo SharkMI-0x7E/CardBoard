@@ -45,7 +45,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.cardboardpowered.bridge.server.level.ServerPlayerBridge;
+import org.cardboardpowered.util.MixinInfo;
 
+@MixinInfo(events = {"BlockCanBuildEvent", "BlockPlaceEvent"})
 @Mixin(value = BlockItem.class, priority = 999) // Priority 999 to allow Carpet Mod
 public class BlockItemMixin implements BlockItemBridge {
 

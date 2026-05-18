@@ -105,8 +105,22 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
     }
     
     /**
-     * Phase 3: Runtime Mixin conflict scan.
-     * Called early in onLoad() to cache results for shouldApplyMixin().
+     * Performs a three-phase runtime Mixin conflict scan at server startup.
+     *
+     * <p><b>Phase 1 — Config Scan:</b> {@link MixinConfigScanner} discovers all
+     * mixin JSON configs across every loaded Fabric mod.</p>
+     *
+     * <p><b>Phase 2 — Annotation Scan:</b> {@link MixinAnnotationScanner} uses ASM
+     * to parse annotations from each mixin class without loading them.</p>
+     *
+     * <p><b>Phase 3 — Conflict Detection:</b> {@link MixinConflictDetector} applies
+     * R1-R6 rules to find FATAL/HIGH/MEDIUM/LOW conflicts across mods.</p>
+     *
+     * <p>Results are printed to console via {@link ConflictReport#printConsole()}
+     * and optionally written as JSON to {@code config/cardboard/conflict-report.json}.</p>
+     *
+     * <p>The scan results and FATAL mixin set are cached for use in
+     * {@link #shouldApplyMixin(String, String)} for O(1) lookup during mixin loading.</p>
      */
     private void runConflictScan() {
         long startTime = System.currentTimeMillis();

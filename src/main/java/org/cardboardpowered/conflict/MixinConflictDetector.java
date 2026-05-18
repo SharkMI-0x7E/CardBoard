@@ -31,8 +31,27 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Core conflict detection algorithm for Mixin annotations.
- * Implements R1-R6 rules to detect FATAL/HIGH/MEDIUM/LOW conflicts across mods.
+ * Core conflict detection algorithm for Mixin annotations across all loaded mods.
+ *
+ * <p>The detector groups mixins by target class, then applies six rules:</p>
+ *
+ * <table>
+ *   <tr><th>Rule</th><th>Type</th><th>Severity</th><th>Description</th></tr>
+ *   <tr><td>R1</td><td>OVERWRITE_OVERWRITE</td><td>FATAL</td><td>Two mods both @Overwrite the same method</td></tr>
+ *   <tr><td>R2</td><td>OVERWRITE_INJECT</td><td>HIGH</td><td>One mod @Overwrites, another @Injects the same method</td></tr>
+ *   <tr><td>R3</td><td>OVERWRITE_REDIRECT</td><td>HIGH</td><td>One mod @Overwrites, another @Redirects inside it</td></tr>
+ *   <tr><td>R4</td><td>REDIRECT_REDIRECT</td><td>MEDIUM</td><td>Two mods @Redirect the same INVOKE target</td></tr>
+ *   <tr><td>R5</td><td>MODIFYARG_MODIFYARG</td><td>MEDIUM</td><td>Two mods @ModifyArg the same INVOKE target</td></tr>
+ *   <tr><td>R6</td><td>INJECT_INJECT</td><td>LOW</td><td>More than 5 mods @Inject the same method</td></tr>
+ * </table>
+ *
+ * <p>Self-conflicts (same mod) are filtered out. Known conflicts from the
+ * {@link ModCompatibilityDatabase} are automatically marked as resolved.</p>
+ *
+ * @see ConflictLevel
+ * @see MixinConflict
+ * @see MixinClassInfo
+ * @since 1.21.11
  */
 public class MixinConflictDetector {
 

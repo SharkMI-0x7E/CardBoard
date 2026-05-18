@@ -38,6 +38,21 @@ import java.util.List;
 import java.util.Map;
 
 @Mixin(value = RecipeMap.class, priority = 1001)
+/**
+ * Fixes a NullPointerException crash caused by Fabric API field injection timing.
+ *
+ * <p>Fabric API injects a {@code bySyncedSerializer} field into {@link RecipeMap}
+ * via mixin. When Cardboard's recipe creation runs before Fabric API's mixin
+ * loads, the field is {@code null}, causing an NPE. This mixin uses reflection
+ * to check and initialize the field if it is null.</p>
+ *
+ * <p><b>require = 0 is not applicable here</b> — this mixin uses
+ * {@code @Inject(at="HEAD", cancellable=true)} to intercept the static
+ * {@code create} method, replacing it entirely with a Cardboard implementation
+ * that creates mutable collections and initializes the Fabric API field.</p>
+ *
+ * @since 1.21.11
+ */
 public abstract class RecipeMapMixin implements RecipeMapBridge {
     @Shadow
     @Final
@@ -50,6 +65,21 @@ public abstract class RecipeMapMixin implements RecipeMapBridge {
     @Shadow
     public abstract <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeHolder<T>> byType(RecipeType<T> recipeType);
 
+    /**
+     * Creates a Cardboard-compatible {@link RecipeMap} with mutable collections.
+     *
+     * <p>Steps performed:</p>
+     * <ol>
+     *   <li>Builds immutable multimap and map from vanilla recipe holders</li>
+     *   <li>Wraps them in mutable {@code LinkedHashMultimap} and {@code LinkedHashMap}</li>
+     *   <li>Uses reflection to initialize Fabric API's {@code bySyncedSerializer} field
+     *       to prevent NPE if Fabric API hasn't loaded its mixin yet</li>
+     *   <li>Populates the serializer map with recipes for client synchronization</li>
+     * </ol>
+     *
+     * @param recipes the vanilla recipe holders
+     * @param cir     callback to return the Cardboard RecipeMap
+     */
     @Inject(method = "create", at = @At("HEAD"), cancellable = true)
     private static void createCraftBukkit(Iterable<RecipeHolder<?>> recipes, CallbackInfoReturnable<RecipeMap> cir) {
         ImmutableMultimap.Builder<RecipeType<?>, RecipeHolder<?>> builder = ImmutableMultimap.builder();
