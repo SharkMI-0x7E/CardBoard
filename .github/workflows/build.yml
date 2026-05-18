@@ -48,7 +48,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cardboard-jar
-          path: build/libs/*.jar
+          path: |
+            build/libs/CardBoard-Fork-SharkMI-*.jar
+            !build/libs/*-sources.jar
+            !build/libs/*-dev.jar
+            !build/libs/*-slim.jar
           retention-days: 14
 
       - name: Upload Test Reports

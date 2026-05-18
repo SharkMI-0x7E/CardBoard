@@ -49,7 +49,21 @@ jobs:
       - name: Find Built JAR
         id: find-jar
         run: |
-          JAR=$(find build/libs -name "CardBoard-Fork-SharkMI-*.jar" ! -name "*-sources.jar" ! -name "*-dev.jar" | head -n1)
+          # List all jars for debugging
+          echo "=== All jars in build/libs ==="
+          ls -la build/libs/*.jar 2>/dev/null || echo "(none)"
+          echo ""
+          # Find the release jar (exclude sources, dev, slim variants)
+          JAR=$(find build/libs -name "CardBoard-Fork-SharkMI-*.jar" \
+            ! -name "*-sources.jar" \
+            ! -name "*-dev.jar" \
+            ! -name "*-slim.jar" \
+            ! -name "*-all.jar" | head -n1)
+          if [ -z "$JAR" ]; then
+            echo "ERROR: No release JAR found!"
+            exit 1
+          fi
+          echo "Selected JAR: $JAR"
           echo "jar_path=$JAR" >> $GITHUB_OUTPUT
           echo "jar_name=$(basename $JAR)" >> $GITHUB_OUTPUT
 
@@ -204,6 +218,22 @@ jobs:
             echo "**Total commits:** ${TOTAL_COMMITS}"
             echo "EOF"
           } >> $GITHUB_OUTPUT
+
+      - name: Delete Existing Release (for re-tagging)
+        run: |
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" | \
+            jq -r '.id')
+          if [ "$RELEASE_ID" != "null" ] && [ -n "$RELEASE_ID" ]; then
+            echo "Deleting existing release ID=$RELEASE_ID for tag=${{ github.ref_name }}..."
+            curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
+            echo "Deleted. Will recreate with fresh changelog."
+          else
+            echo "No existing release found for tag=${{ github.ref_name }}, proceeding with creation."
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
