@@ -8,16 +8,7 @@
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
 [![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-00aa00)](https://minecraft.net/)
-[![Java](https://img.shields.io/badge/Java-21%2B-f89820?logo=openjdk&logoColor=white)](https://adoptium.net/)
-[![Gradle](https://img.shields.io/badge/Gradle-8.x-02303a?logo=gradle&logoColor=white)](https://gradle.org/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/SharkMI-0x7E/CardBoard/ci.yml?branch=main&logo=github)](.github/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/SharkMI-0x7E/CardBoard?logo=github&color=blue)](../../releases/latest)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
-[![Forks](https://img.shields.io/github/forks/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=blue)](../../forks)
-[![Issues](https://img.shields.io/github/issues/SharkMI-0x7E/CardBoard?logo=github&color=red)](../../issues)
-[![Modrinth](https://img.shields.io/modrinth/dt/cardboard-sharkmi-fork?logo=modrinth&label=Modrinth&color=1bd96a)](https://modrinth.com/mod/cardboard-sharkmi-fork)
-[![Discord](https://img.shields.io/badge/Discord-社区讨论-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
 
 </div>
 
