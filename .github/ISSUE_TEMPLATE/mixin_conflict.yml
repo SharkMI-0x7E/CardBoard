@@ -1,0 +1,99 @@
+---
+name: Mixin Conflict Report
+description: Report a Mixin conflict between Cardboard and another Fabric mod
+labels: ["mixin-conflict", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Use this template when Cardboard's mixins conflict with another mod.
+        The **Mixin Conflict Detection Report** in your server startup log already has the details — just paste it below.
+
+  - type: input
+    id: conflicting_mod
+    attributes:
+      label: Conflicting Mod Name
+      description: The name of the Fabric mod that conflicts with Cardboard
+      placeholder: "e.g. minimotd-fabric"
+    validations:
+      required: true
+
+  - type: input
+    id: conflicting_mod_version
+    attributes:
+      label: Conflicting Mod Version
+      description: The version of the conflicting mod
+      placeholder: "e.g. 2.1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: cardboard_version
+    attributes:
+      label: Cardboard Version
+      placeholder: "e.g. 1.21.11-SharkMI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: conflict_report
+    attributes:
+      label: Conflict Detection Report
+      description: Copy and paste the relevant section from the startup log's "Mixin Conflict Detection Report". This is printed automatically at server startup.
+      render: shell
+      placeholder: |
+        [Cardboard] FATAL conflicts (1):
+        [Cardboard]   [1] Target: net.minecraft.world.item.BoatItem#use
+        [Cardboard]       Cardboard: BoatItemMixin @Overwrite [priority=1000]
+        [Cardboard]       Other (minimotd): BoatItemMixin @Overwrite [priority=1000]
+        [Cardboard]       Suggestion: Double @Overwrite on the same method...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: What happens when the conflict occurs?
+      multiple: false
+      options:
+        - "Server crashes on startup"
+        - "NullPointerException (NPE)"
+        - "ClassCastException"
+        - "Feature silently broken (plugin doesn't work)"
+        - "Random crash during gameplay"
+        - "Other (describe below)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: symptom_details
+    attributes:
+      label: Symptom Details
+      description: Describe exactly what goes wrong. Include crash logs or error messages if applicable.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround_attempted
+    attributes:
+      label: Workarounds Attempted
+      description: What have you already tried to fix this?
+      placeholder: |
+        - Tried disabling mixin via `mixin-force-disable` → result: ...
+        - Tried adjusting priority → result: ...
+        - Tried removing the conflicting mod → result: ...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have included the full Mixin Conflict Detection Report from startup logs
+          required: true
+        - label: I have verified the conflict still exists with the latest Cardboard version
+          required: true
+        - label: I have listed the exact mod name and version
+          required: true

@@ -1,0 +1,102 @@
+---
+name: Bug Report
+description: Report a bug or crash in Cardboard
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for taking the time to report a bug! Please fill out the form below.
+        Before submitting, search [existing issues](https://github.com/SharkMI-0x7E/CardBoard/issues) to check if it's already been reported.
+
+  - type: input
+    id: cardboard_version
+    attributes:
+      label: Cardboard Version
+      description: The version of Cardboard you are using (check `mods/` folder or startup log)
+      placeholder: "e.g. 1.21.11-SharkMI"
+    validations:
+      required: true
+
+  - type: input
+    id: minecraft_version
+    attributes:
+      label: Minecraft Version
+      description: The Minecraft version your server is running
+      placeholder: "e.g. 1.21.11"
+    validations:
+      required: true
+
+  - type: input
+    id: fabric_loader_version
+    attributes:
+      label: Fabric Loader Version
+      description: The Fabric Loader version (check startup log or `fabric-installer`)
+      placeholder: "e.g. 0.16.14"
+    validations:
+      required: true
+
+  - type: textarea
+    id: other_mods
+    attributes:
+      label: Other Mods Installed
+      description: List all other mods in your `mods/` folder. This is critical for identifying mixin conflicts.
+      placeholder: |
+        - fabric-api-0.123.0
+        - carpet-tis-addition-1.2.3
+        - minimotd-2.0
+        - lithium-0.14.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Provide exact steps to trigger the bug.
+      placeholder: |
+        1. Install Cardboard with mods [list]
+        2. Start the server
+        3. Run command `/...` or perform action ...
+        4. Observe error/crash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "The plugin should load and work normally..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include crash messages or error output.
+      placeholder: "Server crashed with `ClassCastException`..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server Log
+      description: Paste your `logs/latest.log` or the relevant crash section. Use a paste service (pastebin, github gist) if it's long.
+      render: shell
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and found no duplicate
+          required: true
+        - label: I have included the complete `latest.log` or crash report
+          required: true
+        - label: I have listed ALL mods in my mods folder
+          required: true

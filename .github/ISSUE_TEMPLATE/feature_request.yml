@@ -1,0 +1,57 @@
+---
+name: Feature Request
+description: Suggest a new feature or improvement for Cardboard
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for suggesting a feature! Please describe what you need and why.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: Describe the problem you are facing. What limitation or missing functionality are you running into?
+      placeholder: "I can't run plugin X because Bukkit event Y is not implemented yet..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this to work? Describe the ideal behavior or API.
+      placeholder: "Add support for Bukkit's `BlockPhysicsEvent` by creating a mixin that intercepts..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What workarounds or alternative approaches have you tried or considered?
+      placeholder: "Tried using plugin X instead, but it doesn't work either because..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other details — specific plugins affected, Minecraft version constraints, links to related issues or Bukkit API docs.
+      placeholder: |-
+        - Affected plugin: EssentialsX v2.21
+        - Related Bukkit API: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/block/BlockPhysicsEvent.html
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and found no similar request
+          required: true
+        - label: I have checked that this feature is not already implemented in the latest version
+          required: true
