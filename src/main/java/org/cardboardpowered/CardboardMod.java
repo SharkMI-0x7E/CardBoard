@@ -165,7 +165,6 @@ public class CardboardMod implements ModInitializer {
             return;
         }
 
-
         String name = ((ServerLevelData) nms.getLevelData()).getLevelName();
 
         File fi = new File(name + "_the_end");
@@ -217,7 +216,6 @@ public class CardboardMod implements ModInitializer {
                 name = nms.dimension().identifier().toDebugFileName();
                 new File(name).mkdirs();
             }
-
 
             ((LevelBridge)nms).set_bukkit_world( new CraftWorld(name, nms) );
             CraftServer.INSTANCE.getPluginManager().callEvent(new org.bukkit.event.world.WorldInitEvent(((LevelBridge)nms).cardboard$getWorld()));

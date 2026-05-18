@@ -444,7 +444,6 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         }, Util.backgroundExecutor());
     }
 
-
 	@Override
     public @NotNull Map<String, Object> serialize() {
         Map<String, Object> map = new LinkedHashMap<>();

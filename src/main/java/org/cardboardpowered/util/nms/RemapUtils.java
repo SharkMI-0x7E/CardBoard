@@ -737,7 +737,6 @@ public class RemapUtils implements IRemapUtils {
 		return jarRemapper;
 	}
 
-
 	@Override
 	public boolean shouldExtraDebugLog() {
 		return CardboardConfig.DEBUG_VERBOSE_CALLS;

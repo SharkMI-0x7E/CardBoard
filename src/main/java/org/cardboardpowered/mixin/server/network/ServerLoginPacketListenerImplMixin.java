@@ -1,8 +1,6 @@
 /**
  * Cardboard - Spigot/Paper for Fabric
- * Copyright (C) 2020-2026 CardboardPowered.org and contributors
- * Copyright (C) 2026 SharkMI and contributors
- *
+ * Copyright (C) 2020-2026 CardboardPowered.org and contributors*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 3
@@ -275,7 +273,6 @@ public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginP
 			final CraftServer server = CraftServer.INSTANCE;
 			InetAddress rawAddress = ((InetSocketAddress)this.connection.channel.remoteAddress()).getAddress();
 			PlayerProfile profile = CraftPlayerProfile.asBukkitCopy(gameprofile);
-
 
 			AsyncPlayerPreLoginEvent asyncEvent = new AsyncPlayerPreLoginEvent(playerName, address, uniqueId);
 			/*

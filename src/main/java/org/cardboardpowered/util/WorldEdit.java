@@ -100,7 +100,6 @@ public class WorldEdit {
         }
     }
 
-
     public static void handleWatchdog(ClassNode node) {
         if (node.interfaces.size() == 1 && node.interfaces.get(0).equals("com/sk89q/worldedit/extension/platform/Watchdog") && node.name.contains("SpigotWatchdog")) {
             for (MethodNode method : node.methods) {

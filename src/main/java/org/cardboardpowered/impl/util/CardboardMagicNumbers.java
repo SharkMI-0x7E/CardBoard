@@ -264,7 +264,6 @@ public class CardboardMagicNumbers {
         return block;
     }
 
-
     public static Identifier key(Material mat) {
         return CraftNamespacedKey.toMinecraft(mat.getKey());
     }

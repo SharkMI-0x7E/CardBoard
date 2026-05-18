@@ -73,5 +73,4 @@ public class BukkitEntityTypeMixin implements BukkitEntityTypeBridge {
         return ID_MAP.get((short) id);
     }
 
-
 }

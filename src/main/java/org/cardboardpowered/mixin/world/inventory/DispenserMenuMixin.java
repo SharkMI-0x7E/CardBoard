@@ -56,5 +56,4 @@ public class DispenserMenuMixin extends AbstractContainerMenuMixin {
         return bukkitEntity;
     }
 
-
 }

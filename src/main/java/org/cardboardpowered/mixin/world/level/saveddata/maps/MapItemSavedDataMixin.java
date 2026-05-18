@@ -42,7 +42,6 @@ public class MapItemSavedDataMixin implements MapItemSavedDataBridge {
         mapView = new MapViewImpl((MapItemSavedData)(Object)this);
     }
 
-
     @Override
     public MapViewImpl getMapViewBF() {
         return mapView;

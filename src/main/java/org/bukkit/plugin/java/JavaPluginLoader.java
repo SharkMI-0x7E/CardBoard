@@ -392,9 +392,6 @@ public final class JavaPluginLoader implements PluginLoader {
     }
 }
 
-
-
-
 /**
  * Represents a Java plugin loader, allowing plugins in the form of .jar
  */
@@ -695,7 +692,6 @@ public final class JavaPluginLoader implements PluginLoader {
     }
 
 }
-
 
 /**
  * Represents a Java plugin loader, allowing plugins in the form of .jar

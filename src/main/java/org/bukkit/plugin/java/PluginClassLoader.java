@@ -64,7 +64,6 @@ public class PluginClassLoader extends URLClassLoader {
        return this.plugin;
     }
 
-
     PluginClassLoader(@NotNull final JavaPluginLoader loader, @Nullable final ClassLoader parent, @NotNull final PluginDescriptionFile description, @NotNull final File dataFolder, @NotNull final File file, @Nullable ClassLoader libraryLoader) throws IOException, InvalidPluginException, MalformedURLException {
         super(new URL[] {file.toURI().toURL()}, parent);
         Preconditions.checkArgument(loader != null, "Loader cannot be null");
@@ -364,8 +363,6 @@ public class PluginClassLoader extends URLClassLoader {
         javaPlugin.init(loader, loader.server, description, dataFolder, file, this);
     }
 }
-
-
 
 /*package org.bukkit.plugin.java;
 
@@ -1872,7 +1869,6 @@ public final class PluginClassLoader extends URLClassLoader implements Remapping
         return remapper;
     }
 
-
 }
 */
 
@@ -2039,7 +2035,6 @@ public final class PluginClassLoader extends URLClassLoader implements Remapping
  // Product2<byte[], CodeSource> classBytes = remapClass(name, byteSource, connection);
  Product2<byte[], CodeSource> classBytes = this.getRemapper().remapClass(name, byteSource, connection);
 
-
  int dot = name.lastIndexOf('.');
  if (dot != -1) {
  String pkgName = name.substring(0, dot);
@@ -2136,7 +2131,6 @@ public final class PluginClassLoader extends URLClassLoader implements Remapping
  }
  }
  }
-
 
  // Product2<byte[], CodeSource> classBytes_ = this.getRemapper().remapClass(name, byteSource, connection);
 

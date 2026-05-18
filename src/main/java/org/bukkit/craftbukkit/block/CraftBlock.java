@@ -726,7 +726,6 @@ public class CraftBlock implements Block {
         this.getNMS().tick(level, this.position, level.random);
     }
 
-
     @Override
     public void fluidTick() {
         this.getNMSFluid().tick(((ServerLevel)this.world), this.position, this.getNMS());

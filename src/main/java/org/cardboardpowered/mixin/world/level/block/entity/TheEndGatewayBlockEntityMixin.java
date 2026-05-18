@@ -29,7 +29,6 @@ public class TheEndGatewayBlockEntityMixin {
 	private static void startTeleportCooldown(World world, BlockPos pos, BlockState state, EndGatewayBlockEntity be) {
 	}
 
-
 	@Redirect(method = "tryTeleportingEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;resetPortalCooldown()V"))
 	private static void onResetPortalCooldown(Entity instance) {
 		// ignore, called somewhere else here

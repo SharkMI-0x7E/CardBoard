@@ -133,7 +133,6 @@ public abstract class HopperBlockEntityMixin implements Container, ContainerBrid
                     
                     sourceInventory = new CraftInventory(iinventory);
 
-
                     InventoryMoveItemEvent event = new InventoryMoveItemEvent(sourceInventory, oitemstack.clone(), ((ContainerBridge)ihopper).getOwner().getInventory(), false);
                     Bukkit.getServer().getPluginManager().callEvent(event);
                     if (event.isCancelled()) {

@@ -86,7 +86,6 @@ public class ArmorStandMixin extends EntityMixin implements ArmorStandBridge {
     }
     // Paper end
 
-
     @Inject(
     		method = "swapItem", cancellable = true,
     		at = @At(

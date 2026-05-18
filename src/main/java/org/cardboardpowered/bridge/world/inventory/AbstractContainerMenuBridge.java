@@ -54,7 +54,6 @@ public interface AbstractContainerMenuBridge {
     }
     */
 
-
     default NonNullList<ItemStack> getTrackedStacksBF() {
         return null;
     }

@@ -265,7 +265,6 @@ public abstract class JavaPlugin extends PluginBase {
         }
     }
 
-
     final void init(PluginLoader loader, Server server, PluginDescriptionFile description, File dataFolder, File file, ClassLoader classLoader) {
         this.loader = loader;
         this.server = server;

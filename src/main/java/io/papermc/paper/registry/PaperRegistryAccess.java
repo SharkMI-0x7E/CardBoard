@@ -82,7 +82,6 @@ implements RegistryAccess {
         return possiblyUnwrap(registryHolder.get());
     }
 
-
     private static <T extends Keyed> org.bukkit.Registry<T> possiblyUnwrap(org.bukkit.Registry<T> registry) {
     	if (registry instanceof final DelayedRegistry<T, ?> delayedRegistry) {
             return delayedRegistry.delegate();

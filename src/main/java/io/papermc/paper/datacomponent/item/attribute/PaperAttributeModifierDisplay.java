@@ -1,6 +1,5 @@
 package io.papermc.paper.datacomponent.item.attribute;
 
-
 import io.papermc.paper.datacomponent.item.attribute.AttributeModifierDisplay;
 import io.papermc.paper.datacomponent.item.attribute.PaperDefaultDisplay;
 import io.papermc.paper.datacomponent.item.attribute.PaperHiddenDisplay;

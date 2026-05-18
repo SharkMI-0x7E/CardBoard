@@ -69,8 +69,6 @@ public class CommandMapImpl extends SimpleCommandMap {
     }
 //>>>>>>> upstream/ver/1.20
 
-
-
 	@Override
 	public synchronized void clearCommands() {
 		super.clearCommands();

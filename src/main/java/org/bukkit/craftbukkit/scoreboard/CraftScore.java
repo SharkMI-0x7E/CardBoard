@@ -76,7 +76,6 @@ final class CraftScore implements Score {
         return io.papermc.paper.util.PaperScoreboardFormat.asPaper(vanilla);
     }
 
-
     @Override
     public void numberFormat(io.papermc.paper.scoreboard.numbers.NumberFormat format) {
         this.objective.checkState();

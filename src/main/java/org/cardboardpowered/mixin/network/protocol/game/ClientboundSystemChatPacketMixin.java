@@ -55,5 +55,4 @@ public class ClientboundSystemChatPacketMixin implements ClientboundSystemChatPa
         this.bungeeComponents = components;
     }
 
-
 }

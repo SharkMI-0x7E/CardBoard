@@ -397,7 +397,6 @@ public class ReflectionMethodVisitor extends MethodVisitor {
                 && name.equals("lookupOrThrow")
                 && desc.equals("(Lnet/minecraft/class_5321;)Lnet/minecraft/class_2359;")) { // IdMap
 
-
             super.visitMethodInsn(
                     Opcodes.INVOKEINTERFACE,
                     owner,

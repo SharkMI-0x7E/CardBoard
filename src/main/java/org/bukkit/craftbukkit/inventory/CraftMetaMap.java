@@ -227,7 +227,6 @@ class CraftMetaMap extends CraftMetaItem implements MapMeta {
         return original != hash ? CraftMetaMap.class.hashCode() ^ hash : hash;
     }
 
-
     @Override
     public CraftMetaMap clone() {
         return (CraftMetaMap) super.clone();

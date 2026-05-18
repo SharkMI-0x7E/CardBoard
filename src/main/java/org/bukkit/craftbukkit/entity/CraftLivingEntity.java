@@ -273,7 +273,6 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
         return Optionull.map(this.getHandle().getLastHurtByPlayer(), player -> (Player) ((EntityBridge)player).getBukkitEntity());
     }
 
-
     @Override
     public double getLastDamage() {
         return  this.getHandle().lastHurt;

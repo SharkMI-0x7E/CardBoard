@@ -44,7 +44,6 @@ public class CraftChicken extends CraftAnimals implements Chicken {
             return CraftRegistry.bukkitToMinecraftHolder(bukkit);
         }
 
-
         public CraftVariant(Holder<ChickenVariant> holder) {
             super(holder);
         }

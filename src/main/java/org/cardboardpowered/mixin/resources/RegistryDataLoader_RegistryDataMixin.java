@@ -20,8 +20,6 @@ package org.cardboardpowered.mixin.resources;
 
 import java.util.Map;
 
-
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

@@ -104,7 +104,6 @@ public record PaperEquippable(
         		.equipOnInteract(this.equipOnInteract())).shearSound(this.shearSound())).canBeSheared(this.canBeSheared());
     }
 
-
     static final class BuilderImpl
     implements Equippable.Builder {
         private final net.minecraft.world.entity.EquipmentSlot equipmentSlot;

@@ -232,7 +232,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 @SuppressWarnings("deprecation")
 public class CraftServer implements Server {
 
@@ -450,7 +449,6 @@ public class CraftServer implements Server {
         File pluginFolder = new File("plugins");
         if (pluginFolder.exists()) {
 
-
         	//if (pluginRemapper != null) {
             //    pluginRemapper.loadingPlugins();
              //}
@@ -535,7 +533,6 @@ public class CraftServer implements Server {
             commandMap.register("minecraft", new MinecraftCommandWrapper(dispatcher, cmd));
         }
     }
-
 
     @SuppressWarnings("unchecked")
     private void syncCommands() {
@@ -1488,7 +1485,6 @@ public class CraftServer implements Server {
     public <T extends Keyed> org.bukkit.Tag<T> getTag_(String registry, NamespacedKey tag, Class<T> clazz) {
         Identifier key = CraftNamespacedKey.toMinecraft(tag);
 
-
         switch (registry) {
         case "blocks": {
             Preconditions.checkArgument(clazz == Material.class, "Block namespace must have material type");
@@ -2117,7 +2113,6 @@ public class CraftServer implements Server {
         Player player = uuid != null ? Bukkit.getPlayer(uuid) : (name != null ? Bukkit.getPlayerExact(name) : null);
         return (player != null) ? new CraftPlayerProfile((CraftPlayer) player) : new CraftPlayerProfile(uuid, name);
     }
-
 
     //@Override
     @Deprecated(forRemoval = true)

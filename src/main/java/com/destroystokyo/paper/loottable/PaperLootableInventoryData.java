@@ -83,7 +83,6 @@ public class PaperLootableInventoryData {
             return false;
         }
 
-
         final Player bukkitPlayer = (Player) ((EntityBridge)player).getBukkitEntity();
         final LootableInventoryReplenishEvent event = new LootableInventoryReplenishEvent(bukkitPlayer, holderInterface.getInventoryForEvent(lootTableHolder));
         event.setCancelled(!this.canPlayerLoot(player.getUUID(), paperConfig));

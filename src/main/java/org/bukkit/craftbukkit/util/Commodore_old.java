@@ -163,7 +163,6 @@ public class Commodore_old {
     }
     // Paper end
 
-
     public static byte[] convert(byte[] b, final boolean modern, String aname) {
         ClassNode node = new ClassNode();
 

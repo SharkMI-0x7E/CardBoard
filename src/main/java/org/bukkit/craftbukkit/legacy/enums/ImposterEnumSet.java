@@ -176,7 +176,6 @@ public class ImposterEnumSet extends AbstractSet<Object> {
         return new ImposterEnumSet(set, e1.getClass());
     }
 
-
     public static ImposterEnumSet of(Object e1, Object e2, Object e3, Object e4) {
         Set set = ImposterEnumSet.createSet(e1.getClass());
         set.add(e1);
@@ -186,7 +185,6 @@ public class ImposterEnumSet extends AbstractSet<Object> {
 
         return new ImposterEnumSet(set, e1.getClass());
     }
-
 
     public static ImposterEnumSet of(Object e1, Object e2, Object e3, Object e4, Object e5) {
         Set set = ImposterEnumSet.createSet(e1.getClass());
@@ -198,7 +196,6 @@ public class ImposterEnumSet extends AbstractSet<Object> {
 
         return new ImposterEnumSet(set, e1.getClass());
     }
-
 
     public static ImposterEnumSet of(Object e, Object... rest) {
         Set set = ImposterEnumSet.createSet(e.getClass());

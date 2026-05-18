@@ -75,5 +75,4 @@ public class ServerGamePacketListenerImplMixin_SignUpdateEvent {
         } catch (NullPointerException serverNoLikeSigns) {}
     }
 
-
 }

@@ -19,7 +19,6 @@ import org.jspecify.annotations.Nullable;
 
 import static io.papermc.paper.registry.entry.RegistryEntryBuilder.start;
 
-
 public interface RegistryEntry<M, A extends Keyed> { // TODO remove Keyed
 
     RegistryHolder<A> createRegistryHolder(Registry<M> nmsRegistry);

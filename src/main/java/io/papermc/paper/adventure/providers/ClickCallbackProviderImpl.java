@@ -79,7 +79,6 @@ public class ClickCallbackProviderImpl implements ClickCallback.Provider {
         }
     }
 
-
     abstract static class CallbackManager<C, I> {
 
         private final Predicate<Identifier> locationPredicate;

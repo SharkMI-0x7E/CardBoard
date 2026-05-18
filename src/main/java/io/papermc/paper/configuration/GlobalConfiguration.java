@@ -10,7 +10,6 @@ public class GlobalConfiguration {
 
     public int version = 30;
 
-
     public static GlobalConfiguration get() {
         return instance;
     }

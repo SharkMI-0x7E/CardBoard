@@ -64,7 +64,6 @@ public abstract class AbstractHorseMixin extends Animal implements AbstractHorse
         return !this.isVehicle();
     }
 
-
     @Inject(method = "getMaxTemper", at = @At("HEAD"), cancellable = true)
     public void getMaxTemperCraftBukkit(CallbackInfoReturnable<Integer> cir) {
         cir.setReturnValue(this.maxDomestication); // CraftBukkit - return stored max domestication instead

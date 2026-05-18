@@ -165,7 +165,6 @@ public abstract class EntityMixin implements CommandSourceBridge, EntityBridge {
         return this.level.addFreshEntity(entityitem);
     }
 
-
     @Override
     public CommandSender getBukkitSender(CommandSourceStack serverCommandSource) {
         return bukkitEntity;

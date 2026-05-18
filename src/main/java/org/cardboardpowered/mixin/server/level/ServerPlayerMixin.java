@@ -631,7 +631,6 @@ public abstract class ServerPlayerMixin extends PlayerMixin implements CommandSo
         return this.cardboard$drop(itemStack, false, true) != null; // Paper - add back success return
     }
 
-
     // private ItemEntity cardboard_stored_entity;
 
 	/*

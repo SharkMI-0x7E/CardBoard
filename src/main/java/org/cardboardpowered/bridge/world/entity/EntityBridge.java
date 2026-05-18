@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
-
 public interface EntityBridge {
 
     public CraftEntity getBukkitEntity();

@@ -121,7 +121,6 @@ public class CardboardConfig {
 				.values("false", "false", "false", "false", "false")
 			);
 
-
 	private static class DefaultConfig {
 		private ArrayList<ConfigSection> sections;
 		

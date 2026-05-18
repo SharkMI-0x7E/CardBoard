@@ -295,14 +295,11 @@ public class ServerGamePacketListenerImplMixin_PlayerMove {
                             }
                             if (teleportBack) {
 
-
                             	ServerGamePacketListenerImpl thiz = (ServerGamePacketListenerImpl)(Object)this;
 
                             	// thiz.teleport
 
                             	thiz.teleport(d3, d4, d5, f, f1);
-
-
 
                                 this.player.doCheckFallDamage(this.player.getX() - d3, this.player.getY() - d4, this.player.getZ() - d5, packet.isOnGround());
                             } else {

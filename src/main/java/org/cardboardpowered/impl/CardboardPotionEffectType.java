@@ -88,7 +88,6 @@ public class CardboardPotionEffectType extends PotionEffectType implements Handl
         
     }
 
-
     @Override
     public double getDurationModifier() {
         return 1.0D;

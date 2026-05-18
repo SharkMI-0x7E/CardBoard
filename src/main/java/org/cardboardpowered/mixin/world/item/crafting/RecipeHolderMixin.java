@@ -76,7 +76,6 @@ public class RecipeHolderMixin implements RecipeHolderBridge {
         return recipe;
     }
 
-
 	private org.bukkit.inventory.Recipe toBukkitRecipe(TransmuteRecipe thiz, NamespacedKey id) {
 		return new org.bukkit.craftbukkit.inventory.CraftTransmuteRecipe(id, org.bukkit.craftbukkit.inventory.CraftItemType.minecraftToBukkit(thiz.result.item().value()), org.bukkit.craftbukkit.inventory.CraftRecipe.toBukkit(thiz.input), org.bukkit.craftbukkit.inventory.CraftRecipe.toBukkit(thiz.material));
 	}
