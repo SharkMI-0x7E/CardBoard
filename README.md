@@ -10,6 +10,10 @@
 [![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/SharkMI-0x7E/CardBoard/ci.yml?branch=main)](.github/workflows/ci.yml)
 [![Discord](https://img.shields.io/badge/Discord-Community-7289DA?logo=discord&style=flat-square)](https://discord.gg/tddTWXZtaP)
+[![GitHub Release](https://img.shields.io/github/v/release/SharkMI-0x7E/CardBoard?sort=semver)](../../releases)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/SharkMI-0x7E/CardBoard/total)](../../releases)
+[![GitHub last commit](https://img.shields.io/github/last-commit/SharkMI-0x7E/CardBoard)](../../commits/main)
+[![GitHub Repo stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat)](../../stargazers)
 
 </div>
 
