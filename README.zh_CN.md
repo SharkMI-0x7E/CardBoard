@@ -10,6 +10,8 @@
 [![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
 
+[🇬🇧 English](README.md)
+
 </div>
 
 > **这是一个社区维护的分支 (Fork)**，由 [SharkMI](https://github.com/SharkMI-0x7E) 基于 [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard) 维护。
