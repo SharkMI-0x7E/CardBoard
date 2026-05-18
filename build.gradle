@@ -248,7 +248,7 @@ modrinth {
     token = System.getenv("MODRINTH_TOKEN")
     // TODO: Create a Modrinth page for SharkMI fork and update this projectId
     // Current projectId is from the official Cardboard project - do NOT publish to it
-    projectId = "MLYQ9VGP"
+    projectId = "cardboard-SharkMI-Fork"
     versionNumber = project.mod_version
     versionName = "CardBoard Fork SharkMI ${project.mod_version}"
     versionType = "release"
