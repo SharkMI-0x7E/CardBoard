@@ -84,7 +84,7 @@ public class RemapUtils implements IRemapUtils {
     private static final List<Remapper> remappers = new ArrayList<>();
     public static InheritanceMap inheritanceMap;
     
-    public static boolean DEBUG_VERBOSE_CALLS = true;
+    public static boolean DEBUG_VERBOSE_CALLS = false;
 
     public static String NMS_VERSION = "v1_21_R7"; // "v1_21_R3"; // "v1_20_R4";
     

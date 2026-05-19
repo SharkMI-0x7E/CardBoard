@@ -115,7 +115,20 @@ public class CardboardConfig {
 			)
 			.addSection(new ConfigSection("debug-stuff")
 				.comments(
-						"# Debug Test Stuff"
+						"# Debug Mode - Set to true to enable all debug logging below",
+						"# Set to false to disable all debug logging regardless of individual settings",
+						"# Individual debug_* keys below act as sub-toggles when debug_mode is true"
+				)
+				.keys("debug_mode")
+				.values("false")
+			)
+			.addSection(new ConfigSection("debug-options")
+				.comments(
+						"# \tdebug_print_event_call: Print event call information",
+						"# \tdebug_print_all_calls: Print verbose NMS remap calls",
+						"# \tdebug_player: Print player-related debug info",
+						"# \tdebug_other: Print other debug info",
+						"# \tdebug_print_remaputil: Print RemapUtils mapping details"
 				)
 				.keys("debug_print_event_call", "debug_print_all_calls", "debug_player", "debug_other", "debug_print_remaputil")
 				.values("false", "false", "false", "false", "false")
@@ -188,6 +201,7 @@ public class CardboardConfig {
     public static boolean ALT_CHAT = false;
 	public static boolean REGISTRY_COMMAND_FIX = true;
 	
+    public static boolean DEBUG_MODE = false;
     public static boolean DEBUG_EVENT_CALL = false;
     public static boolean DEBUG_VERBOSE_CALLS = false;
     public static boolean DEBUG_OTHER = false;
@@ -220,6 +234,8 @@ public class CardboardConfig {
         if (oldConfig.exists()) {
             migrate_config(oldConfig, f);
         }
+
+        fill_missing_config_keys(f);
 
         FileConfiguration config = new FileConfiguration(f);
         ALT_CHAT = config.getBoolean("use_alternative_chat_mixin");
@@ -262,6 +278,7 @@ public class CardboardConfig {
     }
     
     private static void setup_debug(FileConfiguration config) throws Exception {
+        DEBUG_MODE = config.getOrDefault("debug_mode", false);
         DEBUG_EVENT_CALL = config.getOrDefault("debug_print_event_call", false);
         DEBUG_VERBOSE_CALLS =  config.getOrDefault("debug_print_all_calls", false);
         DEBUG_OTHER = config.getOrDefault("debug_other", false);
@@ -269,19 +286,50 @@ public class CardboardConfig {
         DEBUG_LOG_REMAP = config.getOrDefault("debug_print_remaputil", false);
         DEBUG_REMAP_WE = config.getOrDefault("debug_print_remap_for_worldedit", false);
 
+        if (!DEBUG_MODE) {
+            DEBUG_EVENT_CALL = false;
+            DEBUG_VERBOSE_CALLS = false;
+            DEBUG_OTHER = false;
+            DEBUG_PLAYER = false;
+            DEBUG_LOG_REMAP = false;
+            DEBUG_REMAP_WE = false;
+        }
+
         String extraJar = config.getOrDefault("debug_extra_lib_file", "debug_extra.jar");
         if (extraJar.length() > 2) {
         	File file = new File(new File("lib"), extraJar);
-            // Add to KnotClassLoader
-        	if (file.exists()) {
+            if (file.exists()) {
 	            try {
 	                Libraries.propose(file);
 	            } catch (Exception e) {
 	                e.printStackTrace();
 	            }
         	}
-        	
         }
+    }
+
+    private static boolean fill_missing_config_keys(File configFile) throws IOException {
+        String existing = Files.readString(configFile.toPath());
+        StringBuilder added = new StringBuilder();
+        for (ConfigSection section : DEFAULT_CONF.sections) {
+            boolean sectionMissing = false;
+            for (String key : section.keys) {
+                if (!existing.contains(key + ":")) {
+                    sectionMissing = true;
+                    break;
+                }
+            }
+            if (sectionMissing) {
+                added.append("\n").append(section.asString());
+            }
+        }
+        if (added.length() == 0) return false;
+
+        File backup = new File(configFile.getParentFile(), configFile.getName() + ".bak");
+        Files.copy(configFile.toPath(), backup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        Files.writeString(configFile.toPath(), existing + "\n# [Auto-generated] Missing configuration keys added on startup:\n" + added.toString());
+        return true;
     }
 
     private static void save_default(File file) throws IOException {
