@@ -21,7 +21,6 @@ package org.cardboardpowered.mixin.server.dedicated;
 import org.cardboardpowered.BukkitLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.CraftServer;
-import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.PluginLoadOrder;
 import org.bukkit.plugin.java.JavaPluginLoader;
@@ -56,21 +55,31 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 		CraftServer.server = (DedicatedServer) (Object) this;
 	}
 
-	@Inject(at = @At(value = "JUMP", ordinal = 8), method = "initServer()Z") // TODO keep ordinal updated
+	@Inject(at = @At(value = "JUMP", ordinal = 8), method = "initServer()Z")
 	private void init(CallbackInfoReturnable<Boolean> ci) {
+
 		// Register Bukkit Enchantments
 		// for(Enchantment enchantment : Registries.ENCHANTMENT) {
-			// TODO: check for 1.20.3+
-			// org.bukkit.enchantments.Enchantment.registerEnchantment(new CardboardEnchantment(enchantment));
-		//}
+		//     TODO: check for 1.20.3+
+        //     TODO note: Do we really need this? like this TODO note as we can just uncomment this
+		//     org.bukkit.enchantments.Enchantment.registerEnchantment(new CardboardEnchantment(enchantment));
+		// }
 
 		CardboardMagicNumbers.test();
 		CardboardMagicNumbers.setupUnknownModdedMaterials();
 
-		DedicatedServer thiss = (DedicatedServer) (Object) this;
+		DedicatedServer server = (DedicatedServer) (Object) this;
 
-		((DedicatedServer) (Object) this).setPlayerList(new DedicatedPlayerList(thiss, thiss.registries(), playerDataStorage));
-		Bukkit.setServer(new CraftServer((DedicatedServer) (Object) this));
+		System.setProperty("bukkit.version", "Cardboard");
+
+		server.setPlayerList(new DedicatedPlayerList(server, server.registries(), playerDataStorage));
+
+		CraftServer craftServer = new CraftServer(server);
+
+		Bukkit.setServer(craftServer);
+		CraftServer.server = server;
+		CraftServer.INSTANCE = craftServer;
+
 		org.spigotmc.SpigotConfig.init(new File("spigot.yml"));
 
 		Bukkit.getLogger().info("Loading Bukkit plugins...");
@@ -79,11 +88,8 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 
 		Bukkit.getPluginManager().registerInterface(JavaPluginLoader.class);
 
-		CraftServer s = ((CraftServer) Bukkit.getServer());
-		if(CraftServer.server == null) CraftServer.server = (DedicatedServer) (Object) this;
-
-		s.loadPlugins();
-		s.enablePlugins(PluginLoadOrder.STARTUP);
+		craftServer.loadPlugins();
+		craftServer.enablePlugins(PluginLoadOrder.STARTUP);
 
 		Bukkit.getLogger().info("");
 	}
@@ -91,7 +97,12 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 	@Inject(at = @At("TAIL"), method = "onServerExit")
 	public void killProcess(CallbackInfo ci) {
 		BukkitLogger.getLogger().info("Goodbye!");
-		Runtime.getRuntime().halt(0);
+		try {
+			DedicatedServer server = (DedicatedServer) (Object) this;
+			server.stopServer();
+		} catch (Throwable t) {
+			BukkitLogger.getLogger().severe("Shutdown error: " + t.getMessage());
+		}
 	}
 
 	/**
@@ -100,21 +111,27 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 	 */
 	@Overwrite
 	public void handleConsoleInputs() {
-		while(!this.consoleInput.isEmpty()) {
+		while (!this.consoleInput.isEmpty()) {
 			ConsoleInput servercommand = (ConsoleInput) this.consoleInput.remove(0);
 
 			ServerCommandEvent event = new ServerCommandEvent(CraftServer.INSTANCE.getConsoleSender(), servercommand.msg);
+
 			CraftServer.INSTANCE.getPluginManager().callEvent(event);
-			if(event.isCancelled()) continue;
+
+			if (event.isCancelled()) continue;
+
 			servercommand = new ConsoleInput(event.getCommand(), servercommand.source);
 
-			CraftServer.INSTANCE.dispatchServerCommand(CraftServer.INSTANCE.getConsoleSender(), servercommand);
+			CraftServer.INSTANCE.dispatchServerCommand(
+					CraftServer.INSTANCE.getConsoleSender(),
+					servercommand
+			);
 		}
 	}
 
 	@Inject(method = "enforceSecureProfile", at = @At("HEAD"), cancellable = true)
 	public void dontEnforceWithFix(CallbackInfoReturnable<Boolean> cir) {
-		if(CardboardConfig.REGISTRY_COMMAND_FIX)
+		if (CardboardConfig.REGISTRY_COMMAND_FIX)
 			cir.setReturnValue(false);
 	}
 
@@ -122,5 +139,4 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 	public boolean isDebugging() {
 		return false;
 	}
-
 }

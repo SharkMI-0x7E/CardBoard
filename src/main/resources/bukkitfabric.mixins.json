@@ -79,6 +79,7 @@
     "world.damagesource.DamageSourceMixin",
     "world.effect.MobEffectsMixin",
     "world.entity.EntityMixin",
+    "world.entity.CraftEntityFallbackMixin",
     "world.entity.ExperienceOrbMixin",
     "world.entity.ItemBasedSteeringMixin",
     "world.entity.LivingEntityMixin",

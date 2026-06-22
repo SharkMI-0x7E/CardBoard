@@ -40,12 +40,11 @@ public class BukkitMixin {
 	 */
 	@Overwrite(remap = false)
     public static String getVersionMessage() {
-		ModMetadata metadata = FabricLoader.getInstance().getModContainer("cardboard").get().getMetadata();
-		
-		String ver = metadata.getVersion().getFriendlyString();
-        if (ver.contains("version")) ver = CraftServer.INSTANCE.getShortVersion(); // Dev ENV
-		
-		return "This server is running " + Bukkit.getName() + " version " + ver + " (Implementing API version " + Bukkit.getBukkitVersion() + ")";
+		ModMetadata metadata = FabricLoader.getInstance().getModContainer("cardboardmc").or(() -> FabricLoader.getInstance().getModContainer("cardboard")).map(mod -> mod.getMetadata()).orElse(null);
+		String ver = metadata != null ? metadata.getVersion().getFriendlyString() : "unknown";
+		if (ver.contains("version") && CraftServer.INSTANCE != null) ver = CraftServer.INSTANCE.getShortVersion();
+		if (ver.equals("unknown") && CraftServer.INSTANCE != null) ver = CraftServer.INSTANCE.getShortVersion();
+        return "This server is running " + Bukkit.getName() + " version " + ver + " (Implementing API version " + Bukkit.getBukkitVersion() + ")";
     }
 	
 }

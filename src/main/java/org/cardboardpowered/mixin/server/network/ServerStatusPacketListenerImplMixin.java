@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
@@ -48,6 +49,7 @@ public class ServerStatusPacketListenerImplMixin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerStatusPacketListenerImplMixin.class);
 
+    private static final boolean MOTD_DEBUG = false;
     @Shadow
     private Connection connection;
 
@@ -75,8 +77,9 @@ public class ServerStatusPacketListenerImplMixin {
         require = 0
     )
     private ServerStatus cardboard$modifyServerStatus(ServerStatus originalStatus) {
-        LOGGER.info("[MOTD-DEBUG] Entering cardboard$modifyServerStatus, original MOTD: {}", originalStatus.description().getString());
-
+        if (MOTD_DEBUG) {
+            LOGGER.info("[MOTD-DEBUG] Entering cardboard$modifyServerStatus, original MOTD: {}", originalStatus.description().getString());
+        }
         MinecraftServer server = CraftServer.server;
         CardboardServerListPingEvent event = new CardboardServerListPingEvent(this.connection, server);
         CraftServer.INSTANCE.getPluginManager().callEvent(event);
@@ -84,12 +87,14 @@ public class ServerStatusPacketListenerImplMixin {
         // Check if plugin set custom MOTD
         boolean motdChanged = false;
         boolean hasCustomIcon = event.icon != null && event.icon.value != null;
-
-        LOGGER.info("[MOTD-DEBUG] motdChanged={}, hasCustomIcon={}, event.motd='{}'", motdChanged, hasCustomIcon, event.getMotd());
-
+        if (MOTD_DEBUG) {
+            LOGGER.info("[MOTD-DEBUG] motdChanged={}, hasCustomIcon={}, event.motd='{}'", motdChanged, hasCustomIcon, event.getMotd());
+        }
         // If no custom icon or MOTD, return original Status to preserve other mods' changes
         if (!hasCustomIcon && !motdChanged) {
-            LOGGER.info("[MOTD-DEBUG] Returning originalStatus (no custom changes)");
+            if (MOTD_DEBUG) {
+                LOGGER.info("[MOTD-DEBUG] Returning originalStatus (no custom changes)");
+            }
             return originalStatus;
         }
 
@@ -109,8 +114,9 @@ public class ServerStatusPacketListenerImplMixin {
         if (motdChanged) {
             motdComponent = CraftChatMessage.fromString(event.getMotd(), true)[0];
         }
-
-        LOGGER.info("[MOTD-DEBUG] Returning new ServerStatus, MOTD='{}', hasCustomIcon={}", motdComponent.getString(), hasCustomIcon);
+        if (MOTD_DEBUG) {
+            LOGGER.info("[MOTD-DEBUG] Returning new ServerStatus, MOTD='{}', hasCustomIcon={}", motdComponent.getString(), hasCustomIcon);
+        }
         return new ServerStatus(
                 motdComponent,
                 Optional.of(samp),

@@ -31,6 +31,20 @@ public class CraftCopperGolem extends CraftGolem implements CopperGolem, PaperSh
     }
 
     @Override
+    public State getGolemState() {
+        return State.valueOf(this.getHandle().getState().name());
+    }
+
+    @Override
+    public void setGolemState(final State state) {
+        Preconditions.checkArgument(state != null, "state cannot be null");
+
+        this.getHandle().setState(
+                net.minecraft.world.entity.animal.golem.CopperGolemState.valueOf(state.name())
+        );
+    }
+
+    @Override
     public Oxidizing getOxidizing() {
         long value = this.getHandle().nextWeatheringTick;
         if (value == net.minecraft.world.entity.animal.golem.CopperGolem.UNSET_WEATHERING_TICK) {

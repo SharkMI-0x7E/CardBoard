@@ -3,9 +3,9 @@
  * Copyright (C) 2020-2026 CardboardPowered.org and contributors
  *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,8 +13,8 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.cardboardpowered.impl.command;
 
@@ -30,7 +30,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftServer;
 import org.cardboardpowered.bridge.commands.CommandSourceStackBridge;
-
 import org.cardboardpowered.bridge.commands.CommandSourceBridge;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -60,13 +59,17 @@ public class BukkitCommandWrapper implements com.mojang.brigadier.Command<Comman
 
     @Override
     public boolean test(CommandSourceStack wrapper) {
-        return true; // Let Bukkit handle permissions
+        return true;
     }
 
     @Override
     public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         try {
-            return Bukkit.getServer().dispatchCommand(getSender(context.getSource()),context.getInput()) ? 1 : 0;
+            CommandSender sender = getSender(context.getSource());
+            if (sender == null) {
+                return 0;
+            }
+            return Bukkit.getServer().dispatchCommand(sender, context.getInput()) ? 1 : 0;
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
@@ -75,11 +78,17 @@ public class BukkitCommandWrapper implements com.mojang.brigadier.Command<Comman
 
     public CommandSender getSender(CommandSourceStack source) {
         try {
+            CommandSender sender = ((CommandSourceStackBridge) source).getBukkitSender();
+            if (sender != null) {
+                return sender;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
             ServerPlayer plr = source.getPlayer();
             if (null != plr)
                 return ((CommandSourceBridge)plr).getBukkitSender(source);
         } catch (Exception ignored) {
-            //ex.printStackTrace();
         }
         Entity e = source.getEntity();
         return (null != e) ? ((CommandSourceBridge)e).getBukkitSender(source) : null;
@@ -89,7 +98,6 @@ public class BukkitCommandWrapper implements com.mojang.brigadier.Command<Comman
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
         List<String> results = ((CraftServer)Bukkit.getServer()).tabComplete(((CommandSourceStackBridge) context.getSource()).getBukkitSender(), builder.getInput(), context.getSource().getLevel(), context.getSource().getPosition(), true);
 
-        // Defaults to sub nodes, but we have just one giant args node, so offset accordingly
         builder = builder.createOffset(builder.getInput().lastIndexOf(' ') + 1);
 
         for (String s : results) builder.suggest(s);

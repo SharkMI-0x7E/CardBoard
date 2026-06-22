@@ -1,6 +1,7 @@
 /**
  * Cardboard - Spigot/Paper for Fabric
  * Copyright (C) 2020-2026 CardboardPowered.org and contributors*
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 3
@@ -8,8 +9,8 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
@@ -276,7 +277,7 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
     		return null;
     	}
         URL[] jar = {
-                FabricLoader.getInstance().getModContainer("cardboard").get().getRootPath().toUri().toURL(),
+                FabricLoader.getInstance().getModContainer("cardboardmc").orElse(null).getRootPath().toUri().toURL(),
                 FabricLoader.getInstance().getModContainer("minecraft").get().getRootPath().toUri().toURL(),
                 FabricLoader.getInstance().getModContainer("fabricloader").get().getRootPath().toUri().toURL(),
                 papi.toURI().toURL()
@@ -318,15 +319,14 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
-        return null;
+        return new ArrayList();
     }
 
     @Override
-    public void preApply(String target, ClassNode targetClass, String mixinClass, IMixinInfo info) {
+    public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
     }
 
     @Override
-    public void postApply(String targetClass, ClassNode target, String mixinClass, IMixinInfo info) {
+    public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
     }
-
 }

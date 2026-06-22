@@ -9,6 +9,7 @@ import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.util.CraftLocation;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
@@ -55,6 +56,18 @@ public class PaperPathfinder implements Pathfinder {
 		Preconditions.checkArgument(target != null, "Target can not be null");
 		Path path = this.entity.getNavigation().createPath(((CraftLivingEntity)target).getHandle(), 0);
 		return path != null ? new PaperPathfinder.PaperPathResult(path) : null;
+	}
+
+	@Override
+	public @org.jspecify.annotations.Nullable PathResult findPath(Entity target) {
+		Preconditions.checkArgument(target != null, "Target can not be null");
+
+		Path path = this.entity.getNavigation().createPath(
+				((org.bukkit.craftbukkit.entity.CraftEntity) target).getHandle(),
+				0
+		);
+
+		return path != null ? new PaperPathResult(path) : null;
 	}
 
 	public boolean moveTo(@Nonnull PathResult path, double speed) {

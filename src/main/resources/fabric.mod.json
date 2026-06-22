@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "id": "cardboard",
-  "version": "${version}",
+  "id": "cardboardmc",
+  "version": "2026.6.8",
 
   "name": "Cardboard SharkMI",
   "description": "SharkMI fork of Cardboard - An implementation of the popular Spigot/Paper API for Fabric, with enhanced mixin compatibility and performance improvements",
@@ -49,5 +49,4 @@
       "net/minecraft/class_3248": ["org/cardboardpowered/bridge/server/network/ServerLoginPacketListenerImplBridge"]
     }
   }
-
 }
