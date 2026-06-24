@@ -481,7 +481,6 @@ public abstract class MinecraftServerMixin extends ReentrantBlockableEventLoop<T
 
     @Override
     public void cardboard_runOnMainThread(Runnable r) {
-        System.out.print("runOnMainThread");
         processQueue.add(r);
     }
 
