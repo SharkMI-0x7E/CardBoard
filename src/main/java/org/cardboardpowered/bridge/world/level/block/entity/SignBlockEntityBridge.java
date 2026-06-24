@@ -18,19 +18,31 @@
  */
 package org.cardboardpowered.bridge.world.level.block.entity;
 
-import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.entity.SignText;
 
 /**
+ * Bridge interface for {@link net.minecraft.world.level.block.entity.SignBlockEntity}.
+ *
+ * Exposes the SignText object itself (not the raw internal final array) so callers
+ * can mutate it via the immutable {@code setMessage(int, Component)} API.
+ *
+ * @see org.cardboardpowered.mixin.world.level.block.entity.SignBlockEntityMixin
  */
 public interface SignBlockEntityBridge {
 
-	/**
-	 */
-    Component[] getTextBF();
+    /**
+     * Returns the front face text of the sign.
+     */
+    SignText cardboard$getFrontText();
+
+    /**
+     * Returns the back face text of the sign.
+     */
+    SignText cardboard$getBackText();
 
     /**
      * Note: bukkit adds method.
      */
-	boolean cardboard$isFacingFrontText(double x, double z);
+    boolean cardboard$isFacingFrontText(double x, double z);
 
 }
