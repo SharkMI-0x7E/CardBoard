@@ -39,7 +39,7 @@ public class CraftInventoryView<T extends AbstractContainerMenu, I extends Inven
 
     @Override
     public Inventory getBottomInventory() {
-        return this.player.getInventory();
+        return this.player != null ? this.player.getInventory() : this.viewing;
     }
 
     @Override
