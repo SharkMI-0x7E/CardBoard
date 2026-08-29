@@ -18,7 +18,7 @@
 >
 > It includes additional compatibility fixes that have not yet been merged upstream.
 
-### 🐛 Issues & Feedback
+### Issues & Feedback
 
 - **Fork-specific bugs or suggestions** → Please open an [Issue in this repository](https://github.com/SharkMI-0x7E/CardBoard/issues).
 - **General discussion or questions** → Feel free to join the [Cardboard Discord](https://discord.gg/tddTWXZtaP) (the upstream community).
@@ -38,7 +38,7 @@ This is a fork of the official [Cardboard](https://github.com/CardboardPowered/c
 
 ---
 
-## 🤖 AI-Assisted Development
+## AI-Assisted Development
 
 This fork is **heavily AI-assisted**. Except for the original code inherited from
 the upstream [Cardboard](https://github.com/CardboardPowered/cardboard) project,

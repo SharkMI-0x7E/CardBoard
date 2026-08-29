@@ -18,7 +18,7 @@
 >
 > 本分支包含了一些尚未被上游合并的兼容性修复。
 
-### 🐛 问题与反馈
+### 问题与反馈
 
 - **与 Fork 相关的 Bug 或建议** → 请提交到 [本仓库的 Issues](https://github.com/SharkMI-0x7E/CardBoard/issues)。
 - **一般性讨论或疑问** → 欢迎加入 [Cardboard Discord 社区](https://discord.gg/tddTWXZtaP)（上游社区）。
@@ -39,7 +39,7 @@
 
 ---
 
-## 🤖 AI 辅助开发声明
+## AI 辅助开发声明
 
 本项目是 **重度 AI 辅助开发**。除继承自上游 [Cardboard](https://github.com/CardboardPowered/cardboard) 的原有代码外，
 **本仓库中新增的代码绝大部分由 AI 编写**。代码在发布前经过构建与冒烟测试，但未经全面的人工审查。
