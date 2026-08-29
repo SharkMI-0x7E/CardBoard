@@ -5,6 +5,7 @@
   "package": "org.cardboardpowered.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ProxyClassMixin",
     "advancements.AdvancementHolderMixin",
     "advancements.DisplayInfoMixin",
     "bukkit.BukkitMaterialMixin",

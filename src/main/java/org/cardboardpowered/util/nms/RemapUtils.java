@@ -194,10 +194,13 @@ public class RemapUtils implements IRemapUtils {
         
         // some missing
         jarMapping.classes.put("net/minecraft/nbt/ListTag", "net/minecraft/class_2499");
+        // NOTE: runtime namespace (confirmed at boot) is INTERMEDIARY, so alias targets must be
+        // the current intermediate names (class_7225$class_7874 = HolderLookup$Provider, etc.).
         jarMapping.classes.put("net/minecraft/class_7225$a", "net/minecraft/class_7225$class_7874");
-        
-        // Mojang: HolderLookup$Provider
         jarMapping.classes.put("net/minecraft/class_7225$Provider", "net/minecraft/class_7225$class_7874");
+
+        // Citizens NMS detection: ServerEntity$Synchronizer (renamed inner class)
+        jarMapping.classes.put("net/minecraft/class_3231$a", "net/minecraft/class_3231$class_12004");
 
         jarMapping.classes.put("net/minecraft/server/dedicated/DedicatedServer", "net/minecraft/class_3176");
         
@@ -206,7 +209,7 @@ public class RemapUtils implements IRemapUtils {
         // HashMap<String, String> cm = new HashMap<>();
 
         String namespace = mr.getCurrentRuntimeNamespace();
-        
+
         addMethodOverrides();
 
         try {
@@ -329,12 +332,30 @@ public class RemapUtils implements IRemapUtils {
     
     @Override
     public String map(String typeName) {
+        return map0(typeName);
+    }
+
+    public String map0(String typeName) {
     	
     	// Check if typeName is not in internal class name format
     	boolean isRequestNotInternalName = typeName.indexOf('.') != -1 && typeName.indexOf('/') == -1;
 
         typeName = mapPackage(typeName);
         String res = jarMapping.classes.getOrDefault(typeName, typeName);
+        // Patch entries may be keyed with '/' while some callers pass dotted names (and vice
+        // versa). Try the alternate separator so e.g. "net.minecraft.class_7225$a" resolves the
+        // same entry as "net/minecraft/class_7225$a".
+        if (res.equals(typeName) && typeName.indexOf('.') != -1) {
+            String altRes = jarMapping.classes.get(typeName.replace('.', '/'));
+            if (altRes != null) {
+                res = altRes;
+            }
+        } else if (res.equals(typeName) && typeName.indexOf('/') != -1) {
+            String altRes = jarMapping.classes.get(typeName.replace('/', '.'));
+            if (altRes != null) {
+                res = altRes;
+            }
+        }
         
         if (cspigot2fabric.containsKey(typeName)) {
         	String csf = cspigot2fabric.get(typeName);
@@ -365,6 +386,14 @@ public class RemapUtils implements IRemapUtils {
         	String[] spl = typeName.split(Pattern.quote("$"));
         	String nam1 = spl[0];
         	String res1 = jarMapping.classes.getOrDefault(nam1, nam1);
+        	// Same separator tolerance as in the top-level lookup above.
+        	if (res1.equals(nam1) && nam1.indexOf('.') != -1) {
+        	    String altRes1 = jarMapping.classes.get(nam1.replace('.', '/'));
+        	    if (altRes1 != null) res1 = altRes1;
+        	} else if (res1.equals(nam1) && nam1.indexOf('/') != -1) {
+        	    String altRes1 = jarMapping.classes.get(nam1.replace('/', '.'));
+        	    if (altRes1 != null) res1 = altRes1;
+        	}
         	
         	// Our Mapping Resolver
         	if (res1.equalsIgnoreCase(nam1)) {

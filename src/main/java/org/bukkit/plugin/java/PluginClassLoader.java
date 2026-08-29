@@ -6,6 +6,7 @@ import net.md_5.specialsource.repo.RuntimeRepo;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.cardboardpowered.util.GhostClassGenerator;
 import org.bukkit.plugin.SimplePluginManager;
 import org.cardboardpowered.mohistremap.ClassLoaderContext;
 import org.cardboardpowered.mohistremap.ClassMapping;
@@ -15,6 +16,7 @@ import org.cardboardpowered.util.nms.RemapUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -193,11 +195,69 @@ public class PluginClassLoader extends URLClassLoader {
             	RemapUtils remapUtils = (RemapUtils) RemapUtilProvider.get();
             	
                 ClassMapping remappedClassMapping = remapUtils.jarMapping.byNMSName.get(name);
-                if(remappedClassMapping == null){
-                    throw new ClassNotFoundException(name.replace('/','.'));
+                if (remappedClassMapping != null) {
+                    String remappedClass = remappedClassMapping.getMcpName();
+                    return Class.forName(remappedClass);
                 }
-                String remappedClass = remappedClassMapping.getMcpName();
-                return Class.forName(remappedClass);
+
+                // Fix C(1): plugins carry OLD intermediate inner-class names in their bytecode
+                // (e.g. net.minecraft.class_7225$a, renamed to class_7225$class_7874 in modern
+                // Yarn). Load the modern target class directly from the alias table (bypassing
+                // the full map() pipeline), then, because JVM's Class.forName() checks that the
+                // loader returns a Class with EXACTLY the requested binary name, synthesize a
+                // "ghost" class carrying the old name (extends/implements the modern class).
+                try {
+                    String dotName = name.replace('/', '.');
+                    String slashName = dotName.replace('.', '/');
+
+                    // Candidate modern names: alias table first (slash key), then map().
+                    java.util.LinkedHashSet<String> candidates = new java.util.LinkedHashSet<>();
+                    try {
+                        String patched = remapUtils.jarMapping.classes.get(slashName);
+                        if (patched != null) {
+                            candidates.add(patched.replace('/', '.'));
+                        }
+                    } catch (Throwable ignored) { }
+                    try {
+                        String mapped = remapUtils.map(dotName);
+                        if (mapped != null) {
+                            candidates.add(mapped.replace('/', '.'));
+                        }
+                    } catch (Throwable ignored) { }
+
+                    ClassLoader[] loaders = {
+                        CraftServer.server.getClass().getClassLoader(),
+                        Thread.currentThread().getContextClassLoader()
+                    };
+                    for (String cand : candidates) {
+                        if (cand == null || cand.equals(dotName)) {
+                            continue;
+                        }
+                        for (ClassLoader l : loaders) {
+                            if (l == null) continue;
+                            try {
+                                Class<?> alias = l.loadClass(cand);
+                                if (alias != null) {
+                                    if (!alias.getName().equals(dotName)) {
+                                        Class<?> ghost = GhostClassGenerator.getOrCreate(dotName, alias);
+                                        if (ghost != null) {
+                                            return ghost;
+                                        }
+                                    }
+                                    return alias;
+                                }
+                            } catch (Throwable ignored) { }
+                        }
+                    }
+                } catch (NoClassDefFoundError | RuntimeException ignored) {
+                    // mapping was a dead end; fall through to the normal load path below
+                }
+
+                // Fix A: when the mapping index misses (e.g. intermediary name queried against a
+                // named-key index, or a class that simply has no entry), do NOT fail immediately.
+                // Fall through to the normal class loading path below, which also tries the server
+                // class loader (Knot) as a last resort. This restores plugins like Denizen that
+                // reflectively load runtime Minecraft classes by name.
             }
             if (name.startsWith("org.bukkit.")) {
                 throw new ClassNotFoundException(name);
@@ -241,18 +301,27 @@ public class PluginClassLoader extends URLClassLoader {
             if (url != null) {
                 InputStream stream = url.openStream();
                 if (stream != null) {
-                    byte[] bytecode = RemapUtilProvider.get().getJarRemapper().remapClassFile(stream, RuntimeRepo.getInstance());
-                    
-                    //if (path.contains("/worldedit/bukkit/adapter/impl/")) {
-                    //	System.out.println("Debug: Processing class: " + path);
-                    //}
-                    
-                    bytecode = loader.server.getUnsafe().processClass(description, path, bytecode);
-                    bytecode = RemapUtilProvider.get().remapFindClass(bytecode);
+                    byte[] bytecode = stream.readAllBytes();
+                    if (isLibraryOnlyClass(name, bytecode)) {
+                        // Fix B: pure third-party library classes (no references to any server
+                        // class) are loaded as-is, skipping the remap pipeline. The pipeline is
+                        // built on an old SpecialSource/ASM stack that can choke on modern
+                        // (Java 21+) bytecode, silently producing ClassNotFoundException (e.g.
+                        // Citizens' ch.ethz.globis.phtree.PhTreeHelper).
+                    } else {
+                        bytecode = RemapUtilProvider.get().getJarRemapper().remapClassFile(new ByteArrayInputStream(bytecode), RuntimeRepo.getInstance());
+                        
+                        //if (path.contains("/worldedit/bukkit/adapter/impl/")) {
+                        //	System.out.println("Debug: Processing class: " + path);
+                        //}
+                        
+                        bytecode = loader.server.getUnsafe().processClass(description, path, bytecode);
+                        bytecode = RemapUtilProvider.get().remapFindClass(bytecode);
 
-                    bytecode = modifyByteCode(name, bytecode); // Mohist: add entry point for asm or mixin
+                        bytecode = modifyByteCode(name, bytecode); // Mohist: add entry point for asm or mixin
 
-                    bytecode = MyPluginFixManager.injectPluginFix(name, bytecode); // Mohist - Inject plugin fix
+                        bytecode = MyPluginFixManager.injectPluginFix(name, bytecode); // Mohist - Inject plugin fix
+                    }
 
                     JarURLConnection jarURLConnection = (JarURLConnection) url.openConnection();
                     URL jarURL = jarURLConnection.getJarFileURL();
@@ -285,6 +354,21 @@ public class PluginClassLoader extends URLClassLoader {
         }
 
         return result;
+    }
+
+    // Fix B: a class is "library-only" when it references no server-side type
+    // (Minecraft/Bukkit/Spigot internals). Such classes are loaded untouched so they
+    // bypass the remap pipeline, whose legacy ASM stack can reject modern bytecode.
+    private static boolean isLibraryOnlyClass(String name, byte[] bytecode) {
+        if (name.startsWith("net.minecraft.") || name.startsWith("org.bukkit.") || name.startsWith("org.spigotmc.")) {
+            return false;
+        }
+        // Cheap heuristic: every server class reference materializes in the constant pool as a
+        // raw path string, so a substring scan over the raw bytes is sufficient to decide.
+        String pool = new String(bytecode, java.nio.charset.StandardCharsets.ISO_8859_1);
+        return pool.indexOf("net/minecraft/") == -1
+                && pool.indexOf("org/bukkit/") == -1
+                && pool.indexOf("org/spigotmc/") == -1;
     }
 
     // Mohist start: add entry point for asm or mixin
