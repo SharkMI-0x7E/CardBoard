@@ -152,29 +152,11 @@ debug-print-all-calls: false
 
 ## 版本支持
 
+本 Fork **仅支持 Minecraft 1.21.11** —— 更高或更低的版本均不支持。
+
 | Minecraft 版本 | Fabric 版本 | 分支 | 状态 |
 |---------------|-------------|------|------|
 | 1.21.11 | 0.16+ | ver/1.21.11 | 活跃维护 |
-| <= 1.21.8 | - | - | 不再支持 |
-
-本 Fork 专注于最新 Minecraft 版本，不再维护旧版本。上游版本支持详见 [Supported Versions](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions)。
-
-## 插件兼容性
-
-### 已测试可用
-
-| 插件 | 状态 | 备注 |
-|------|------|------|
-| EssentialsX | 部分 | 核心功能可用 |
-| WorldEdit | 部分 | 基础操作可用 |
-| Vault | 实验中 | 经济系统集成 |
-| LuckPerms | 实验中 | 权限系统 |
-
-### 已知不兼容
-
-| 插件/模组 | 原因 | 解决方案 |
-|-----------|------|----------|
-| 某些使用 Mixin 的模组 | 注入点冲突 | 在配置中禁用冲突 Mixin |
 
 ## 已知问题
 

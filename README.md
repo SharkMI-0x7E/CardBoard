@@ -153,29 +153,11 @@ Build artifacts are located in `build/libs/`.
 
 ## Version Support
 
+This fork targets **Minecraft 1.21.11 only** — no older or newer versions are supported.
+
 | Minecraft Version | Fabric Version | Branch | Status |
 |-------------------|----------------|--------|--------|
 | 1.21.11 | 0.16+ | ver/1.21.11 | Active |
-| <= 1.21.8 | - | - | No Longer Supported |
-
-This fork focuses exclusively on the latest Minecraft version. Older versions are not maintained. See [Supported Versions](https://github.com/CardboardPowered/cardboard/wiki/Supported-Versions) for upstream details.
-
-## Plugin Compatibility
-
-### Tested Working
-
-| Plugin | Status | Notes |
-|--------|--------|-------|
-| EssentialsX | Partial | Core features work |
-| WorldEdit | Partial | Basic operations work |
-| Vault | Experimental | Economy system integration |
-| LuckPerms | Experimental | Permission system |
-
-### Known Incompatibilities
-
-| Plugin/Mod | Reason | Workaround |
-|------------|--------|------------|
-| Some mods using Mixin | Injection point conflicts | Disable conflicting mixins in config |
 
 ## Known Issues
 
