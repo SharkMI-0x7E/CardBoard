@@ -42,16 +42,16 @@ This is a fork of the official [Cardboard](https://github.com/CardboardPowered/c
 
 This fork is **heavily AI-assisted**. Except for the original code inherited from
 the upstream [Cardboard](https://github.com/CardboardPowered/cardboard) project,
-**most of the additional code in this repository is written by AI**, and it has
-been reviewed and tested by the maintainer before every release.
+**most of the additional code in this repository is written by AI**. Code is
+build-checked and smoke-tested before release, but is not fully manually reviewed.
 
 Primary AI tools used:
 
 - [Trae SOLO](https://www.trae.ai/) — daily coding companion
 - [OpenCode](https://github.com/opencode-ai/opencode) — terminal-native AI coding agent
-- DeepSeek Harness — automated development harness powered by DeepSeek models
+- [DeepSeek Harness](https://www.deepseek.com/harness/) — automated development harness powered by DeepSeek models
 
-All AI-generated code is verified before being committed to `main`.
+A build and basic smoke tests are run before each release.
 
 ---
 

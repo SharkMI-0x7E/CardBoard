@@ -42,15 +42,15 @@
 ## 🤖 AI 辅助开发声明
 
 本项目是 **重度 AI 辅助开发**。除继承自上游 [Cardboard](https://github.com/CardboardPowered/cardboard) 的原有代码外，
-**本仓库中新增的代码绝大部分由 AI 编写**，并在每次发布前经过维护者的人工审查与测试。
+**本仓库中新增的代码绝大部分由 AI 编写**。代码在发布前经过构建与冒烟测试，但未经全面的人工审查。
 
 主要使用的 AI 工具：
 
 - [Trae SOLO](https://www.trae.ai/) — 日常编码助手
 - [OpenCode](https://github.com/opencode-ai/opencode) — 终端原生 AI 编码代理
-- DeepSeek Harness — 基于 DeepSeek 模型的自动化开发框架
+- [DeepSeek Harness](https://www.deepseek.com/harness/) — 基于 DeepSeek 模型的自动化开发框架
 
-所有 AI 生成的代码在提交到 `main` 前均已验证。
+每次发布前会运行构建与基础冒烟测试。
 
 ---
 
