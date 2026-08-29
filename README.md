@@ -10,7 +10,7 @@
 [![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
 
-[🇨🇳 中文](README.zh_CN.md)
+[中文](README.zh_CN.md)
 
 </div>
 
