@@ -49,3 +49,6 @@ plan.md
 
 # AI bug-fix memory (local only, never push to GitHub)
 ./docs/ai-bugfix-memory.md
+
+# AI agent context (local discipline notes, never push to GitHub)
+./AGENTS.md
