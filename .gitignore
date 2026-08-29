@@ -55,3 +55,6 @@ plan.md
 
 # AI agent context (local discipline notes, never push to GitHub)
 ./AGENTS.md
+
+# Local AI-generated task plans (never push to GitHub)
+plans/
