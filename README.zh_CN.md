@@ -228,7 +228,7 @@ debug-print-all-calls: false
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
 - 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 - 所有 [SharkMI Fork 贡献者](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
-- [Trae SOLO](https://www.trae.ai/)、[OpenCode](https://github.com/opencode-ai/opencode) 与 DeepSeek Harness 辅助代码编写
+- [Trae SOLO](https://www.trae.ai/)、[OpenCode](https://github.com/opencode-ai/opencode) 与 [DeepSeek Harness](https://www.deepseek.com/harness/) 辅助代码编写
 
 ## 许可证
 
