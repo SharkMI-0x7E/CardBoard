@@ -49,6 +49,9 @@ plan.md
 
 # AI bug-fix memory (local only, never push to GitHub)
 ./docs/ai-bugfix-memory.md
+# Personal maintainer ops notes & private issue analysis (local only)
+./docs/MODRINTH_VERSION_MANAGEMENT_AND_CICD.md
+./docs/issue-5-analysis-report.md
 
 # AI agent context (local discipline notes, never push to GitHub)
 ./AGENTS.md
