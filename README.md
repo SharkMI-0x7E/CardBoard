@@ -38,6 +38,23 @@ This is a fork of the official [Cardboard](https://github.com/CardboardPowered/c
 
 ---
 
+## 🤖 AI-Assisted Development
+
+This fork is **heavily AI-assisted**. Except for the original code inherited from
+the upstream [Cardboard](https://github.com/CardboardPowered/cardboard) project,
+**most of the additional code in this repository is written by AI**, and it has
+been reviewed and tested by the maintainer before every release.
+
+Primary AI tools used:
+
+- [Trae SOLO](https://www.trae.ai/) — daily coding companion
+- [OpenCode](https://github.com/opencode-ai/opencode) — terminal-native AI coding agent
+- DeepSeek Harness — automated development harness powered by DeepSeek models
+
+All AI-generated code is verified before being committed to `main`.
+
+---
+
 ## Overview
 
 Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. It allows you to run plugins from the Bukkit ecosystem on a Fabric modded server, giving you the best of both worlds: mods and plugins.
@@ -212,7 +229,7 @@ We welcome contributions of all kinds.
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource), [SrgLib by Techcable & Orion](https://github.com/OrionMinecraft/SrgLib), [MinecraftMapping by Phase](https://github.com/phase/MinecraftMapping/)
 - All [Cardboard contributors](https://github.com/CardboardPowered/cardboard)
 - All [SharkMI fork contributors](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
-- [Trae SOLO](https://www.trae.ai/) and [OpenCode](https://github.com/opencode-ai/opencode) for AI-assisted development
+- [Trae SOLO](https://www.trae.ai/), [OpenCode](https://github.com/opencode-ai/opencode), and DeepSeek Harness for AI-assisted development
 
 ## License
 

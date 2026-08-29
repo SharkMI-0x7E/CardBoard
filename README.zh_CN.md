@@ -39,6 +39,21 @@
 
 ---
 
+## 🤖 AI 辅助开发声明
+
+本项目是 **重度 AI 辅助开发**。除继承自上游 [Cardboard](https://github.com/CardboardPowered/cardboard) 的原有代码外，
+**本仓库中新增的代码绝大部分由 AI 编写**，并在每次发布前经过维护者的人工审查与测试。
+
+主要使用的 AI 工具：
+
+- [Trae SOLO](https://www.trae.ai/) — 日常编码助手
+- [OpenCode](https://github.com/opencode-ai/opencode) — 终端原生 AI 编码代理
+- DeepSeek Harness — 基于 DeepSeek 模型的自动化开发框架
+
+所有 AI 生成的代码在提交到 `main` 前均已验证。
+
+---
+
 ## 简介
 
 Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你在 Fabric 模组服务器上运行 Bukkit 生态的插件，让你同时享受模组和插件的强大功能。
@@ -213,7 +228,7 @@ debug-print-all-calls: false
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
 - 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 - 所有 [SharkMI Fork 贡献者](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
-- [Trae SOLO](https://www.trae.ai/) 与 [OpenCode](https://github.com/opencode-ai/opencode) 辅助代码编写
+- [Trae SOLO](https://www.trae.ai/)、[OpenCode](https://github.com/opencode-ai/opencode) 与 DeepSeek Harness 辅助代码编写
 
 ## 许可证
 
