@@ -454,19 +454,20 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Inject(method = "getPlugin(Ljava/lang/String;)Lorg/bukkit/plugin/Plugin;", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "getPlugin(Ljava/lang/String;)Lorg/bukkit/plugin/Plugin;", at = @At("HEAD"), cancellable = true)
 	private void cardboard$getPlugin(String name, CallbackInfoReturnable<Plugin> cir) {
 		cir.setReturnValue(lookupNames.get(name.replace(' ', '_')));
+		cir.cancel();
 	}
 
 	/**
 	 * @reason .
 	 * @author .
 	 */
-	@Inject(method = "getPlugins()[Lorg/bukkit/plugin/Plugin;", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "getPlugins()[Lorg/bukkit/plugin/Plugin;", at = @At("HEAD"), cancellable = true)
 	public synchronized void cardboard$getPlugins(CallbackInfoReturnable<Plugin[]> cir) {
 		cir.setReturnValue(plugins.toArray(new Plugin[plugins.size()]));
-		// return this.paperPluginManager.getPlugins();
+		cir.cancel();
 	}
 
 	/**
@@ -486,9 +487,10 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Inject(method = "isPluginEnabled(Lorg/bukkit/plugin/Plugin;)Z", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "isPluginEnabled(Lorg/bukkit/plugin/Plugin;)Z", at = @At("HEAD"), cancellable = true)
 	private void cardboard$isPluginEnabled(Plugin plugin, CallbackInfoReturnable<Boolean> cir) {
         cir.setReturnValue((plugin != null) && plugins.contains(plugin) && plugin.isEnabled());
+		cir.cancel();
 	}
 
 	/**

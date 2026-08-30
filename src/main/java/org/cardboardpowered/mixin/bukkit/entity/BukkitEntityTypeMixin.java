@@ -59,22 +59,26 @@ public class BukkitEntityTypeMixin implements BukkitEntityTypeBridge {
 		ID_MAP.put((short) key2, type);
 	}
 	
-	@Inject(method = "fromName", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "fromName", at = @At("HEAD"), cancellable = true)
 	private static void cardboard$fromName(String name, CallbackInfoReturnable<EntityType> cir) {
         if (name == null) {
             cir.setReturnValue(null);
+            cir.cancel();
             return;
         }
         cir.setReturnValue(NAME_MAP.get(name.toLowerCase(Locale.ROOT)));
+        cir.cancel();
     }
 	
-	@Inject(method = "fromId", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "fromId", at = @At("HEAD"), cancellable = true)
 	private static void cardboard$fromId(int id, CallbackInfoReturnable<EntityType> cir) {
         if (id > Short.MAX_VALUE) {
             cir.setReturnValue(null);
+            cir.cancel();
             return;
         }
         cir.setReturnValue(ID_MAP.get((short) id));
+        cir.cancel();
     }
 
 }
