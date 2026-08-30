@@ -27,13 +27,16 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.security.CodeSigner;
 import java.security.CodeSource;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
@@ -56,6 +59,11 @@ public class PluginClassLoader extends URLClassLoader {
     private IllegalStateException pluginState;
     private final Set<String> seenIllegalAccess = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Set<Package> packageCache = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    // External dependency jars under plugins/libraries, lazily loaded as a last-resort
+    // fallback when every other class loading path has failed.
+    private static final String LIBRARY_DIR = "plugins/libraries";
+    private volatile List<JarFile> libraryJars;
 
     static {
         ClassLoader.registerAsParallelCapable();
@@ -180,6 +188,13 @@ public class PluginClassLoader extends URLClassLoader {
             }
         }
 
+        // Last-resort fallback: try external dependency jars under plugins/libraries.
+        Class<?> fromLibrary = this.cardboard$loadFromLibraryDir(name);
+        if (fromLibrary != null) {
+            loader.setClass(name, fromLibrary);
+            return fromLibrary;
+        }
+
         throw new ClassNotFoundException(name);
     }
 
@@ -288,7 +303,62 @@ public class PluginClassLoader extends URLClassLoader {
         }
         return result;
     }
-    
+
+    // Lazy-load and cache all *.jar files under plugins/libraries. Never throws: on any
+    // failure (missing dir, unreadable jar) it silently degrades to an empty list.
+    private List<JarFile> getLibraryJars() {
+        if (libraryJars == null) {
+            synchronized (this) {
+                if (libraryJars == null) {
+                    libraryJars = scanLibraryDir();
+                }
+            }
+        }
+        return libraryJars;
+    }
+
+    private List<JarFile> scanLibraryDir() {
+        List<JarFile> jars = new ArrayList<>();
+        File dir = new File(LIBRARY_DIR);
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles((d, n) -> n.endsWith(".jar"));
+            if (files != null) {
+                for (File f : files) {
+                    try {
+                        jars.add(new JarFile(f));
+                    } catch (IOException ignored) {
+                        // skip unreadable jar
+                    }
+                }
+            }
+        }
+        return jars;
+    }
+
+    // Last-resort fallback: load a class untouched (no remap) from an external dependency
+    // jar. A broken jar must only be skipped, never mask the original ClassNotFoundException.
+    private Class<?> cardboard$loadFromLibraryDir(String name) {
+        for (JarFile libJar : getLibraryJars()) {
+            String path = name.replace('.', '/').concat(".class");
+            JarEntry entry = libJar.getJarEntry(path);
+            if (entry == null) {
+                continue;
+            }
+            try {
+                byte[] bytes;
+                try (InputStream in = libJar.getInputStream(entry)) {
+                    bytes = in.readAllBytes();
+                }
+                File jarFile = new File(libJar.getName());
+                CodeSource source = new CodeSource(jarFile.toURI().toURL(), new CodeSigner[0]);
+                return defineClass(name, bytes, 0, bytes.length, source);
+            } catch (Throwable ignored) {
+                // skip this jar; keep original failure behavior
+            }
+        }
+        return null;
+    }
+
     private static File debug_folder = new File("C:\\Users\\isaia\\");
 
     private Class<?> remappedFindClass(String name) {
