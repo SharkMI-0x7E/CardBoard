@@ -371,7 +371,10 @@ public class PluginClassLoader extends URLClassLoader {
             if (url != null) {
                 InputStream stream = url.openStream();
                 if (stream != null) {
-                    byte[] bytecode = stream.readAllBytes();
+                    byte[] bytecode;
+                    try (InputStream in = stream) {
+                        bytecode = in.readAllBytes();
+                    }
                     if (isLibraryOnlyClass(name, bytecode)) {
                         // Fix B: pure third-party library classes (no references to any server
                         // class) are loaded as-is, skipping the remap pipeline. The pipeline is
