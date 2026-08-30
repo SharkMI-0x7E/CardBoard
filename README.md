@@ -192,6 +192,17 @@ Example `start.sh`:
 java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 ```
 
+### Offline Dependency Directory (plugins/libraries)
+
+`plugins/libraries/` is Cardboard's external dependency directory for plugins.
+Plugins such as Citizens use Libby to download their runtime dependencies
+(adventure, mocha, ph-tree, etc.) over the network on the fly. If your server
+has no internet access, or you would rather skip the download, drop the
+required dependency jars into `plugins/libraries/`. Cardboard's plugin class
+loader will fall back to loading classes from this directory when they are not
+found in the plugin jar or the global class loader, so no online download is
+needed.
+
 ## Known Issues
 
 - **Mixin Conflicts**: Some Fabric mods using `@Overwrite` may conflict with Cardboard

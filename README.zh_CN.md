@@ -187,6 +187,10 @@ JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED \
 java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 ```
 
+### 离线依赖目录（plugins/libraries）
+
+`plugins/libraries/` 是 Cardboard 面向插件的外部依赖目录。Citizens 等插件会通过 Libby 在运行时联网下载依赖（如 adventure、mocha、ph-tree 等）。若服务器无法联网或不想等待在线下载，可将所需依赖 jar 放入 `plugins/libraries/` 目录。插件类加载器在插件自身 jar 与全局类加载器中都找不到类时，会兜底从该目录加载，从而无需联网下载。
+
 ## 已知问题
 
 - **Mixin 冲突**：部分 Fabric 模组使用 `@Overwrite` 会与 Cardboard 冲突
