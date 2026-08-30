@@ -28,7 +28,6 @@ import org.cardboardpowered.bridge.bukkit.entity.BukkitEntityTypeBridge;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -69,12 +68,13 @@ public class BukkitEntityTypeMixin implements BukkitEntityTypeBridge {
         cir.setReturnValue(NAME_MAP.get(name.toLowerCase(Locale.ROOT)));
     }
 	
-	@Overwrite(remap = false)
-	public static EntityType fromId(int id) {
+	@Inject(method = "fromId", at = @At("RETURN"), cancellable = true)
+	private static void cardboard$fromId(int id, CallbackInfoReturnable<EntityType> cir) {
         if (id > Short.MAX_VALUE) {
-            return null;
+            cir.setReturnValue(null);
+            return;
         }
-        return ID_MAP.get((short) id);
+        cir.setReturnValue(ID_MAP.get((short) id));
     }
 
 }

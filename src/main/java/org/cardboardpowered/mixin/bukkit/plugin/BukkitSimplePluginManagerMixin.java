@@ -441,6 +441,11 @@ public class BukkitSimplePluginManagerMixin {
 	}
 
 	@Shadow
+	private Plugin[] getPlugins() {
+		return null;
+	}
+
+	@Shadow
 	private boolean isPluginEnabled(Plugin plugin) {
 		return false;
 	}
@@ -458,9 +463,9 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public synchronized Plugin[] getPlugins() {
-		return plugins.toArray(new Plugin[plugins.size()]);
+	@Inject(method = "getPlugins()Lorg/bukkit/plugin/Plugin;", at = @At("RETURN"), cancellable = true)
+	public synchronized void cardboard$getPlugins(CallbackInfoReturnable<Plugin[]> cir) {
+		cir.setReturnValue(plugins.toArray(new Plugin[plugins.size()]));
 		// return this.paperPluginManager.getPlugins();
 	}
 
@@ -680,9 +685,9 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public Permission getPermission( String name) {
-		 return permissions.get(name.toLowerCase(Locale.ROOT));
+	@Inject(method = "getPermission(Ljava/lang/String;)Lorg/bukkit/permissions/Permission;", at = @At("RETURN"), cancellable = true)
+	public void cardboard$getPermission(String name, CallbackInfoReturnable<Permission> cir) {
+		 cir.setReturnValue(permissions.get(name.toLowerCase(Locale.ROOT)));
 		//return this.paperPluginManager.getPermission(name);
 	}
 
