@@ -49,7 +49,6 @@ configurations {
     extraLibs
     removeLibs
     metest
-    citizensLibs
 }
 
 
@@ -175,12 +174,6 @@ dependencies {
     removeLibs group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
     removeLibs group: 'junit', name: 'junit', version: '4.10'
 
-    // Citizens runtime deps (A3): pulled for the fatCitizens task only.
-    // These are resolved from Maven Central and merged into the Citizens plugin jar.
-    citizensLibs "team.unnamed:mocha:${project.citizens_mocha_version}"
-    citizensLibs "ch.ethz.globis.phtree:phtree:${project.citizens_phtree_version}"
-    citizensLibs "net.kyori:adventure-text-minimessage:${project.citizens_adventure_minimessage_version}"
-
     configurations.api.extendsFrom( (configurations.extraLibs) )
 }
 
@@ -245,57 +238,8 @@ shadowJar {
     configurations = [project.configurations.api]
     dependencies {
       exclude(dependency('com.mojang:minecraft:*'))
-      exclude(dependency('org.objectweb.asm:asm:*'))
+      exclude(dependency('org.objectweb:asm:*'))
       exclude(dependency('com.google.guava:guava:*'))
-    }
-}
-
-// A3: Fat-fy the Citizens plugin jar so its runtime deps (mocha, phtree,
-// adventure) are bundled instead of being downloaded via Libby at startup.
-// Usage: .\gradlew.bat fatCitizens -PcitizensJar=<path-to-Citizens.jar>
-// Output: build/patched-jars/<original-stem>-fat.jar
-tasks.register('fatCitizens', Jar) {
-    group = 'citizens'
-    description = 'Merge Citizens runtime deps into the Citizens plugin jar'
-
-    // Resolve the deps at execution time (network download happens only here).
-    def citizenDeps = configurations.citizensLibs
-
-    doFirst {
-        def citizens = project.findProperty('citizensJar')
-        if (citizens == null || !file(citizens).exists()) {
-            throw new GradleException("citizensJar not found. Pass -PcitizensJar=<path> pointing to the Citizens plugin jar.")
-        }
-        def src = file(citizens)
-        if (!citizenDeps.files) {
-            logger.warn('[fatCitizens] citizensLibs resolved empty - nothing extra to bundle.')
-        }
-        // Citizens jar first, then deps. Deps win on duplicate class names.
-        from project.zipTree(src)
-        citizenDeps.files.each { dep -> from project.zipTree(dep) }
-    }
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    // Avoid signature/META-INF clashes between the original jar and bundled deps.
-    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
-    exclude 'META-INF/versions/**'
-
-    // Defer naming until execution so we can use the input jar's basename.
-    doFirst {
-        def citizens = project.findProperty('citizensJar')
-        def stem = file(citizens).name
-        if (stem.endsWith('.jar')) stem = stem[0..-5]
-        archiveFileName = stem + '-fat.jar'
-        destinationDirectory = layout.buildDirectory.dir('patched-jars')
-        logger.lifecycle("[fatCitizens] Building ${destinationDirectory.get().asFile.absolutePath}/${archiveFileName.get()}")
-    }
-
-    // Default manifest so the fat jar is a valid plugin; Citizens' own plugin.yml
-    // inside the source jar is preserved as-is.
-    manifest {
-        attributes 'Implementation-Title': 'Citizens (fat-bundled)',
-                   'Automatic-Module-Name': 'citizens.fat',
-                   'Multi-Release': 'false'
     }
 }
 
