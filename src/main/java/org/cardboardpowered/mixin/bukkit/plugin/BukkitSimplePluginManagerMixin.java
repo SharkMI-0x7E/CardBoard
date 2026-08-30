@@ -687,10 +687,10 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Inject(method = "getPermission(Ljava/lang/String;)Lorg/bukkit/permissions/Permission;", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "getPermission(Ljava/lang/String;)Lorg/bukkit/permissions/Permission;", at = @At("HEAD"), cancellable = true)
 	public void cardboard$getPermission(String name, CallbackInfoReturnable<Permission> cir) {
 		 cir.setReturnValue(permissions.get(name.toLowerCase(Locale.ROOT)));
-		//return this.paperPluginManager.getPermission(name);
+		 cir.cancel();
 	}
 
 	/**
