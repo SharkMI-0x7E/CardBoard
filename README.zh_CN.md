@@ -158,6 +158,35 @@ debug-print-all-calls: false
 |---------------|-------------|------|------|
 | 1.21.11 | 0.16+ | ver/1.21.11 | 活跃维护 |
 
+## Java 21 启动参数
+
+本 Fork **仅支持 Minecraft 1.21.11**，需要 **Java 21**。Java 21 的模块系统会阻止对 JDK 内部 API 的运行时反射访问，而这正是一些插件所依赖的——例如 Citizens 等插件使用的 Libby 依赖注入。Paper 类启动器默认会带上这些参数，但手写的 `start.sh` 脚本如果缺少它们则会启动失败。
+
+请将以下参数添加到服务器启动脚本中：
+
+```bash
+JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED \
+  --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+  --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+  --add-opens java.base/java.io=ALL-UNNAMED \
+  --add-opens java.base/java.net=ALL-UNNAMED \
+  --add-opens java.base/java.nio=ALL-UNNAMED \
+  --add-opens java.base/java.util=ALL-UNNAMED \
+  --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
+  --add-opens java.base/java.util.jar=ALL-UNNAMED \
+  --add-opens java.base/java.util.zip=ALL-UNNAMED \
+  --add-opens java.base/java.text=ALL-UNNAMED \
+  --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
+  --add-opens java.base/sun.security.x509=ALL-UNNAMED \
+  --add-opens java.rmi/sun.rmi.transport=ALL-UNNAMED"
+```
+
+`start.sh` 使用示例：
+
+```bash
+java $JAVA_OPTS -jar fabric-server-launch.jar nogui
+```
+
 ## 已知问题
 
 - **Mixin 冲突**：部分 Fabric 模组使用 `@Overwrite` 会与 Cardboard 冲突

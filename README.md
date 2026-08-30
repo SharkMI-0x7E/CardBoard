@@ -159,6 +159,39 @@ This fork targets **Minecraft 1.21.11 only** — no older or newer versions are 
 |-------------------|----------------|--------|--------|
 | 1.21.11 | 0.16+ | ver/1.21.11 | Active |
 
+## Java 21 Flags
+
+This fork targets **Minecraft 1.21.11** and requires **Java 21**. Java 21's
+module system blocks runtime reflection into internal JDK APIs, which is used by
+some plugins — e.g. the Libby dependency injection used by Citizens and similar
+plugins. Paper-like launchers include these flags by default, but hand-written
+`start.sh` scripts will fail without them.
+
+Add the following to your server startup script:
+
+```bash
+JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED \
+  --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+  --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+  --add-opens java.base/java.io=ALL-UNNAMED \
+  --add-opens java.base/java.net=ALL-UNNAMED \
+  --add-opens java.base/java.nio=ALL-UNNAMED \
+  --add-opens java.base/java.util=ALL-UNNAMED \
+  --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
+  --add-opens java.base/java.util.jar=ALL-UNNAMED \
+  --add-opens java.base/java.util.zip=ALL-UNNAMED \
+  --add-opens java.base/java.text=ALL-UNNAMED \
+  --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
+  --add-opens java.base/sun.security.x509=ALL-UNNAMED \
+  --add-opens java.rmi/sun.rmi.transport=ALL-UNNAMED"
+```
+
+Example `start.sh`:
+
+```bash
+java $JAVA_OPTS -jar fabric-server-launch.jar nogui
+```
+
 ## Known Issues
 
 - **Mixin Conflicts**: Some Fabric mods using `@Overwrite` may conflict with Cardboard
