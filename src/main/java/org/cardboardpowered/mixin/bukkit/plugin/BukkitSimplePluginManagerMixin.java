@@ -463,7 +463,7 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Inject(method = "getPlugins()Lorg/bukkit/plugin/Plugin;", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "getPlugins()[Lorg/bukkit/plugin/Plugin;", at = @At("RETURN"), cancellable = true)
 	public synchronized void cardboard$getPlugins(CallbackInfoReturnable<Plugin[]> cir) {
 		cir.setReturnValue(plugins.toArray(new Plugin[plugins.size()]));
 		// return this.paperPluginManager.getPlugins();
@@ -522,7 +522,7 @@ public class BukkitSimplePluginManagerMixin {
 	 */
 	@Overwrite(remap = false)
 	public void disablePlugins() {
-        Plugin[] plugins = getPlugins();
+        Plugin[] plugins = this.plugins.toArray(new Plugin[this.plugins.size()]);
         for (int i = plugins.length - 1; i >= 0; i--) {
             disablePlugin(plugins[i]);
         }
