@@ -30,6 +30,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = EntityType.class, remap = false)
 public class BukkitEntityTypeMixin implements BukkitEntityTypeBridge {
@@ -57,12 +60,13 @@ public class BukkitEntityTypeMixin implements BukkitEntityTypeBridge {
 		ID_MAP.put((short) key2, type);
 	}
 	
-	@Overwrite(remap = false)
-	public static EntityType fromName(String name) {
+	@Inject(method = "fromName", at = @At("RETURN"), cancellable = true)
+	private static void cardboard$fromName(String name, CallbackInfoReturnable<EntityType> cir) {
         if (name == null) {
-            return null;
+            cir.setReturnValue(null);
+            return;
         }
-        return NAME_MAP.get(name.toLowerCase(Locale.ROOT));
+        cir.setReturnValue(NAME_MAP.get(name.toLowerCase(Locale.ROOT)));
     }
 	
 	@Overwrite(remap = false)

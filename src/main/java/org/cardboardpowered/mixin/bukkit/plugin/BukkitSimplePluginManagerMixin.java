@@ -62,6 +62,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.GraphBuilder;
@@ -434,14 +435,23 @@ public class BukkitSimplePluginManagerMixin {
 	private void checkUpdate(File file) {
 	}
 
+	@Shadow
+	private Plugin getPlugin(String name) {
+		return null;
+	}
+
+	@Shadow
+	private boolean isPluginEnabled(Plugin plugin) {
+		return false;
+	}
+
 	/**
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public synchronized Plugin getPlugin( String name) {
-		return lookupNames.get(name.replace(' ', '_'));
-		// return this.paperPluginManager.getPlugin(name);
+	@Inject(method = "getPlugin(Ljava/lang/String;)Lorg/bukkit/plugin/Plugin;", at = @At("RETURN"), cancellable = true)
+	private void cardboard$getPlugin(String name, CallbackInfoReturnable<Plugin> cir) {
+		cir.setReturnValue(lookupNames.get(name.replace(' ', '_')));
 	}
 
 	/**
@@ -471,15 +481,9 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public boolean isPluginEnabled(Plugin plugin) {
-        if ((plugin != null) && (plugins.contains(plugin))) {
-            return plugin.isEnabled();
-        } else {
-            return false;
-        }
-		
-		// return this.paperPluginManager.isPluginEnabled(plugin);
+	@Inject(method = "isPluginEnabled(Lorg/bukkit/plugin/Plugin;)Z", at = @At("RETURN"), cancellable = true)
+	private void cardboard$isPluginEnabled(Plugin plugin, CallbackInfoReturnable<Boolean> cir) {
+        cir.setReturnValue((plugin != null) && plugins.contains(plugin) && plugin.isEnabled());
 	}
 
 	/**
