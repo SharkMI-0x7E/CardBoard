@@ -6,6 +6,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ProxyClassMixin",
+    "DenizenReflectionCompat$ReflectionHelperMixin",
+    "DenizenReflectionCompat$FieldCacheMixin",
     "advancements.AdvancementHolderMixin",
     "advancements.DisplayInfoMixin",
     "bukkit.BukkitMaterialMixin",
