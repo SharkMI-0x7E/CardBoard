@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "cardboardmc",
-  "version": "2026.6.2",
+  "version": "2026.9.1",
 
   "name": "Cardboard SharkMI",
   "description": "SharkMI fork of Cardboard - An implementation of the popular Spigot/Paper API for Fabric, with enhanced mixin compatibility and performance improvements",
