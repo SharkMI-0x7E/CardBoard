@@ -97,12 +97,11 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 	@Inject(at = @At("TAIL"), method = "onServerExit")
 	public void killProcess(CallbackInfo ci) {
 		BukkitLogger.getLogger().info("Goodbye!");
-		try {
-			DedicatedServer server = (DedicatedServer) (Object) this;
-			server.stopServer();
-		} catch (Throwable t) {
-			BukkitLogger.getLogger().severe("Shutdown error: " + t.getMessage());
-		}
+		// NOTE: do NOT call server.stopServer() here. MinecraftServer.runServer()
+		// already ran stopServer() (with the Bukkit plugin shutdown + world save)
+		// before onServerExit. Calling it again starts a SECOND save pass while the
+		// chunk storage is already shutting down -> hangs forever on
+		// "Saving chunks for level ... overworld" and the process never exits.
 	}
 
 	/**
