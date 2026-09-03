@@ -98,10 +98,11 @@ public class CardboardConfig {
 			.comments(
 					"# Mixin Conflict Detection",
 					"# When enabled, Cardboard scans all loaded mods at startup",
-					"# and reports potential Mixin conflicts."
+					"# and reports potential Mixin conflicts.",
+					"# This is a developer diagnostic, disabled by default."
 			)
 			.keys("runtime_conflict_scan", "conflict_scan_json_output", "auto_disable_fatal_conflicts")
-			.values("true", "false", "false")
+			.values("false", "false", "false")
 		)
 		.addSection(new ConfigSection("prefix-loggers")
 				.comments(
@@ -213,7 +214,7 @@ public class CardboardConfig {
 	public static boolean addPluginPrefixToLogger = true;
 	public static boolean shouldStripConsoleColor = false;
 	public static boolean autoConflictResolution = true;
-	public static boolean runtimeConflictScan = true;
+	public static boolean runtimeConflictScan = false;
 	public static boolean conflictScanJsonOutput = false;
 	public static boolean autoDisableFatalConflicts = false;
 
@@ -254,7 +255,7 @@ public class CardboardConfig {
         addPluginPrefixToLogger = config.getOrDefault("prefix-plugin-logger", true);
         shouldStripConsoleColor = config.getOrDefault("should-strip-console-color", false);
         autoConflictResolution = config.getOrDefault("auto_conflict_resolution", true);
-        runtimeConflictScan = config.getOrDefault("runtime_conflict_scan", true);
+        runtimeConflictScan = config.getOrDefault("runtime_conflict_scan", false);
         conflictScanJsonOutput = config.getOrDefault("conflict_scan_json_output", false);
         autoDisableFatalConflicts = config.getOrDefault("auto_disable_fatal_conflicts", false);
         

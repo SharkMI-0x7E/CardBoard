@@ -87,6 +87,8 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
         
         if (CardboardConfig.runtimeConflictScan) {
             runConflictScan();
+        } else {
+            logger.info("Runtime Mixin conflict scan is disabled. Enable it in config/cardboard/cardboard-config.yml (runtime_conflict_scan: true).");
         }
         
         if (pl.exists()) {
