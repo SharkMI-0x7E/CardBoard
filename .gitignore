@@ -43,18 +43,27 @@ plan.md
 .trae/
 .trae
 
-./docs/phase3-mixin-conflict-detector.md
+/docs/phase3-mixin-conflict-detector.md
 服务器日志/
-./服务器日志
 
 # AI bug-fix memory (local only, never push to GitHub)
-./docs/ai-bugfix-memory.md
+/docs/ai-bugfix-memory.md
 # Personal maintainer ops notes & private issue analysis (local only)
-./docs/MODRINTH_VERSION_MANAGEMENT_AND_CICD.md
-./docs/issue-5-analysis-report.md
+/docs/MODRINTH_VERSION_MANAGEMENT_AND_CICD.md
+/docs/issue-5-analysis-report.md
 
 # AI agent context (local discipline notes, never push to GitHub)
-./AGENTS.md
+/AGENTS.md
 
 # Local AI-generated task plans (never push to GitHub)
 plans/
+
+# Local dev artifacts (tool caches, manual test outputs)
+.codegraph/
+/build-output.txt
+/test-output.txt
+/github-ruleset-config.json
+
+# Files unpacked from plugin jars during debugging (do not upload)
+/bukkitfabric.mixins.json
+/plugin.yml
