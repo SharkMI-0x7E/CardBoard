@@ -63,22 +63,47 @@ public class MixinAnnotationScanner {
             info.setSourceModId(sourceModId);
             info.setSourceJarPath(sourceJarPath);
 
-            // Parse class-level annotations
+            // Parse class-level annotations.
+            // IMPORTANT: after Fabric Loom remapping, @Mixin is stored in
+            // RuntimeInvisibleAnnotations (not visible), so both must be scanned.
+            // Filtering on visible-only caused all 3395 parsed mixin classes to
+            // report isMixin()==false -> "Grouped into 0 target classes" -> always
+            // "No conflicts detected". See docs/ai-bugfix-memory.md [014].
+            Set<String> seenClassAnnos = new HashSet<>();
+            List<AnnotationNode> classAnnotations = new ArrayList<>();
             if (classNode.visibleAnnotations != null) {
                 for (AnnotationNode ann : classNode.visibleAnnotations) {
-                    if (MixinAnnotationDescriptor.MIXIN.equals(ann.desc)) {
-                        parseMixinAnnotation(ann, info);
-                    }
+                    if (seenClassAnnos.add(ann.desc)) classAnnotations.add(ann);
+                }
+            }
+            if (classNode.invisibleAnnotations != null) {
+                for (AnnotationNode ann : classNode.invisibleAnnotations) {
+                    if (seenClassAnnos.add(ann.desc)) classAnnotations.add(ann);
+                }
+            }
+            for (AnnotationNode ann : classAnnotations) {
+                if (MixinAnnotationDescriptor.MIXIN.equals(ann.desc)) {
+                    parseMixinAnnotation(ann, info);
                 }
             }
 
-            // Parse method-level annotations
+            // Parse method-level annotations (visible + invisible for the same reason).
             if (classNode.methods != null) {
                 for (MethodNode method : classNode.methods) {
+                    Set<String> seenMethodAnnos = new HashSet<>();
+                    List<AnnotationNode> methodAnnotations = new ArrayList<>();
                     if (method.visibleAnnotations != null) {
                         for (AnnotationNode ann : method.visibleAnnotations) {
-                            parseMethodAnnotation(ann, method, info);
+                            if (seenMethodAnnos.add(ann.desc)) methodAnnotations.add(ann);
                         }
+                    }
+                    if (method.invisibleAnnotations != null) {
+                        for (AnnotationNode ann : method.invisibleAnnotations) {
+                            if (seenMethodAnnos.add(ann.desc)) methodAnnotations.add(ann);
+                        }
+                    }
+                    for (AnnotationNode ann : methodAnnotations) {
+                        parseMethodAnnotation(ann, method, info);
                     }
                 }
             }
