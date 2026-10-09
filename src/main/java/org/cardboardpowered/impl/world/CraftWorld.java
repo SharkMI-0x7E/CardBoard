@@ -41,7 +41,6 @@ import net.minecraft.server.level.*;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.level.LevelAccessor;
 import org.apache.commons.lang.Validate;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -164,6 +163,7 @@ import net.minecraft.world.level.storage.ServerLevelData;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import org.bukkit.*;
 import org.cardboardpowered.ChunkTicketBridge;
 import org.cardboardpowered.bridge.world.level.chunk.LevelChunkBridge;
@@ -1302,10 +1302,17 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 		Vector dir = direction.clone().normalize().multiply(maxDistance);
 		Vec3 startPos = new Vec3(start.getX(), start.getY(), start.getZ());
 		Vec3 endPos = new Vec3(start.getX() + dir.getX(), start.getY() + dir.getY(), start.getZ() + dir.getZ());
+		// Use the CollisionContext overload instead of the Entity one. In 1.21.11 the Entity constructor delegates
+		// to CollisionContext.of(entity), whose first statement is Objects.requireNonNull(entity) - so passing the
+		// old (Entity) null straight throws NullPointerException. An "empty" context is the correct "no entity"
+		// context for a world-level ray trace (same pattern as CraftBlock#rayTrace / CraftRegionAccessor).
 		HitResult nmsHitResult = this.getHandle().clip(new ClipContext(startPos, endPos, ignorePassableBlocks ?
-				ClipContext.Block.COLLIDER : ClipContext.Block.OUTLINE, CraftFluidCollisionMode.toFluid(mode), (net.minecraft.world.entity.Entity) null));
+				ClipContext.Block.COLLIDER : ClipContext.Block.OUTLINE, CraftFluidCollisionMode.toFluid(mode), CollisionContext.empty()));
 
-		return CraftRayTraceResult.convertFromInternal((LevelAccessor) this, nmsHitResult);
+		// Pass the NMS level here, not "this": CraftWorld only implements org.bukkit.World and is NOT a
+		// net.minecraft.world.level.LevelAccessor, so the old "(LevelAccessor) this" threw ClassCastException
+		// before convertFromInternal was ever entered. getHandle() (ServerLevel) is the object that is one.
+		return CraftRayTraceResult.convertFromInternal(this.getHandle(), nmsHitResult);
 	}
 
 	@Override
