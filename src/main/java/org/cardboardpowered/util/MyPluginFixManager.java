@@ -32,6 +32,17 @@ public class MyPluginFixManager {
         //if (className.equals("com.onarandombox.MultiverseCore.utils.WorldManager")) {
         //    return patch(clazz, MultiverseCore::fix);
         //}
+        // Per-plugin bytecode patches, keyed by hardcoded plugin class names.
+        //
+        // Why they exist: these plugins look up a member by a name that only exists in another
+        // mapping namespace (or in another server flavour), and the name is baked into their
+        // bytecode as a string constant. The patches below rewrite that constant.
+        //
+        // This is a symptom-level workaround, not the fix. The general solution is a runtime
+        // member-name translation facility (same family of problems as reflection through
+        // MethodHandles, which bypasses every proxy we install). Until that exists, prefer fixing
+        // such plugins by mechanism rather than adding more cases here - and if a case is genuinely
+        // unavoidable, say so in the commit message, do not leave it silent.
         Consumer<ClassNode> patcher = switch (className) {
             // case "com.sk89q.worldedit.bukkit.BukkitAdapter" -> WorldEdit::handleBukkitAdapter;
             case "com.sk89q.worldedit.bukkit.adapter.Refraction" -> WorldEdit::handlePickName;

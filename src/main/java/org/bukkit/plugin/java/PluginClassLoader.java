@@ -359,6 +359,9 @@ public class PluginClassLoader extends URLClassLoader {
         return null;
     }
 
+    // Upstream author's local debug dump path (a home directory, not ours). debug_folder.isDirectory()
+    // is false on every other machine, so the block that uses it in remappedFindClass() never runs in
+    // production. Left in place on purpose: removing dead code needs a design-intent check first.
     private static File debug_folder = new File("C:\\Users\\isaia\\");
 
     private Class<?> remappedFindClass(String name) {

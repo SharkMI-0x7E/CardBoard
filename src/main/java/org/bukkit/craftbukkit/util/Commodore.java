@@ -160,6 +160,10 @@ public class Commodore {
         // }
             
             // Cardboard - start
+            // Compatibility rewrite: references to EssentialsX's own VersionUtil are redirected to
+            // Cardboard's implementation, so its server detection sees something it accepts.
+            // Nobody has written down why this is needed, or whether it still is - treat it as
+            // load-bearing until someone tests EssentialsX without it.
             if (original.contains("com/earth2me/essentials/utils/VersionUtil")) {
             	return original.replace("com/earth2me/essentials/utils/VersionUtil", "org/cardboardpowered/util/VersionUtil");
             }
