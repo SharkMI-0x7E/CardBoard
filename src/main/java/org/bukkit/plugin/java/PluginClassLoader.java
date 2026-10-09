@@ -359,10 +359,6 @@ public class PluginClassLoader extends URLClassLoader {
         return null;
     }
 
-    // Upstream author's local debug dump path (a home directory, not ours). debug_folder.isDirectory()
-    // is false on every other machine, so the block that uses it in remappedFindClass() never runs in
-    // production. Left in place on purpose: removing dead code needs a design-intent check first.
-    private static File debug_folder = new File("C:\\Users\\isaia\\");
 
     private Class<?> remappedFindClass(String name) {
         Class<?> result = null;
@@ -412,17 +408,6 @@ public class PluginClassLoader extends URLClassLoader {
                         this.resolveClass(result);
                     }
                     
-                    if (debug_folder.isDirectory() && (path.contains("worldedit") || path.contains("essentials") || path.contains("ess3") || path.contains("earth2me")) ) {
-	                    File out = new File("C:\\Users\\isaia\\Documents\\fo\\" + name.replace('.', File.separatorChar) + ".class");
-	                    try {
-	                    	Files.createDirectories(out.toPath().getParent());
-	    					Files.write(out.toPath(), bytecode);
-	    				} catch (IOException e) {
-	    					// TODO Auto-generated catch block
-	    					e.printStackTrace();
-	    				}
-                    }
-					
                 }
             }
         } catch (Exception t) {
