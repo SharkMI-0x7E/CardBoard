@@ -48,9 +48,8 @@ plan.md
 
 # AI bug-fix memory (local only, never push to GitHub)
 /docs/ai/
-# Personal maintainer ops notes & private issue analysis (local only)
+# Personal maintainer ops notes (local only)
 /docs/MODRINTH_VERSION_MANAGEMENT_AND_CICD.md
-/docs/issue-5-analysis-report.md
 
 # AI agent context (local discipline notes, never push to GitHub)
 # bare name = match AGENTS.md at ANY level (root + nested), not just root
@@ -62,6 +61,9 @@ AGENTS.md
 
 # Local AI-generated task plans (never push to GitHub)
 plans/
+
+# Archived local docs (completed tasks, superseded plans) — never push to GitHub
+/archive/
 
 # Local dev artifacts (tool caches, manual test outputs)
 .codegraph/

@@ -23,9 +23,10 @@
 - [ ] I have run `./gradlew build -x test` locally and it passes
 - [ ] I have verified no secrets/keys/tokens are hardcoded
 - [ ] My commits follow conventional commit format (feat:, fix:, refactor:, etc.)
-- [ ] I have updated AGENTS.md if I discovered new patterns or gotchas
+- [ ] I have documented any new pattern or gotcha in the relevant public doc (`CONTRIBUTING.md` or `docs/`)
 - [ ] For Mixin changes: I used the most precise injection type possible
 - [ ] For Mixin changes: I used `cardboard$` prefix for all new methods
+- [ ] For Mixin changes: I added `@MixinInfo` for new mixins
 - [ ] I have not used `@Overwrite` for new code (existing @Overwrite is being refactored)
 
 ## Type of Change

@@ -189,24 +189,9 @@ git diff --cached | findstr /I "password secret token api_key"
 
 ### PR Template
 
-Every PR should answer:
-
-- **What**: One-sentence description of the change
-- **Why**: What problem does it solve? Reference issues if applicable
-- **How**: Summary of approach, key decisions, and trade-offs
-- **Testing**: How did you verify this works?
-
-### PR Checklist
-
-- [ ] `./gradlew compileJava` passes
-- [ ] `./gradlew test` passes
-- [ ] `./gradlew build -x test` passes
-- [ ] No secrets/keys/tokens hardcoded
-- [ ] Commits follow conventional commit format
-- [ ] Mixin changes use `cardboard$` prefix for all new methods
-- [ ] Mixin changes use the most precise injection type possible
-- [ ] No new `@Overwrite` (existing ones are being refactored)
-- [ ] `@MixinInfo` added for new mixins
+PRs use [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md), which GitHub
+loads automatically when you open a pull request. It asks for What / Why / How / Testing plus a
+checklist. It is not duplicated here, so the two cannot drift apart.
 
 ---
 
@@ -225,8 +210,6 @@ Every PR should answer:
 
 - Architecture overview: [`docs/architecture.md`](docs/architecture.md)
 - Mixin conflict detection guide: [`docs/mixin-conflict-detection/user-guide.md`](docs/mixin-conflict-detection/user-guide.md)
-- Development plan: [`plan.md`](plan.md)
-- AI agent reference: [`AGENTS.md`](AGENTS.md)
 
 ---
 

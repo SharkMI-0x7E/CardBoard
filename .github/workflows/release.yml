@@ -7,9 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag to create release for (e.g. v2026.5.1)'
+        description: 'Tag to release (must match mod_version in gradle.properties, prefixed with v)'
         required: true
-        default: 'v2026.5.1'
 
 permissions:
   contents: write
