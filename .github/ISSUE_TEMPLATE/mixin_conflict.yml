@@ -31,7 +31,7 @@ body:
     id: cardboard_version
     attributes:
       label: Cardboard Version
-      placeholder: "e.g. 1.21.11-SharkMI"
+      placeholder: "e.g. 2026.9.1"
     validations:
       required: true
 
@@ -42,11 +42,11 @@ body:
       description: Copy and paste the relevant section from the startup log's "Mixin Conflict Detection Report". This is printed automatically at server startup.
       render: shell
       placeholder: |
-        [Cardboard] FATAL conflicts (1):
+        [Cardboard] HIGH conflicts (1):
         [Cardboard]   [1] Target: net.minecraft.world.item.BoatItem#use
-        [Cardboard]       Cardboard: BoatItemMixin @Overwrite [priority=1000]
+        [Cardboard]       Cardboard: BoatItemMixin @Inject (require=0) [priority=1000]
         [Cardboard]       Other (minimotd): BoatItemMixin @Overwrite [priority=1000]
-        [Cardboard]       Suggestion: Double @Overwrite on the same method...
+        [Cardboard]       Suggestion: @Overwrite covers the method body; @Inject may be skipped.
     validations:
       required: true
 

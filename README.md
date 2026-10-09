@@ -148,15 +148,15 @@ Configuration file is located at `config/cardboard/cardboard-config.yml`:
 
 ```yaml
 # Enable automatic conflict resolution
-auto-conflict-resolution: true
+auto_conflict_resolution: true
 
 # Force-disabled mixins (for resolving conflicts)
 mixin-force-disable: []
 
-# Mixin conflict detection
-runtime-conflict-scan: true
-conflict-scan-json-output: false
-auto-disable-fatal-conflicts: false
+# Mixin conflict detection (developer diagnostic, off by default)
+runtime_conflict_scan: false
+conflict_scan_json_output: false
+auto_disable_fatal_conflicts: false
 
 # Debug options
 debug_mode: false
@@ -197,7 +197,7 @@ This fork targets **Minecraft 1.21.11 only** — no older or newer versions are 
 
 | Minecraft Version | Fabric Version | Branch | Status |
 |-------------------|----------------|--------|--------|
-| 1.21.11 | 0.18+ | ver/1.21.11 | Active |
+| 1.21.11 | 0.18+ | main | Active |
 
 ## Java 21 Flags
 
@@ -256,29 +256,13 @@ needed.
 This is a personal project with limited time behind it, so contributions are appreciated but
 are not always quick to be handled.
 
-### Reporting Bugs
+Bug reports and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for build
+commands, commit conventions, Mixin rules, and the PR checklist.
 
-A good report is still useful, even if it does not get an answer right away.
-
-1. Search [Issues](../../issues) for existing reports of the same problem
-2. If not found, create a new issue with:
-   - Server log (`latest.log`)
-   - Cardboard version
-   - Steps to reproduce
-
-### Submitting Code
-
-1. Fork this repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Create a Pull Request
-
-### Development Guidelines
-
-- Follow [Conventional Commits](https://www.conventionalcommits.org/) specification
-- Use English for code comments
-- Use `@Inject` instead of `@Overwrite` for new mixins
+- **Reporting bugs**: open an [Issue](../../issues) with your server log (`latest.log`), the
+  Cardboard version, and steps to reproduce.
+- **Submitting code**: fork, branch, commit using
+  [Conventional Commits](https://www.conventionalcommits.org/), then open a PR.
 
 ## Documentation
 
@@ -302,7 +286,5 @@ A good report is still useful, even if it does not get an answer right away.
 
 ## License
 
-This project inherits the license from Paper. See [Paper's License](https://github.com/PaperMC/Paper/blob/master/LICENSE.md) for full details.
-SrgLib is licensed under MIT.
-
 This project is licensed under the **GPL-3.0** License. See [LICENSE](LICENSE) for details.
+SrgLib is licensed under MIT.

@@ -49,7 +49,7 @@ Cardboard/
 │   ├── CardboardMod.java             # Mod logic (onInitialize). Fabric entry point is the @Deprecated com.javazilla.bukkitfabric.BukkitFabricMod
 │   ├── CardboardConfig.java          # YAML config system
 │   │
-│   ├── mixin/                        # 229 Mixin classes
+│   ├── mixin/                        # 226 Mixin classes
 │   │   ├── CardboardMixinPlugin.java # Mixin lifecycle (config, conflict scan, compatibility)
 │   │   ├── server/                   # Server lifecycle, networking, players
 │   │   ├── world/                    # Entities, items, blocks, inventory
@@ -106,16 +106,16 @@ Cardboard uses the **SpongePowered Mixin** framework to intercept Minecraft meth
 
 | Metric | Value |
 |--------|-------|
-| Total Mixins (`@Mixin` classes) | 229 |
-| Registered in the shipped `bukkitfabric.mixins.json` | 226 |
-| `@Overwrite` | 27 files / 63 occurrences (legacy, being refactored) |
-| `@Inject` | 122 files / 236 occurrences |
-| Mixin config files | `src/main/resources/bukkitfabric.mixins.json` (226 entries; the gitignored repo-root copy has 224) |
+| Mixin config file | `src/main/resources/bukkitfabric.mixins.json` — 226 registered entries (the gitignored repo-root copy has 224) |
 | Mapping (development) | Mojang official (`loom.officialMojangMappings()`) |
 | Mapping (runtime) | intermediary (`class_xxx`) — plugins use Spigot/obfuscated/named names, translated by `RemapUtils` |
 
-> These counts drift as the code evolves — treat them as a snapshot, not a contract.
-> Counting rule: line-anchored annotations only. Bare mentions inside comments are excluded, and `@MixinInfo` is not counted as `@Mixin`. Regenerate with `docs/ai/tools/scan-mixin-stats.py`.
+> Injection counts (`@Mixin`, `@Inject`, `@Overwrite`, …) are **deliberately not listed here**.
+> They drift with every commit, and worse, they swing wildly with the counting rule: counting
+> "@Overwrite" as first-token-on-a-line gives 63, while excluding commented-out code gives 35 —
+> both are "correct" under their own rule. A number in a hand-maintained doc has no way to stay
+> honest. If you need one, count it yourself against `src/main/java/org/cardboardpowered/mixin/`
+> and state the rule you used.
 
 ### Mixin Category Map
 
@@ -227,7 +227,7 @@ Mixin naming: `{Target}Mixin.java`; sub-mixins for complex events: `{Target}Mixi
 
 > Some mixin classes are intentionally empty (e.g. `EnderpearlItemMixin.java`, `SnowballItemMixin.java`) — they exist as registration placeholders.
 
-> The category map above is an **illustrative overview**. For exact counts and the authoritative file list, run `docs/ai/tools/scan-mixin-stats.py` (output lands in `docs/ai/CONTEXT/GENERATED-STATS.md`).
+> The category map above is an **illustrative overview**, not an exhaustive list. For the authoritative file list, read `src/main/java/org/cardboardpowered/mixin/`.
 
 ### Mixin Conflict Detection
 

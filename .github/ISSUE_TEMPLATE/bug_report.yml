@@ -14,7 +14,7 @@ body:
     attributes:
       label: Cardboard Version
       description: The version of Cardboard you are using (check `mods/` folder or startup log)
-      placeholder: "e.g. 1.21.11-SharkMI"
+      placeholder: "e.g. 2026.9.1"
     validations:
       required: true
 

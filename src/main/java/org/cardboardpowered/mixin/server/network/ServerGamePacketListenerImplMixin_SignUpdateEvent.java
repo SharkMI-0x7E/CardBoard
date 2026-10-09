@@ -55,7 +55,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <p>If the event is cancelled, we {@code ci.cancel()} the vanilla method
  * entirely — the sign keeps whatever text it had before.</p>
  *
- * @see .trae/specs/fix-sign-text-disappearing
+ * @see docs/ai/entries/BUG-006-sign-text-final-array-async-write.md
  */
 @MixinInfo(events = {"SignChangeEvent"})
 @Mixin(value = ServerGamePacketListenerImpl.class, priority = 800)

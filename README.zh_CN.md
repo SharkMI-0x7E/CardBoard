@@ -131,15 +131,15 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
 
 ```yaml
 # 是否启用自动冲突处理
-auto-conflict-resolution: true
+auto_conflict_resolution: true
 
 # 强制禁用的 Mixin（解决冲突用）
 mixin-force-disable: []
 
-# Mixin 冲突检测
-runtime-conflict-scan: true
-conflict-scan-json-output: false
-auto-disable-fatal-conflicts: false
+# Mixin 冲突检测（开发者诊断工具，默认关闭）
+runtime_conflict_scan: false
+conflict_scan_json_output: false
+auto_disable_fatal_conflicts: false
 
 # 调试选项
 debug_mode: false
@@ -180,7 +180,7 @@ debug_print_remaputil: false
 
 | Minecraft 版本 | Fabric 版本 | 分支 | 状态 |
 |---------------|-------------|------|------|
-| 1.21.11 | 0.18+ | ver/1.21.11 | 活跃维护 |
+| 1.21.11 | 0.18+ | main | 活跃维护 |
 
 ## Java 21 启动参数
 
@@ -227,29 +227,11 @@ java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 
 这是个人项目，投入的时间有限，贡献会被认真看待，但处理速度无法保证。
 
-### 提交 Bug
+欢迎提交 Bug 报告与 Pull Request —— 构建命令、提交规范、Mixin 规则与 PR 清单见
+[CONTRIBUTING.md](CONTRIBUTING.md)。
 
-一份好的报告仍然有用，即使不一定能立刻得到回复。
-
-1. 在 [Issues](../../issues) 中搜索是否已有相同问题
-2. 如果没有，创建新 Issue 并包含：
-   - 服务器日志（`latest.log`）
-   - Cardboard 版本
-   - 复现步骤
-
-### 提交代码
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'feat: add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
-
-### 开发规范
-
-- 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范
-- 代码注释使用英文
-- 新增 Mixin 时使用 `@Inject` 而非 `@Overwrite`
+- **提交 Bug**：在 [Issues](../../issues) 中附上服务器日志（`latest.log`）、Cardboard 版本与复现步骤。
+- **提交代码**：Fork → 建分支 → 按 [Conventional Commits](https://www.conventionalcommits.org/) 提交 → 开 PR。
 
 ## 文档
 
@@ -273,7 +255,5 @@ java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 
 ## 许可证
 
-本项目继承自 Paper 的许可证。详见 [Paper 许可证](https://github.com/PaperMC/Paper/blob/master/LICENSE.md)。
-SrgLib 使用 MIT 许可证。
-
 本项目使用 **GPL-3.0** 许可证。详见 [LICENSE](LICENSE) 文件。
+SrgLib 使用 MIT 许可证。

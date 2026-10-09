@@ -60,8 +60,8 @@ Mixin 冲突检测工具是 Cardboard 内置的运行时扫描器，用于在服
 # ==========================================
 
 # 启动时自动扫描所有 Mod 的 Mixin 冲突
-# 默认: true
-runtime_conflict_scan: true
+# 默认: false（这是开发者诊断工具，默认关闭）
+runtime_conflict_scan: false
 
 # 输出冲突报告为 JSON 文件（保存到 config/cardboard/conflict-report.json）
 # 默认: false
@@ -76,7 +76,7 @@ auto_disable_fatal_conflicts: false
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `runtime_conflict_scan` | boolean | `true` | 是否启用运行时冲突扫描。设为 `false` 则完全跳过扫描 |
+| `runtime_conflict_scan` | boolean | `false` | 是否启用运行时冲突扫描。默认关闭；设为 `true` 才会在启动时扫描 |
 | `conflict_scan_json_output` | boolean | `false` | 是否在控制台报告之外额外生成 JSON 报告文件 |
 | `auto_disable_fatal_conflicts` | boolean | `false` | 是否自动禁用 FATAL 级别的冲突 Mixin |
 
@@ -84,10 +84,10 @@ auto_disable_fatal_conflicts: false
 
 | 场景 | 推荐配置 |
 |------|----------|
-| **首次安装**（想看看有没有冲突） | `runtime_conflict_scan: true`，其余保持默认 |
-| **生产服务器**（稳定运行中） | 保持默认即可 |
+| **首次安装**（想看看有没有冲突） | 设为 `runtime_conflict_scan: true` 跑一次，看完报告可再关掉 |
+| **生产服务器**（稳定运行中） | 保持默认（关闭）即可 |
 | **遇到崩溃排查** | 开启所有 3 个配置项 |
-| **不需要此功能** | `runtime_conflict_scan: false` |
+| **不需要此功能** | 保持默认（关闭） |
 
 ---
 
@@ -117,17 +117,18 @@ auto_disable_fatal_conflicts: false
 
 ## 使用方式
 
-### 基本使用（开箱即用）
+### 基本使用
 
-默认配置下，工具会在服务器启动时自动运行。你只需要：
+该功能**默认关闭**（`runtime_conflict_scan: false`）。启用后，工具会在服务器启动时自动运行：
 
-1. 启动服务器
-2. 查看启动日志中的报告
+1. 在 `config/cardboard/cardboard-config.yml` 中把 `runtime_conflict_scan` 设为 `true`
+2. 启动服务器
+3. 查看启动日志中的报告
 
 **无冲突时：**
 ```
 [Cardboard] Mixin Conflict Detection Report
-[Cardboard] Scanned 224 Cardboard mixins, 0 other mods with mixins
+[Cardboard] Scanned 226 Cardboard mixins, 0 other mods with mixins
 [Cardboard] No conflicts detected
 [Cardboard] Scan completed in 800ms
 ```
@@ -135,7 +136,7 @@ auto_disable_fatal_conflicts: false
 **有冲突时：**
 ```
 [Cardboard] Mixin Conflict Detection Report
-[Cardboard] Scanned 224 Cardboard mixins, 12 other mods with mixins
+[Cardboard] Scanned 226 Cardboard mixins, 12 other mods with mixins
 [Cardboard] 
 [Cardboard] FATAL conflicts (0):
 [Cardboard]   None
@@ -175,7 +176,7 @@ JSON 报告结构：
 {
   "timestamp": "2026-05-15T10:30:00Z",
   "scanDurationMs": 1200,
-  "cardboardMixinCount": 224,
+  "cardboardMixinCount": 226,
   "otherModCount": 12,
   "conflicts": {
     "fatal": [],
@@ -246,11 +247,15 @@ JSON 报告结构：
 [Cardboard] Mixin conflict scan failed: <error message>. Mixins will load without conflict checks.
 ```
 
-### Q: 如何完全禁用冲突检测？
+### Q: 如何启用 / 禁用冲突检测？
 
-在 `config/cardboard/cardboard-config.yml` 中设置：
+该功能**默认关闭**。在 `config/cardboard/cardboard-config.yml` 中设置：
 
 ```yaml
+# 启用
+runtime_conflict_scan: true
+
+# 禁用（默认）
 runtime_conflict_scan: false
 ```
 
@@ -284,5 +289,5 @@ config/cardboard/conflict-report.json
 如果检测到冲突但不确定如何处理，可以：
 
 1. 查看 `config/cardboard/conflict-report.json` 获取详细冲突信息
-2. 将 JSON 报告提交到 [GitHub Issues](https://github.com/CardboardPowered/cardboard/issues)
+2. 将 JSON 报告提交到 [GitHub Issues](https://github.com/SharkMI-0x7E/CardBoard/issues)
 3. 在 issue 中附上冲突报告和相关 Mod 信息

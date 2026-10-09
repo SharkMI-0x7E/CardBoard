@@ -33,7 +33,7 @@ import org.spongepowered.asm.mixin.Mixin;
  * Previously this class exposed {@code SignText.messages} (a final internal array)
  * via {@code getTextBF()} and let callers mutate it with {@code System.arraycopy}.
  * That broke the immutability contract of {@link SignText} in 1.21.11 and caused
- * the sign text to "vanish when looked at" bug (see .trae/specs/fix-sign-text-disappearing).
+ * the sign text to "vanish when looked at" bug (see docs/ai/entries/BUG-006-sign-text-final-array-async-write.md).
  *
  * The bridge now exposes the SignText object itself; mutators must go through
  * {@link SignText#setMessage(int, net.minecraft.network.chat.Component)} which
