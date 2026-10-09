@@ -152,8 +152,19 @@ public class CraftSign<T extends SignBlockEntity> extends CraftBlockEntityState<
 
     @Override
     public void applyTo(T blockEntity) {
-        this.getSnapshot().setText(this.front.applyLegacyStringToSignSide(), true);
-        this.getSnapshot().setText(this.back.applyLegacyStringToSignSide(), false);
+        // The snapshot is detached: BlockEntity.loadStatic() never assigns a Level, but in 1.21.11
+        // SignBlockEntity.setText() -> markUpdated() dereferences this.level with no null check, so
+        // writing the text threw NullPointerException. Hand the snapshot the level it needs.
+        // See docs/ai/entries/BUG-018-craftsign-applyto-detached-snapshot-npe.md
+        T snapshot = this.getSnapshot();
+        if (snapshot.getLevel() == null) {
+            net.minecraft.world.level.LevelAccessor handle = this.getWorldHandle();
+            if (handle instanceof net.minecraft.world.level.Level level) {
+                snapshot.setLevel(level);
+            }
+        }
+        snapshot.setText(this.front.applyLegacyStringToSignSide(), true);
+        snapshot.setText(this.back.applyLegacyStringToSignSide(), false);
 
         super.applyTo(blockEntity);
     }
