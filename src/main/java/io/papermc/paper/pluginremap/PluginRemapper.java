@@ -538,6 +538,7 @@ public final class PluginRemapper {
 				ScalingThreadPool.createUnboundedQueue(),
 				new ThreadFactoryBuilder()
 				.setNameFormat("Paper Plugin Remapper Thread - %1$d")
+				.setDaemon(true) // BUG-019: must not block JVM exit
 				.setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandlerWithName(LOGGER))
 				.build(),
 				ScalingThreadPool.defaultReEnqueuePolicy()

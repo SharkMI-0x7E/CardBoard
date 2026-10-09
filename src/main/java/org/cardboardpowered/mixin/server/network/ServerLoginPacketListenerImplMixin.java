@@ -92,8 +92,12 @@ public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginP
 	private static Logger LOGGER_BF = LoggerFactory.getLogger("PaperMC|ServerLoginNetworkHandler"); // LogManager.getLogger("Bukkit|ServerLoginNetworkHandler");
 	
 	// Cardboard: Paper - Use ExecutorService
+	// Threads are daemon on purpose: this is a static pool that is never shut down, and a
+	// non-daemon cached-pool worker keeps the JVM alive for up to 60s (keepAlive) after a clean
+	// "stop" - the process looks hung even though the shutdown already finished (Goodbye! printed).
+	// See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
 	private static final ExecutorService authenticatorPool = Executors.newCachedThreadPool(
-		      new ThreadFactoryBuilder().setNameFormat("User Authenticator #%d").setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler(LOGGER_BF)).build()
+		      new ThreadFactoryBuilder().setNameFormat("User Authenticator #%d").setDaemon(true).setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler(LOGGER_BF)).build()
 		   );
 	
 	@Shadow @Nullable private String requestedUsername;

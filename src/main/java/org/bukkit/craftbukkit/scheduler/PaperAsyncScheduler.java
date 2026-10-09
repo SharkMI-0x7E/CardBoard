@@ -39,9 +39,12 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class PaperAsyncScheduler extends CraftScheduler {
 
+    // Daemon threads: this pool is never shut down, and a surviving non-daemon worker keeps the
+    // JVM alive after a clean "stop" (shutdown finishes, "Goodbye!" is printed, shell never returns).
+    // See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(4, Integer.MAX_VALUE,30L, TimeUnit.SECONDS, new SynchronousQueue<>(),
-            new ThreadFactoryBuilder().setNameFormat("Paper Scheduler Thread - %1$d").build());
-    private final Executor management = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("Craft Async Scheduler Management Thread").build());
+            new ThreadFactoryBuilder().setNameFormat("Paper Scheduler Thread - %1$d").setDaemon(true).build());
+    private final Executor management = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("Craft Async Scheduler Management Thread").setDaemon(true).build());
     private final List<BukkitTaskImpl> temp = new ArrayList<>();
 
     PaperAsyncScheduler() {

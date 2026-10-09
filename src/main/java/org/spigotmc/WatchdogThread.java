@@ -19,6 +19,9 @@ public class WatchdogThread extends Thread {
     private WatchdogThread(long timeoutTime, boolean restart)
     {
         super( "Spigot Watchdog Thread" );
+        // Daemon: this is a pure monitoring loop that must never keep the JVM alive after "stop".
+        // See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
+        this.setDaemon( true );
         this.timeoutTime = timeoutTime;
         this.restart = restart;
     }

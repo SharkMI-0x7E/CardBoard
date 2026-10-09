@@ -26,6 +26,7 @@ public final class FoliaAsyncScheduler implements AsyncScheduler {
                 final Thread ret = new Thread(run);
 
                 ret.setName("Folia Async Scheduler Thread #" + this.idGenerator.getAndIncrement());
+                ret.setDaemon(true); // BUG-019: must not block JVM exit
                 ret.setPriority(Thread.NORM_PRIORITY - 1);
                 ret.setUncaughtExceptionHandler((final Thread thread, final Throwable thr) -> {
                     LOGGER.error("Uncaught exception in thread: " + thread.getName(), thr);
@@ -42,6 +43,7 @@ public final class FoliaAsyncScheduler implements AsyncScheduler {
             final Thread ret = new Thread(run);
 
             ret.setName("Folia Async Scheduler Thread Timer");
+            ret.setDaemon(true); // BUG-019: must not block JVM exit
             ret.setPriority(Thread.NORM_PRIORITY + 1);
             ret.setUncaughtExceptionHandler((final Thread thread, final Throwable thr) -> {
                 LOGGER.error("Uncaught exception in thread: " + thread.getName(), thr);

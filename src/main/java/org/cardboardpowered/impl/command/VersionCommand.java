@@ -174,7 +174,9 @@ public class VersionCommand extends Command {
             sender.sendMessage("Checking version, please wait...");
             if (!versionTaskStarted) {
                 versionTaskStarted = true;
-                new Thread(this::obtainVersion).start();
+                Thread versionThread = new Thread(this::obtainVersion, "Cardboard Version Check");
+                versionThread.setDaemon(true); // BUG-019: must not block JVM exit
+                versionThread.start();
             }
         } finally {
             versionLock.unlock();

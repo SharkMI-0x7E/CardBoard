@@ -49,6 +49,10 @@ public final class MCUtil {
     };
     public static final ExecutorService ASYNC_EXECUTOR = Executors.newFixedThreadPool(2, new ThreadFactoryBuilder()
         .setNameFormat("Paper Async Task Handler Thread - %1$d")
+        // Daemon: this static pool is never shut down and newFixedThreadPool core threads never
+        // time out, so a non-daemon worker would block JVM exit forever.
+        // See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
+        .setDaemon(true)
         // .setUncaughtExceptionHandler(new net.minecraft.util.logging.UncaughtExceptionHandler(MinecraftServer.LOGGER))
         .build()
     );

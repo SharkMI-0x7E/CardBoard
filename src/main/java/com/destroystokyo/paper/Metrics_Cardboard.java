@@ -39,7 +39,11 @@ public class Metrics_Cardboard {
 
     // Executor service for requests
     // We use an executor service because the Bukkit scheduler is affected by server lags
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    // Named + daemon: the default thread factory produced an anonymous "pool-N-thread-1" that is
+    // non-daemon and never shut down, blocking JVM exit. A real name also makes it identifiable in
+    // thread dumps. See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1,
+            Thread.ofPlatform().daemon(true).name("Cardboard Metrics Thread - ", 0L).factory());
 
     // The version of this bStats class
     public static final int B_STATS_VERSION = 1;

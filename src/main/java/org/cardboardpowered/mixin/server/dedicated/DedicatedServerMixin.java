@@ -102,6 +102,51 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 		// before onServerExit. Calling it again starts a SECOND save pass while the
 		// chunk storage is already shutting down -> hangs forever on
 		// "Saving chunks for level ... overworld" and the process never exits.
+		//
+		// Even a perfectly clean shutdown can leave non-daemon threads behind: our own pools,
+		// and pools owned by plugins / shaded libraries (e.g. a plugin's bundled bStats creates
+		// "bStats-Metrics"). The JVM only exits once EVERY non-daemon thread has finished, so we
+		// must not depend on third parties being well-behaved. Report what is left, then exit
+		// deterministically. See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
+		java.util.List<String> lingering = new java.util.ArrayList<>();
+		for (Thread t : Thread.getAllStackTraces().keySet()) {
+			if (t == Thread.currentThread() || t.isDaemon() || !t.isAlive()) continue;
+			// DestroyJavaVM is the JVM's own "wait for non-daemon threads" thread, not a leak.
+			if ("DestroyJavaVM".equals(t.getName())) continue;
+			lingering.add(t.getName());
+		}
+		if (!lingering.isEmpty()) {
+			BukkitLogger.getLogger().warning("Shutdown report [mercy-watchdog build]: " + lingering.size()
+					+ " non-daemon thread(s) still alive at shutdown: " + lingering);
+		}
+		// Arm a daemon "mercy watchdog" instead of calling System.exit():
+		//  * a clean shutdown needs no help - the JVM exits on its own and this daemon thread simply
+		//    dies with it (daemon threads never keep the JVM alive);
+		//  * if anything holds the JVM back (lingering non-daemon threads - ours or a third party's -
+		//    or a shutdown hook that blocks), halt unconditionally after a grace period.
+		// We deliberately do NOT call System.exit() here: it runs shutdown hooks while holding the
+		// Shutdown.class monitor, so if one hook blocks, EVERY later exit attempt - including Ctrl+C,
+		// which also goes through System.exit() - blocks on that same monitor, and the process can
+		// only be killed with "kill -9". halt() runs no hooks and cannot be blocked.
+		// See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
+		// How long to wait before forcing the exit depends on whether anything can still happen:
+		//  * a surviving non-daemon thread means the JVM will NEVER initiate shutdown on its own,
+		//    so no shutdown hook can be running either and waiting accomplishes nothing;
+		//  * if nothing survives, let the normal path (and any shutdown hooks) finish - only keep a
+		//    safety net for the case where something else blocks.
+		final long graceMillis = lingering.isEmpty() ? 30000L : 2000L;
+		Thread mercy = new Thread(() -> {
+			try {
+				Thread.sleep(graceMillis);
+			} catch (InterruptedException ignored) {
+				return;
+			}
+			BukkitLogger.getLogger().warning("JVM still alive " + (graceMillis / 1000L)
+					+ "s after shutdown - forcing exit (halt).");
+			Runtime.getRuntime().halt(0);
+		}, "Cardboard Shutdown Watchdog");
+		mercy.setDaemon(true);
+		mercy.start();
 	}
 
 	/**
