@@ -103,6 +103,7 @@ main (always deployable)
 - **Match existing style** — don't reformat adjacent code
 - **Surgical changes** — touch only what you must change
 - **No type suppression** — never use `@SuppressWarnings("unchecked")` to hide real issues
+- **Fix the root cause, not the symptom** — fix the underlying mechanism so the same class of failure cannot recur; never silence an error just to make one case pass. If a fix only covers the specific case, say so explicitly in the commit/PR rather than presenting it as a general fix
 
 ### License Header
 
