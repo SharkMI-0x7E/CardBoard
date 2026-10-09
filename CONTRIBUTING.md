@@ -36,6 +36,15 @@ Build artifacts are in `build/libs/`.
 
 ---
 
+### Common Build Errors
+
+| Error | Cause | Fix |
+| --- | --- | --- |
+| `找不到符号: 方法 orElse` | `Component` is not `Optional` in 1.21.11 | Remove the `.orElse()` call |
+| `找不到符号: 方法 getFavicon()` | The field is `event.icon`, not `event.getFavicon()` | Use `event.icon.value` |
+| `@Shadow field not located` | Field injected by another mod at runtime | Use reflection instead |
+| `RecipeBySerializerHolder not found` | Internal class structure changed in 1.21.11 | Use `Object` type or reflection |
+
 ## Commit Convention
 
 This project uses **Conventional Commits**. Every commit message must follow:
@@ -68,7 +77,7 @@ BREAKING CHANGE: PlayerInteractEvent constructor now takes 3 args instead of 2
 
 ### Why Conventional Commits matters
 
-Each commit becomes a line in the changelog via `release-please`. Keep commits **atomic** — one logical change per commit, related files grouped together.
+Each commit becomes a line in the release notes. Keep commits **atomic** — one logical change per commit, related files grouped together.
 
 ---
 

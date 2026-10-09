@@ -20,7 +20,7 @@ import org.objectweb.asm.Type;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Regression test for [014]: after Fabric Loom remapping, @Mixin lives in
+ * Regression test for BUG-014: after Fabric Loom remapping, @Mixin lives in
  * RuntimeInvisibleAnnotations. MixinAnnotationScanner must scan both visible
  * and invisible annotations, or every mixin class reports isMixin()==false.
  */

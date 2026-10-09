@@ -7,7 +7,7 @@
 **Run Bukkit / Spigot / Paper plugins on Fabric servers**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
+[![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
 
 [中文](README.zh_CN.md)
@@ -65,7 +65,7 @@ Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. 
 - Full Bukkit API implementation (work in progress)
 - NMS (`net.minecraft.server`) support with automatic remapping
 - Compatible with Fabric API
-- Mojang official mappings
+- Runtime mapping: intermediary (`class_xxx`)
 
 ## Installation
 
@@ -74,7 +74,7 @@ Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. 
 | Software | Version |
 |----------|---------|
 | Java | 21+ |
-| Fabric Loader | 0.16+ |
+| Fabric Loader | 0.18+ |
 | Minecraft | 1.21.11 |
 
 ### Steps
@@ -123,8 +123,12 @@ conflict-scan-json-output: false
 auto-disable-fatal-conflicts: false
 
 # Debug options
-debug-print-event-call: false
-debug-print-all-calls: false
+debug_mode: false
+debug_print_event_call: false
+debug_print_all_calls: false
+debug_player: false
+debug_other: false
+debug_print_remaputil: false
 ```
 
 For detailed conflict detection configuration, see [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md).
@@ -157,7 +161,7 @@ This fork targets **Minecraft 1.21.11 only** — no older or newer versions are 
 
 | Minecraft Version | Fabric Version | Branch | Status |
 |-------------------|----------------|--------|--------|
-| 1.21.11 | 0.16+ | ver/1.21.11 | Active |
+| 1.21.11 | 0.18+ | ver/1.21.11 | Active |
 
 ## Java 21 Flags
 

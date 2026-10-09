@@ -7,7 +7,7 @@
 **在 Fabric 服务器上运行 Bukkit / Spigot / Paper 插件**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
+[![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
 
 [English](README.md)
@@ -64,7 +64,7 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
 - 完整的 Bukkit API 实现（持续完善中）
 - NMS (`net.minecraft.server`) 支持，自动重映射
 - 与 Fabric API 兼容
-- 支持 Mojang 官方映射
+- 运行时映射：intermediary（`class_xxx`）
 
 ## 安装指南
 
@@ -73,7 +73,7 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
 | 软件 | 版本要求 |
 |------|----------|
 | Java | 21+ |
-| Fabric Loader | 0.16+ |
+| Fabric Loader | 0.18+ |
 | Minecraft | 1.21.11 |
 
 ### 安装步骤
@@ -122,8 +122,12 @@ conflict-scan-json-output: false
 auto-disable-fatal-conflicts: false
 
 # 调试选项
-debug-print-event-call: false
-debug-print-all-calls: false
+debug_mode: false
+debug_print_event_call: false
+debug_print_all_calls: false
+debug_player: false
+debug_other: false
+debug_print_remaputil: false
 ```
 
 详细的冲突检测配置说明，请参阅 [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md)。
@@ -156,7 +160,7 @@ debug-print-all-calls: false
 
 | Minecraft 版本 | Fabric 版本 | 分支 | 状态 |
 |---------------|-------------|------|------|
-| 1.21.11 | 0.16+ | ver/1.21.11 | 活跃维护 |
+| 1.21.11 | 0.18+ | ver/1.21.11 | 活跃维护 |
 
 ## Java 21 启动参数
 

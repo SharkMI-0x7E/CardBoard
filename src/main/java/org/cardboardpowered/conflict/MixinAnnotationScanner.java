@@ -68,7 +68,7 @@ public class MixinAnnotationScanner {
             // RuntimeInvisibleAnnotations (not visible), so both must be scanned.
             // Filtering on visible-only caused all 3395 parsed mixin classes to
             // report isMixin()==false -> "Grouped into 0 target classes" -> always
-            // "No conflicts detected". See docs/ai-bugfix-memory.md [014].
+            // "No conflicts detected". See docs/ai/entries/BUG-014-mixin-invisible-annotations-scan.md
             Set<String> seenClassAnnos = new HashSet<>();
             List<AnnotationNode> classAnnotations = new ArrayList<>();
             if (classNode.visibleAnnotations != null) {
