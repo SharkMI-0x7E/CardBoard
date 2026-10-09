@@ -56,6 +56,10 @@ public final class LibraryManager {
     // Snapshot Override Paper Jar
     public static Optional<String> PAPER_OVERRIDE = Optional.empty();
 
+    // Download timeouts (ms). A stalled connection must not hang startup forever.
+    private static final int CONNECT_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 60_000;
+
     // Backup Repos
     private static final String[] BACKUP = {
     		"https://repo.papermc.io/repository/maven-snapshots/",
@@ -134,6 +138,25 @@ public final class LibraryManager {
         for (Library lib : libraries) {
         	String fn = lib.getJarName();
         	File f = new File(directory, fn);
+
+        	// A jar left behind by an interrupted download can be truncated and
+        	// would otherwise be loaded silently (see BUG-015). Verify anything
+        	// that is already on disk before trusting it.
+        	if (f.isFile() && this.validateChecksums && lib.needsChecksumValidation()) {
+        		if (!lib.getChecksum(f)) {
+        			// fileHash stays null only when the digest could not be computed
+        			// at all (unreadable file); otherwise it holds the real hash.
+        			String why = (lib.fileHash == null)
+        					? "could not be read/hashed"
+        					: "checksum mismatch (have " + lib.fileHash + ", want " + lib.checksumValue + ")";
+        			logger.warn("Existing '" + fn + "' failed verification: " + why
+        					+ ". Deleting and re-downloading.");
+        			if (!f.delete()) {
+        				logger.warn("Could not delete '" + fn + "'.");
+        			}
+        		}
+        	}
+
         	if (f.isFile()) {
         		Libraries.propose(f);
         	} else {
@@ -166,12 +189,10 @@ public final class LibraryManager {
     	String fileName = library.getJarName();
     	File file = new File(directory, fileName);
 
+    	// Called only when the file is missing; files that already exist are
+    	// verified up front in run().
     	if (!file.exists()) {
     		attemptDownloadWithRetries(library, repository, file);
-    	} else if (this.validateChecksums && library.needsChecksumValidation()) {
-    		if (!library.getChecksum(file)) {
-    			logger.warn("Checksum mismatch for '" + fileName + "'. Delete it and restart to redownload.");
-    		}
     	}
 
     	// Add to KnotClassLoader
@@ -238,12 +259,36 @@ public final class LibraryManager {
     private void downloadFromUrl(URL url, File file) throws IOException {
     	HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
     	connection.setRequestProperty("User-Agent", "Mozilla/5.0 Chrome/90.0.4430.212");
+    	// Without timeouts a stalled connection blocks server startup forever.
+    	connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+    	connection.setReadTimeout(READ_TIMEOUT_MS);
+
+    	// Stream into a temp file, then move it into place. Writing straight to
+    	// `file` is what let a half-downloaded jar survive on disk and break the
+    	// next boot (BUG-015).
+    	File tmp = new File(file.getParentFile(), file.getName() + ".tmp");
 
     	try (
     			ReadableByteChannel input = Channels.newChannel(connection.getInputStream());
-    			FileOutputStream output = new FileOutputStream(file)
+    			FileOutputStream output = new FileOutputStream(tmp)
     			) {
     		output.getChannel().transferFrom(input, 0, Long.MAX_VALUE);
+    	} catch (IOException ex) {
+    		tmp.delete();
+    		throw ex;
+    	}
+
+    	try {
+    		java.nio.file.Files.move(tmp.toPath(), file.toPath(),
+    				java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+    				java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+    	} catch (java.nio.file.AtomicMoveNotSupportedException ex) {
+    		// Some filesystems can't do an atomic move; a plain replace is enough
+    		// here because the target is only read after this point.
+    		java.nio.file.Files.move(tmp.toPath(), file.toPath(),
+    				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    	} finally {
+    		java.nio.file.Files.deleteIfExists(tmp.toPath());
     	}
     }
     

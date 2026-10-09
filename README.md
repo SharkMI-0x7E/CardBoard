@@ -7,21 +7,48 @@
 **Run Bukkit / Spigot / Paper plugins on Fabric servers**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
+[![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
 
 [中文](README.zh_CN.md)
 
 </div>
 
-> **This is a community fork** maintained by [SharkMI](https://github.com/SharkMI-0x7E), based on [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard).
+> **A personal maintenance fork.**
 >
-> It includes additional compatibility fixes that have not yet been merged upstream.
+> Based on [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard), kept by
+> [SharkMI](https://github.com/SharkMI-0x7E) for personal use on a private server and published
+> as-is. It targets **Minecraft 1.21.11** and contains compatibility fixes that have not been
+> merged upstream.
+>
+> Updates follow my own server's needs and are made on a best-effort basis — no commitment to
+> long-term maintenance, no guarantee that a specific plugin or mod will work, and no promise to
+> track upstream. It is a hobby project, not a supported product.
 
 ### Issues & Feedback
 
 - **Fork-specific bugs or suggestions** → Please open an [Issue in this repository](https://github.com/SharkMI-0x7E/CardBoard/issues).
 - **General discussion or questions** → Feel free to join the [Cardboard Discord](https://discord.gg/tddTWXZtaP) (the upstream community).
+
+---
+
+## Scope & Expectations
+
+This fork exists for a plain reason: I hit problems on my own server that upstream had not
+fixed yet, so I fixed them. What is published here is that work, shared in case someone else
+runs into the same thing.
+
+- **Personal project first.** Changes follow what my own server needs; broader compatibility
+  work happens on a best-effort basis.
+- **Compatibility is not guaranteed.** A given plugin or mod may or may not work.
+- **Feedback is welcome.** Open an issue if something breaks — just don't expect fast
+  turnaround. A PR with a clear reproduction, and something I can verify, has the best chance
+  of being merged.
+- **The upstream project comes first.** For general Cardboard questions, use the
+  [upstream project](https://github.com/CardboardPowered/cardboard).
+
+This is not meant to be "a more complete Cardboard". The upstream project is the real one;
+this is a patch set that happens to be public.
 
 ---
 
@@ -34,7 +61,15 @@ This is a fork of the official [Cardboard](https://github.com/CardboardPowered/c
 - **carpet-tis-addition compatibility**: Fixed boat item placement conflicts
 - **Fabric API NPE fix**: Resolved crash caused by Fabric API field injection timing
 - **OWASP security scanning**: Integrated OWASP Dependency-Check into the build pipeline
-- **Mixin conflict detection tool**: Built-in runtime scanner that detects mixin conflicts across all loaded mods at startup (6 detection rules, FATAL/HIGH/MEDIUM/LOW severity levels, console + JSON report output, optional auto-disable for fatal conflicts)
+- **Mixin conflict detection tool**: Built-in runtime scanner that reports mixin conflicts across all loaded mods at startup (console output, optional JSON report, optional auto-disable for fatal conflicts)
+
+### How compatibility fixes are made
+
+Fixes target the root cause, not the symptom. When a specific plugin or mod triggers a failure,
+the goal is to fix the underlying mechanism so that the same class of failure no longer occurs —
+not to silence that one error and leave the next one waiting. A fix that only covers the case at
+hand is noted as such in the commit and release notes, so it is not mistaken for a general
+solution.
 
 ---
 
@@ -48,6 +83,7 @@ build-checked and smoke-tested before release, but is not fully manually reviewe
 Primary AI tools used:
 
 - [Trae SOLO](https://www.trae.ai/) — daily coding companion
+- [CodeBuddy](https://codebuddy.cn/) — AI coding assistant
 - [OpenCode](https://github.com/opencode-ai/opencode) — terminal-native AI coding agent
 - [DeepSeek Harness](https://www.deepseek.com/harness/) — automated development harness powered by DeepSeek models
 
@@ -57,15 +93,15 @@ A build and basic smoke tests are run before each release.
 
 ## Overview
 
-Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. It allows you to run plugins from the Bukkit ecosystem on a Fabric modded server, giving you the best of both worlds: mods and plugins.
+Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. It allows you to run plugins from the Bukkit ecosystem on a Fabric modded server, so mods and plugins can run side by side.
 
 ## Features
 
 - Support for Bukkit/Spigot/Paper plugins
-- Full Bukkit API implementation (work in progress)
+- Broad Bukkit API coverage (work in progress)
 - NMS (`net.minecraft.server`) support with automatic remapping
 - Compatible with Fabric API
-- Mojang official mappings
+- Runtime mapping: intermediary (`class_xxx`)
 
 ## Installation
 
@@ -74,7 +110,7 @@ Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. 
 | Software | Version |
 |----------|---------|
 | Java | 21+ |
-| Fabric Loader | 0.16+ |
+| Fabric Loader | 0.18+ |
 | Minecraft | 1.21.11 |
 
 ### Steps
@@ -84,7 +120,7 @@ Cardboard is an implementation of the **Bukkit/Spigot/Paper API for FabricMC**. 
    - Or use the [Fabric Server Installer](https://fabricmc.net/use/server/)
 
 2. **Download Cardboard**
-   - Get the latest jar from the [official website](https://cardboardpowered.org/download/), [GitHub Releases](../../releases), or [Modrinth](https://modrinth.com/mod/cardboard-sharkmi-fork)
+   - Get the latest jar from [GitHub Releases](../../releases) or [Modrinth](https://modrinth.com/mod/cardboard-sharkmi-fork)
 
 3. **Place in mods folder**
    ```
@@ -123,8 +159,12 @@ conflict-scan-json-output: false
 auto-disable-fatal-conflicts: false
 
 # Debug options
-debug-print-event-call: false
-debug-print-all-calls: false
+debug_mode: false
+debug_print_event_call: false
+debug_print_all_calls: false
+debug_player: false
+debug_other: false
+debug_print_remaputil: false
 ```
 
 For detailed conflict detection configuration, see [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md).
@@ -157,7 +197,7 @@ This fork targets **Minecraft 1.21.11 only** — no older or newer versions are 
 
 | Minecraft Version | Fabric Version | Branch | Status |
 |-------------------|----------------|--------|--------|
-| 1.21.11 | 0.16+ | ver/1.21.11 | Active |
+| 1.21.11 | 0.18+ | ver/1.21.11 | Active |
 
 ## Java 21 Flags
 
@@ -213,9 +253,12 @@ needed.
 
 ## Contributing
 
-We welcome contributions of all kinds.
+This is a personal project with limited time behind it, so contributions are appreciated but
+are not always quick to be handled.
 
 ### Reporting Bugs
+
+A good report is still useful, even if it does not get an answer right away.
 
 1. Search [Issues](../../issues) for existing reports of the same problem
 2. If not found, create a new issue with:
@@ -253,9 +296,9 @@ We welcome contributions of all kinds.
 - [BukkitTeam](https://bukkit.org/), [Spigot](https://spigotmc.org/), and [Paper](https://papermc.io/) for their work on the API
 - [Glowstone](https://glowstone.net) for the library loader
 - [md_5's SpecialSource](https://github.com/md-5/SpecialSource), [SrgLib by Techcable & Orion](https://github.com/OrionMinecraft/SrgLib), [MinecraftMapping by Phase](https://github.com/phase/MinecraftMapping/)
-- All [Cardboard contributors](https://github.com/CardboardPowered/cardboard)
+- All [Cardboard contributors](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 - All [SharkMI fork contributors](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
-- [Trae SOLO](https://www.trae.ai/), [OpenCode](https://github.com/opencode-ai/opencode), and [DeepSeek Harness](https://www.deepseek.com/harness/) for AI-assisted development
+- [Trae SOLO](https://www.trae.ai/), [CodeBuddy](https://codebuddy.cn/), [OpenCode](https://github.com/opencode-ai/opencode), and [DeepSeek Harness](https://www.deepseek.com/harness/) for AI-assisted development
 
 ## License
 

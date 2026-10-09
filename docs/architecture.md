@@ -8,12 +8,19 @@ Cardboard is a **Bukkit-API-on-Fabric** bridge layer — it allows Bukkit/Spigot
 
 ```
 1. Fabric loads Cardboard as a mod
-2. CardboardMod initializes:
-   ├─ Creates CraftServer (Bukkit Server implementation)
-   ├─ Sets up plugin manager
-   └─ Loads plugins from plugins/ directory
+   (entry point: com.javazilla.bukkitfabric.BukkitFabricMod -> CardboardMod)
 
-3. Mixins intercept Minecraft methods:
+2. CardboardMixinPlugin.onLoad() runs first (Mixin bootstrap):
+   ├─ CardboardConfig.setup(); create plugins/ directory
+   ├─ Libraries.loadLibs() (Paper API jars)
+   └─ JarReader: scan plugins/ bytecode to learn which events they use
+      (plugins are NOT loaded yet at this point)
+
+3. DedicatedServer.initServer() is intercepted -> the Bukkit server appears:
+   ├─ new CraftServer(server)
+   └─ loadPlugins() -> enablePlugins(STARTUP)   <- plugins are really loaded here
+
+4. Mixins intercept Minecraft methods:
 
    ┌────────────────────────────────────────┐
    │ Player clicks block (original flow):    │
@@ -39,10 +46,10 @@ Cardboard is a **Bukkit-API-on-Fabric** bridge layer — it allows Bukkit/Spigot
 ```
 Cardboard/
 ├── src/main/java/org/cardboardpowered/
-│   ├── CardboardMod.java             # Entry point, Fabric mod init
+│   ├── CardboardMod.java             # Mod logic (onInitialize). Fabric entry point is the @Deprecated com.javazilla.bukkitfabric.BukkitFabricMod
 │   ├── CardboardConfig.java          # YAML config system
 │   │
-│   ├── mixin/                        # 236+ Mixin classes
+│   ├── mixin/                        # 229 Mixin classes
 │   │   ├── CardboardMixinPlugin.java # Mixin lifecycle (config, conflict scan, compatibility)
 │   │   ├── server/                   # Server lifecycle, networking, players
 │   │   ├── world/                    # Entities, items, blocks, inventory
@@ -70,19 +77,23 @@ Cardboard/
 │   │   └── model/                    # Data models
 │   │
 │   ├── library/                      # Dynamic library loading
-│   ├── util/                         # Utilities (MixinInfo annotation, JarReader)
+│   ├── util/                         # Utilities (MixinInfo annotation, JarReader, nms/)
 │   ├── impl/                         # Bukkit API implementations
 │   ├── api/                          # Cardboard-specific events
+│   ├── extras/                       # Extra integrations
+│   ├── fabric/                       # Fabric-side hooks
 │   └── adventure/                    # Adventure text support
 │
 ├── src/main/resources/
-│   ├── bukkitfabric.mixins.json      # Mixin config (146 entries)
-│   ├── bukkitfabric.accesswidener    # 800+ access widening entries
+│   ├── bukkitfabric.mixins.json      # Mixin config (226 entries; repo-root copy has 224)
+│   ├── bukkitfabric.accesswidener    # ~918 access widening entries
+│   ├── cardboard/mod-compatibility.yml  # Known mod conflicts DB
 │   └── fabric.mod.json               # Fabric mod metadata
 │
-└── config/cardboard/
-    ├── cardboard-config.yml          # Runtime configuration
-    └── mod-compatibility.yml         # Known mod conflicts DB
+└── (runtime only — generated into the Fabric config dir, not in the repo)
+    └── config/cardboard/
+        ├── cardboard-config.yml      # Runtime configuration
+        └── mod-compatibility.yml     # Runtime copy of the resource above
 ```
 
 ---
@@ -95,12 +106,16 @@ Cardboard uses the **SpongePowered Mixin** framework to intercept Minecraft meth
 
 | Metric | Value |
 |--------|-------|
-| Total Mixins | 236+ |
-| `@Inject` | 124 classes |
-| `@Overwrite` | 46 classes (legacy, being refactored) |
-| `@Redirect` / `@ModifyArg` / `@ModifyVariable` / `@ModifyReturnValue` | 31 classes |
-| Mixin config files | `bukkitfabric.mixins.json` |
-| Mapping | Mojang official |
+| Total Mixins (`@Mixin` classes) | 229 |
+| Registered in the shipped `bukkitfabric.mixins.json` | 226 |
+| `@Overwrite` | 27 files / 63 occurrences (legacy, being refactored) |
+| `@Inject` | 122 files / 236 occurrences |
+| Mixin config files | `src/main/resources/bukkitfabric.mixins.json` (226 entries; the gitignored repo-root copy has 224) |
+| Mapping (development) | Mojang official (`loom.officialMojangMappings()`) |
+| Mapping (runtime) | intermediary (`class_xxx`) — plugins use Spigot/obfuscated/named names, translated by `RemapUtils` |
+
+> These counts drift as the code evolves — treat them as a snapshot, not a contract.
+> Counting rule: line-anchored annotations only. Bare mentions inside comments are excluded, and `@MixinInfo` is not counted as `@Mixin`. Regenerate with `docs/ai/tools/scan-mixin-stats.py`.
 
 ### Mixin Category Map
 
@@ -110,7 +125,7 @@ Cardboard uses the **SpongePowered Mixin** framework to intercept Minecraft meth
 |-------|--------|---------|-------------|
 | `ServerStatusPacketListenerImplMixin` | Server status handler | ServerListPingEvent | `@ModifyArg` |
 | `ServerGamePacketListenerImplMixin` | Game packet handler | Chat, movement, inventory | `@Redirect`, `@Inject` |
-| `PlayerListMixin` | Player list | Player join/quit | `@Redirect` |
+| `PlayerListMixin` | Player list | Player join/quit | `@Inject`, `@Redirect` |
 | `MinecraftServerMixin` | Server instance | Server lifecycle | `@Redirect` |
 
 #### World/Level
@@ -137,7 +152,7 @@ The `bridge/` package provides interface-only access to Minecraft internals. Rat
 
 ```
 bridge/
-├── IMixinStyle.java              # Marker interface for all bridges
+├── <ClassName>Bridge.java        # One interface per Minecraft class (95 bridges + 1 dead leftover)
 ├── advancements/                 # Advancement progress
 ├── bukkit/                       # Material, Registry, EntityType
 ├── commands/                     # Command source
@@ -147,7 +162,72 @@ bridge/
 ├── resources/                    # Resource manager
 ├── server/                       # Server instance
 └── world/                        # Entity, block, item
+    ├── entity/                   # LivingEntity, Mob, Player bridges
+    ├── inventory/                # Container bridges
+    ├── item/                     # ItemStack bridges
+    └── level/                    # Block/BlockState bridges
 ```
+
+**Naming**: `<MinecraftClassName>Bridge` — **there is no `I` prefix**.
+Examples: `Entity` → `EntityBridge`, `Level` → `LevelBridge`, `MinecraftServer` → `MinecraftServerBridge`, `ServerPlayer` → `ServerPlayerBridge`.
+Some bridges are additionally declared in `src/main/resources/fabric.mod.json` under `loom:injected_interfaces` (that list covers only a handful of hot classes — the rest are wired purely through mixin `implements` + casts).
+
+> `bridge/IMixinStyle.java` is a **dead leftover** (three `Style` setter methods plus a `// TODO`); nothing implements or references it. Do not treat it as a marker interface.
+
+**Bridge pattern** — define an interface, implement it via a mixin, access it through the interface:
+
+```java
+// 1. Define the bridge interface
+public interface EntityBridge {
+    CraftEntity getBukkitEntity();
+    float cardboard$getBukkitYaw();
+}
+
+// 2. Implement it in a mixin
+@Mixin(Entity.class)
+public class EntityMixin implements EntityBridge {
+    // ... implementation ...
+}
+
+// 3. Access through the bridge (double-cast via Object)
+EntityBridge bridge = (EntityBridge) (Object) minecraftEntity;
+CraftEntity bukkitEntity = bridge.getBukkitEntity();
+```
+
+**Bridge rules:**
+
+1. **Interfaces only** — no implementation in `bridge/` (implementations go in `mixin/` or `impl/`)
+2. **Cast pattern**: `(SomeBridge) (Object) mcObject` — double-cast through `Object` for cross-package access
+3. **Mirror the Minecraft class hierarchy** — directory structure mirrors the `mixin/` and Minecraft class tree
+
+**Key bridges:**
+
+| Bridge | Provides access to | Real usage |
+|--------|-------------------|------------|
+| `EntityBridge` | Entity location, velocity, Bukkit entity | `((EntityBridge)(Object)e).getBukkitEntity()` |
+| `LevelBridge` | Level / world access | `((LevelBridge)(Object)level)` |
+| `MinecraftServerBridge` | Server instance, process queue | `((MinecraftServerBridge)CraftServer.server).getProcessQueue()` |
+| `ServerPlayerBridge` | Player connection, Bukkit entity | `((ServerPlayerBridge)(Object)player).getBukkitEntity()` |
+| `BlockStateBridge` | Block type, material, state | `((BlockStateBridge)(Object)state)` |
+
+### Finding a Mixin by Domain
+
+| Task | Look in | Example |
+|------|---------|---------|
+| Player interact / block place | `world/item/` or `world/level/block/` | `BoatItemMixin.java`, `BlockItemMixin.java` |
+| Inventory clicks | `world/inventory/` | `CraftingMenuMixin.java` |
+| Entity damage / death | `world/entity/` | `LivingEntityMixin.java` |
+| Chat / commands | `server/players/` | `PlayerListMixin_ChatEvent.java` |
+| Player join / quit | `server/players/` | `PlayerListMixin.java` |
+| World load / save | `world/level/` | `LevelMixin.java` |
+| Recipe / registry | `world/item/crafting/` | `RecipeManagerMixin.java` |
+| Bukkit API internals | `bukkit/` | `BukkitMaterialMixin.java` |
+
+Mixin naming: `{Target}Mixin.java`; sub-mixins for complex events: `{Target}Mixin_{Event}.java`; every mixin method uses the `cardboard$` prefix.
+
+> Some mixin classes are intentionally empty (e.g. `EnderpearlItemMixin.java`, `SnowballItemMixin.java`) — they exist as registration placeholders.
+
+> The category map above is an **illustrative overview**. For exact counts and the authoritative file list, run `docs/ai/tools/scan-mixin-stats.py` (output lands in `docs/ai/CONTEXT/GENERATED-STATS.md`).
 
 ### Mixin Conflict Detection
 
@@ -158,9 +238,9 @@ See [Mixin Conflict Detection User Guide](mixin-conflict-detection/user-guide.md
 ## Build System
 
 - **Build tool**: Gradle with Fabric Loom plugin
-- **Target**: Minecraft 1.21.11, Fabric Loader 0.16+
+- **Target**: Minecraft 1.21.11, Fabric Loader 0.18.4 (see `gradle.properties`)
 - **Java**: 21+
-- **CI/CD**: GitHub Actions (ci.yml, release.yml, release-please.yml)
+- **CI/CD**: GitHub Actions (`build.yml`, `release.yml`) — no release-please; releases use manual `v*` tags (see `MODRINTH_VERSION_MANAGEMENT_AND_CICD.md`)
 - **Code conventions**: Conventional Commits, English comments, GPL-3.0 license
 
 ---
@@ -170,18 +250,20 @@ See [Mixin Conflict Detection User Guide](mixin-conflict-detection/user-guide.md
 ```
 Fabric Loader
   │
-  ├─ Loads fabric.mod.json → discovers CardboardMod (entry point)
+  ├─ Loads fabric.mod.json → discovers BukkitFabricMod (entry point, extends CardboardMod)
   │
-  └─ CardboardMod.onInitialize()
-       │
+  └─ CardboardMixinPlugin.onLoad()          ← runs FIRST (Mixin bootstrap)
        ├─ CardboardConfig.setup()
-       │   └─ Reads config/cardboard/cardboard-config.yml
-       │
-       ├─ CardboardMixinPlugin.onLoad()
-       │   ├─ Loads libraries (Paper API jars)
-       │   ├─ [Optional] ModCompatibilityDatabase.load()
-       │   ├─ [Optional] MixinConflictDetector: scan → detect → report
-       │   └─ JarReader.scan plugins/
+       │   └─ Reads <fabric config dir>/cardboard/cardboard-config.yml
+       ├─ Libraries.loadLibs() (Paper API jars)
+       ├─ JarReader.readEvents() / readPlugins(plugins/)
+       ├─ [Optional] ModCompatibilityDatabase.load()
+       └─ [Optional] MixinConflictDetector: scan → detect → report
+
+  └─ BukkitFabricMod / CardboardMod.onInitialize()   ← mod init (no server yet)
+       ├─ create plugins/ directory
+       ├─ EventRegistery.registerAll()
+       └─ CardboardEventManager.callCardboardEvents()
        │
        └─ CardboardMixinPlugin.shouldApplyMixin()
            ├─ Check manual disable list
@@ -198,10 +280,15 @@ Cardboard's mixins use these injection types in order of preference:
 
 | Inject Type | Use When | Example |
 |-------------|----------|---------|
-| `@ModifyArg` | Change a constructor/method argument | Packet data modification |
+| `@ModifyArg` | Change a method/constructor argument | Packet data modification |
+| `@ModifyVariable` | Change a local variable | Intermediate value tweaks |
 | `@ModifyReturnValue` | Post-process a return value | Event result modification |
 | `@Redirect` | Replace a method call entirely | Call replacement |
 | `@Inject(HEAD)` | Intercept at method start, possibly cancel | Event cancellation |
 | `@Inject(RETURN)` | Intercept before method returns | Post-processing |
+| `@Overwrite` | **Last resort only** | Avoid — breaks other mods |
 
-See [`AGENTS.md`](../AGENTS.md) for detailed conflict resolution patterns and the decision tree for choosing the right injection type.
+When converting a legacy `@Overwrite` to a precise injection, prefer in this order:
+`@ModifyArg` / `@ModifyVariable` > `@ModifyReturnValue` > `@Redirect` > `@Inject` > `@Overwrite`.
+Use `@Inject(HEAD) + ci.cancel()` only when the original method body must be skipped entirely —
+a `@Inject(RETURN)` still runs the original body and can NPE.

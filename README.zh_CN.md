@@ -7,16 +7,19 @@
 **在 Fabric 服务器上运行 Bukkit / Spigot / Paper 插件**
 
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16%2B-%23dacfa4)](https://fabricmc.net/)
+[![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
 
 [English](README.md)
 
 </div>
 
-> **这是一个社区维护的分支 (Fork)**，由 [SharkMI](https://github.com/SharkMI-0x7E) 基于 [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard) 维护。
+> **个人维护分支。**
 >
-> 本分支包含了一些尚未被上游合并的兼容性修复。
+> 基于 [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard)，由 [SharkMI](https://github.com/SharkMI-0x7E) 为自己的服务器维护并原样发布。
+> 目标版本为 **Minecraft 1.21.11**，包含尚未合并到上游的兼容性修复。
+>
+> 更新跟随我自己服务器的需求，以尽力而为的方式推进——不承诺长期维护，不承诺覆盖所有插件与模组，不承诺跟随上游同步。这是个人自用的业余项目，不是有支持承诺的产品。
 
 ### 问题与反馈
 
@@ -25,17 +28,33 @@
 
 ---
 
+## 项目定位与预期
+
+这个分支存在的原因很朴素：我在自己的服务器上遇到上游还没修的问题，就自己修了。这里发布的就是这些修改，顺便分享给有同样需要的人。
+
+- **个人项目优先**：更新跟随我自己服务器的需求，更广泛的兼容性工作以尽力而为的方式推进。
+- **不保证兼容性**：某个插件或模组能不能跑，需要实际验证。
+- **欢迎反馈**：遇到问题可以提 Issue，只是别期待快速响应。带清晰复现步骤、并且我能实际验证的 PR，最有可能被合并。
+- **上游优先**：Cardboard 的通用问题请参考[上游项目](https://github.com/CardboardPowered/cardboard)。
+
+本分支不以"更完整的 Cardboard"为目标。上游项目才是正主，这里只是一份恰好公开的补丁集合。
+
+---
+
 ## Fork 差异
 
-本项目基于官方 [Cardboard](https://github.com/CardboardPowered/cardboard) 进行了以下改进：
+本项目基于官方 [Cardboard](https://github.com/CardboardPowered/cardboard) 做了以下改动：
 
 - **增强 Mixin 兼容性**：将 `@Overwrite` 替换为精确注入方法（`@Inject`、`@ModifyArg`、`@Redirect`），避免与其他 Fabric 模组冲突
 - **MiniMOTD 兼容**：修复了服务器状态 Ping 与 MiniMOTD 模组的冲突
 - **carpet-tis-addition 兼容**：修复了船物品放置冲突
 - **Fabric API NPE 修复**：解决了 Fabric API 字段注入时序导致的崩溃
 - **OWASP 安全扫描**：在构建流程中集成了 OWASP Dependency-Check
-- **改进的文档**：更详细的描述项目 并添加中文版README
-- **Mixin 冲突检测工具**：内置运行时扫描器，在服务器启动时自动检测所有已加载 Mod 的 Mixin 冲突（6 条检测规则，FATAL/HIGH/MEDIUM/LOW 四级分类，控制台 + JSON 报告输出，可选自动禁用 FATAL 冲突）
+- **Mixin 冲突检测工具**：内置运行时扫描器，在服务器启动时报告所有已加载 Mod 的 Mixin 冲突（控制台输出，可选 JSON 报告，可选自动禁用 FATAL 冲突）
+
+### 兼容性修复的原则
+
+修复针对的是根因，而不是症状。当某个插件或模组触发报错时，目标是修底层机制，让同一类问题不再出现，而不是把这个报错按下去、留一个同类问题在后面等着。如果某次修复确实只覆盖了当前这个个案，会在对应的 commit 与发布说明里注明，避免被误当成通用解决方案。
 
 ---
 
@@ -47,6 +66,7 @@
 主要使用的 AI 工具：
 
 - [Trae SOLO](https://www.trae.ai/) — 日常编码助手
+- [CodeBuddy](https://codebuddy.cn/) — AI 编程助手
 - [OpenCode](https://github.com/opencode-ai/opencode) — 终端原生 AI 编码代理
 - [DeepSeek Harness](https://www.deepseek.com/harness/) — 基于 DeepSeek 模型的自动化开发框架
 
@@ -56,15 +76,15 @@
 
 ## 简介
 
-Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你在 Fabric 模组服务器上运行 Bukkit 生态的插件，让你同时享受模组和插件的强大功能。
+Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你在 Fabric 模组服务器上运行 Bukkit 生态的插件，使模组与插件可以在同一台服务器上共存。
 
 ## 特性
 
 - 支持 Bukkit/Spigot/Paper 插件
-- 完整的 Bukkit API 实现（持续完善中）
+- 较广的 Bukkit API 覆盖（持续完善中）
 - NMS (`net.minecraft.server`) 支持，自动重映射
 - 与 Fabric API 兼容
-- 支持 Mojang 官方映射
+- 运行时映射：intermediary（`class_xxx`）
 
 ## 安装指南
 
@@ -73,7 +93,7 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
 | 软件 | 版本要求 |
 |------|----------|
 | Java | 21+ |
-| Fabric Loader | 0.16+ |
+| Fabric Loader | 0.18+ |
 | Minecraft | 1.21.11 |
 
 ### 安装步骤
@@ -83,7 +103,7 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
    - 或使用 [Fabric Server Installer](https://fabricmc.net/use/server/)
 
 2. **下载 Cardboard**
-   - 从 [官网下载页](https://cardboardpowered.org/download/)、[GitHub Releases](../../releases) 或 [Modrinth](https://modrinth.com/mod/cardboard-sharkmi-fork) 获取最新 jar
+   - 从 [GitHub Releases](../../releases) 或 [Modrinth](https://modrinth.com/mod/cardboard-sharkmi-fork) 获取最新 jar
 
 3. **放入 mods 文件夹**
    ```
@@ -122,8 +142,12 @@ conflict-scan-json-output: false
 auto-disable-fatal-conflicts: false
 
 # 调试选项
-debug-print-event-call: false
-debug-print-all-calls: false
+debug_mode: false
+debug_print_event_call: false
+debug_print_all_calls: false
+debug_player: false
+debug_other: false
+debug_print_remaputil: false
 ```
 
 详细的冲突检测配置说明，请参阅 [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md)。
@@ -156,7 +180,7 @@ debug-print-all-calls: false
 
 | Minecraft 版本 | Fabric 版本 | 分支 | 状态 |
 |---------------|-------------|------|------|
-| 1.21.11 | 0.16+ | ver/1.21.11 | 活跃维护 |
+| 1.21.11 | 0.18+ | ver/1.21.11 | 活跃维护 |
 
 ## Java 21 启动参数
 
@@ -201,9 +225,11 @@ java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 
 ## 贡献指南
 
-我们欢迎所有形式的贡献。
+这是个人项目，投入的时间有限，贡献会被认真看待，但处理速度无法保证。
 
 ### 提交 Bug
+
+一份好的报告仍然有用，即使不一定能立刻得到回复。
 
 1. 在 [Issues](../../issues) 中搜索是否已有相同问题
 2. 如果没有，创建新 Issue 并包含：
@@ -240,10 +266,10 @@ java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 
 - [BukkitTeam](https://bukkit.org/)、[Spigot](https://spigotmc.org/) 和 [Paper](https://papermc.io/) 的 API 工作
 - [Glowstone](https://glowstone.net) 的库加载器
-- [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
+- [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib（Techcable & Orion）](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
 - 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 - 所有 [SharkMI Fork 贡献者](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
-- [Trae SOLO](https://www.trae.ai/)、[OpenCode](https://github.com/opencode-ai/opencode) 与 [DeepSeek Harness](https://www.deepseek.com/harness/) 辅助代码编写
+- [Trae SOLO](https://www.trae.ai/)、[CodeBuddy](https://codebuddy.cn/)、[OpenCode](https://github.com/opencode-ai/opencode) 与 [DeepSeek Harness](https://www.deepseek.com/harness/) 辅助代码编写
 
 ## 许可证
 

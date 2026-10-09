@@ -50,7 +50,7 @@ Mixin 冲突检测工具是 Cardboard 内置的运行时扫描器，用于在服
 
 ## 配置
 
-所有配置项位于 `config/cardboard/cardboard-config.yml` 中。
+所有配置项位于**运行时**的 `config/cardboard/cardboard-config.yml`（服务器首次启动时生成，**不在仓库内**）。
 
 ### 新增配置项
 
@@ -127,7 +127,7 @@ auto_disable_fatal_conflicts: false
 **无冲突时：**
 ```
 [Cardboard] Mixin Conflict Detection Report
-[Cardboard] Scanned 236 Cardboard mixins, 0 other mods with mixins
+[Cardboard] Scanned 224 Cardboard mixins, 0 other mods with mixins
 [Cardboard] No conflicts detected
 [Cardboard] Scan completed in 800ms
 ```
@@ -135,7 +135,7 @@ auto_disable_fatal_conflicts: false
 **有冲突时：**
 ```
 [Cardboard] Mixin Conflict Detection Report
-[Cardboard] Scanned 236 Cardboard mixins, 12 other mods with mixins
+[Cardboard] Scanned 224 Cardboard mixins, 12 other mods with mixins
 [Cardboard] 
 [Cardboard] FATAL conflicts (0):
 [Cardboard]   None
@@ -175,7 +175,7 @@ JSON 报告结构：
 {
   "timestamp": "2026-05-15T10:30:00Z",
   "scanDurationMs": 1200,
-  "cardboardMixinCount": 236,
+  "cardboardMixinCount": 224,
   "otherModCount": 12,
   "conflicts": {
     "fatal": [],
@@ -220,12 +220,14 @@ JSON 报告结构：
 
 如果某个冲突在 `mod-compatibility.yml` 中已有处理规则，它会被标记为"已解决"并放在单独的分区：
 
+> 以下为输出**格式**示例，具体内容取决于实际扫描结果。
+
 ```
 [Cardboard] Resolved Conflicts (1):
-[Cardboard]   [1] Target: net.minecraft.network.ServerStatus#setDescription
-[Cardboard]       Cardboard: ServerStatusMixin @Inject [priority=1000]
-[Cardboard]       Other (minimotd): ServerStatusMixin @Inject [priority=1000]
-[Cardboard]       Note: Known compatible: Both inject at HEAD, confirmed safe
+[Cardboard]   [1] Target: ServerStatusPacketListenerImpl#handleStatusRequest
+[Cardboard]       Cardboard: ServerStatusPacketListenerImplMixin @ModifyArg (require=0)
+[Cardboard]       Other (minimotd): @ModifyArg on the same call site
+[Cardboard]       Note: Known compatible — see mod-compatibility.yml
 ```
 
 ---

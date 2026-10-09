@@ -32,7 +32,7 @@ body:
     attributes:
       label: Fabric Loader Version
       description: The Fabric Loader version (check startup log or `fabric-installer`)
-      placeholder: "e.g. 0.16.14"
+      placeholder: "e.g. 0.18.4"
     validations:
       required: true
 

@@ -47,13 +47,18 @@ plan.md
 服务器日志/
 
 # AI bug-fix memory (local only, never push to GitHub)
-/docs/ai-bugfix-memory.md
+/docs/ai/
 # Personal maintainer ops notes & private issue analysis (local only)
 /docs/MODRINTH_VERSION_MANAGEMENT_AND_CICD.md
 /docs/issue-5-analysis-report.md
 
 # AI agent context (local discipline notes, never push to GitHub)
+# bare name = match AGENTS.md at ANY level (root + nested), not just root
 /AGENTS.md
+AGENTS.md
+
+# WorkBuddy project data: session state, memory, temp files — never push to GitHub
+/.workbuddy/
 
 # Local AI-generated task plans (never push to GitHub)
 plans/

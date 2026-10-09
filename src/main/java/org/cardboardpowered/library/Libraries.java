@@ -99,7 +99,13 @@ public class Libraries {
             }
             return true;
         } catch (Exception e) {
-            LibraryManager.logger.error("ERR: \"" + e.getMessage() + "\" while accessing Fabric Loader.");
+            // Name the offending library explicitly. The previous message
+            // ("... while accessing Fabric Loader") was hard-coded and actively
+            // misleading: it made a corrupt dependency jar look like a Fabric
+            // Loader problem. See BUG-015.
+            LibraryManager.logger.error("Failed to load library '" + file.getName() + "': "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage());
+            LibraryManager.logger.error("Hint: if the jar is corrupt, delete it and restart to re-download.");
             return false;
         }
     }
