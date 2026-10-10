@@ -45,7 +45,7 @@ import org.apache.logging.log4j.Logger;
  */
 public final class LibraryManager {
 
-    public static final Logger logger = LogManager.getLogger("Cardboard|Libraries");
+    public static final Logger logger = LogManager.getLogger("Cardboard.Libraries");
 
     private final File directory;
     private final boolean validateChecksums;

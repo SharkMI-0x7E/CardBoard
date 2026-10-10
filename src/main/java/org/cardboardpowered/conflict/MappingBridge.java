@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class MappingBridge {
 
-    private static final Logger LOGGER = LogManager.getLogger("Cardboard-MappingBridge");
+    private static final Logger LOGGER = LogManager.getLogger("Cardboard.MappingBridge");
     private static final String UNRESOLVED_PREFIX = "intermediary(unresolved):";
 
     private final Map<String, String> classCache = new HashMap<>();

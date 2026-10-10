@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 
 public record PaperWorldLoader(MinecraftServer server, String levelId) {
 
-	private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Cardboard|PaperWorldLoader");// LogUtils.getClassLogger();
+	private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Cardboard.PaperWorldLoader");// LogUtils.getClassLogger();
 
 	public static PaperWorldLoader create(MinecraftServer server, String levelId) {
 		return new PaperWorldLoader(server, levelId);

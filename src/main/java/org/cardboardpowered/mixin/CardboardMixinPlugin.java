@@ -54,7 +54,7 @@ import net.fabricmc.loader.api.FabricLoader;
 public class CardboardMixinPlugin implements IMixinConfigPlugin {
 
     private static final String MIXIN_PACKAGE_ROOT = "org.cardboardpowered.mixin.";
-    private final Logger logger = LogManager.getLogger("Cardboard");
+    private static final Logger logger = LogManager.getLogger("Cardboard");
     public static boolean libload = true;
     private static boolean read_plugins = false;
     private static ModCompatibilityDatabase compatDatabase;
@@ -125,11 +125,15 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
      * <p>The scan results and FATAL mixin set are cached for use in
      * {@link #shouldApplyMixin(String, String)} for O(1) lookup during mixin loading.</p>
      */
-    private void runConflictScan() {
+    private static ConflictReport runConflictScan() {
         long startTime = System.currentTimeMillis();
         try {
             logger.info("Starting runtime Mixin conflict scan...");
-            
+
+            if (compatDatabase == null) {
+                compatDatabase = ModCompatibilityDatabase.load();
+            }
+
             MixinConfigScanner configScanner = new MixinConfigScanner();
             List<MixinConfigData> configs = configScanner.scanAllMods();
             
@@ -157,9 +161,27 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
             if (CardboardConfig.conflictScanJsonOutput) {
                 report.writeJson();
             }
+            return report;
         } catch (Exception e) {
             logger.warn("Mixin conflict scan failed: {}. Mixins will load without conflict checks.", e.getMessage());
+            return null;
         }
+    }
+
+    /**
+     * Re-runs the runtime Mixin conflict scan on demand (used by
+     * {@code /cardboard conflicts}). The scan is comparatively heavy, so it is
+     * only triggered explicitly; startup reuses the same path.
+     *
+     * @return the fresh report, or {@code null} if the scan failed
+     */
+    public static ConflictReport triggerConflictScan() {
+        return runConflictScan();
+    }
+
+    /** Conflicts found by the last scan; empty if none ran yet. */
+    public static List<MixinConflict> getScanResults() {
+        return scanResults;
     }
     
     @Deprecated
@@ -246,7 +268,11 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
             Class<?> c = Class.forName(mixinClassName, false, ucl);
 
             for (Annotation a : c.getAnnotations()) {
-                String e = a.toString().split("events=")[1].substring(1);
+                String ann = a.toString();
+                if (!ann.contains("events=")) {
+                    continue; // not a @MixinInfo annotation (e.g. a stray @Deprecated)
+                }
+                String e = ann.split("events=")[1].substring(1);
                 e = e.substring(0, e.lastIndexOf("}")).replace("\"", "");
                 String[] events = e.split(", ");
                 if (events.length > 0) {
@@ -267,7 +293,7 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
             }
 
         } catch (Exception e) {
-            logger.info(e.getMessage());
+            logger.debug("Event scan skipped for mixin '{}': {}", mixinClassName, e.getMessage());
         }
 
         return true;

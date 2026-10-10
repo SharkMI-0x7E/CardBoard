@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  */
 public class MixinConflictDetector {
 
-    private static final Logger LOGGER = LogManager.getLogger("Cardboard-ConflictDetector");
+    private static final Logger LOGGER = LogManager.getLogger("Cardboard.ConflictDetector");
 
     private static final String CARDBOARD_MOD_ID = "cardboard";
     private static final String CARDBOARD_MOD_ID_ALT = "cardboardmod";

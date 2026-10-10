@@ -40,8 +40,7 @@ import java.util.stream.Collectors;
  */
 public class ConflictReport {
 
-    private static final Logger LOGGER = LogManager.getLogger("Cardboard-ConflictReport");
-    private static final String PREFIX = "[Cardboard] ";
+    private static final Logger LOGGER = LogManager.getLogger("Cardboard.ConflictReport");
     private static final int MAX_LINE_LENGTH = 75;
     private static final String INDENT = "      ";
 
@@ -93,7 +92,7 @@ public class ConflictReport {
     /**
      * Build the full console report string.
      */
-    String buildConsoleReport() {
+    public String buildConsoleReport() {
         StringBuilder sb = new StringBuilder();
 
         // Header

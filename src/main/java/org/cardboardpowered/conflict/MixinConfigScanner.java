@@ -47,7 +47,7 @@ import org.apache.logging.log4j.Logger;
 
 public class MixinConfigScanner {
 
-    private static final Logger LOGGER = LogManager.getLogger("Cardboard-ConflictScanner");
+    private static final Logger LOGGER = LogManager.getLogger("Cardboard.ConflictScanner");
     private static final Set<String> SKIP_MOD_IDS = Set.of("minecraft", "fabricloader", "java", "cardboard");
     private static final String CONFIG_SUFFIX = ".mixins.json";
 

@@ -46,7 +46,7 @@ import java.util.jar.JarFile;
 
 public class MixinAnnotationScanner {
 
-    private static final Logger LOGGER = LogManager.getLogger("Cardboard-ASMScanner");
+    private static final Logger LOGGER = LogManager.getLogger("Cardboard.ASMScanner");
     private final Map<String, MixinClassInfo> cache = new HashMap<>();
 
     /**
