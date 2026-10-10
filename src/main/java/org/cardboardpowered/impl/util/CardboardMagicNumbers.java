@@ -69,7 +69,6 @@ public class CardboardMagicNumbers {
     public static void test() {
         // TODO: This needs to be kept updated when Spigot updates
         // It is the value of Material.values().length
-        CardboardMod.LOGGER.info("DEB: " + Material.values().length);
         int MATERIAL_LENGTH = 2121; // 1837; //1525;
         int i = MATERIAL_LENGTH - 1;
 

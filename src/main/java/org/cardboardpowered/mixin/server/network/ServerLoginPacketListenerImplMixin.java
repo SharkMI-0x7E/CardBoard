@@ -406,7 +406,7 @@ public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginP
 	public void spigotHello(ServerboundHelloPacket packetlogininstart, CallbackInfo ci) {
 		if(!(this.server.usesAuthentication() && !this.connection.isMemoryConnection())) {
 			// Spigot start
-			new Thread("User Authenticator #" + theid++) {
+			Thread authenticator = new Thread("User Authenticator #" + theid++) {
 				@Override
 				public void run() {
 					try {
@@ -418,7 +418,9 @@ public abstract class ServerLoginPacketListenerImplMixin implements ServerLoginP
 								.log(java.util.logging.Level.WARNING, "Exception verifying " + authenticatedProfile.name(), ex);
 					}
 				}
-			}.start();
+			};
+			authenticator.setDaemon(true); // BUG-019: keep this thread from blocking JVM exit
+			authenticator.start();
 			// Spigot end
 		}
 	}
