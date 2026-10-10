@@ -167,6 +167,109 @@ Every new mixin should include this annotation. It helps the conflict scanner an
 | `1001` | Must run AFTER Fabric API injects its fields |
 | `-500` | Must run BEFORE other mods (conflict resolution) |
 
+### Conversion Patterns（`@Overwrite` → precise injection）
+
+#### Pattern 1: `@Overwrite` → `@Inject` (Event Interception)
+
+```java
+// BEFORE (conflicting):
+@Overwrite
+public void onInteract() {
+    if (event.cancelled) return;
+    // original logic...
+}
+
+// AFTER (compatible):
+@Inject(method = "onInteract", at = @At("HEAD"), cancellable = true)
+public void cardboard$onInteract(CallbackInfo ci) {
+    if (event.cancelled) ci.cancel();
+}
+```
+
+#### Pattern 2: `@Overwrite` → `@ModifyArg` (Packet Modification)
+
+```java
+// BEFORE (conflicting):
+@Overwrite
+public void sendStatus() {
+    ServerStatus modified = createCustomStatus();
+    connection.send(new ClientboundStatusResponsePacket(modified));
+}
+
+// AFTER (compatible):
+@ModifyArg(
+    method = "sendStatus",
+    at = @At(value = "INVOKE", target = "LClientboundStatusResponsePacket;<init>(LServerStatus;)V"),
+    require = 0
+)
+private ServerStatus cardboard$modifyStatus(ServerStatus original) {
+    if (needsModification) {
+        return createCustomStatus();
+    }
+    return original; // Preserve other mods' changes!
+}
+```
+
+#### Pattern 3: `@Overwrite` → `@Redirect` (Call Replacement)
+
+```java
+// BEFORE:
+@Overwrite
+public void doSomething() {
+    this.doThing(customArg);  // Replace the call
+}
+
+// AFTER:
+@Redirect(
+    method = "doSomething",
+    at = @At(value = "INVOKE", target = "LTargetClass;doThing(LArg;)V")
+)
+private void cardboard$redirectDoThing(TargetClass instance, Arg arg) {
+    instance.doThing(modifiedArg);
+}
+```
+
+#### Pattern 4: Fabric API Field Access (Reflection)
+
+```java
+// Fabric API injects: @Unique private Map<..., ...> bySyncedSerializer;
+// Cardboard needs to initialize it because Fabric API's Mixin may not have loaded yet:
+
+try {
+    Field field = RecipeMap.class.getDeclaredField("bySyncedSerializer");
+    field.setAccessible(true);
+    field.set(recipeMap, new IdentityHashMap<>());
+} catch (NoSuchFieldException | IllegalAccessException e) {
+    // Fabric API not loaded or field name changed
+}
+```
+
+### Decision Tree (when modifying a Mixin)
+
+```
+Q1: Does the Mixin use @Overwrite?
+├─ YES → Go to Q2
+└─ NO → Check if current injection is the most precise
+    └─ If @Inject but could use @ModifyArg/@Redirect → Refactor to more precise
+
+Q2: What does the @Overwrite method do?
+├─ Triggers event + may cancel → Use @Inject(at="HEAD", cancellable=true)
+├─ Modifies return value → Use @ModifyReturnValue
+├─ Modifies method argument → Use @ModifyArg
+├─ Replaces a method call → Use @Redirect
+├─ Modifies a local variable → Use @ModifyVariable
+└─ Completely rewrites logic → Split into multiple precise injections
+
+Q3: Are there known conflicting mods?
+├─ YES → Check the project issue tracker / Mixin conflict-scanner output for known conflicts
+│   └─ If not resolved → Use lower priority (-500) and test
+└─ NO → Use default priority (1000)
+
+Q4: Does the Mixin access Fabric API injected fields?
+├─ YES → Use reflection (shadow won't work)
+└─ NO → Use @Shadow normally
+```
+
 ---
 
 ## Before Submitting a PR
