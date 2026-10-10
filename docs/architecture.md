@@ -49,7 +49,7 @@ Cardboard/
 │   ├── CardboardMod.java             # Mod logic (onInitialize). Fabric entry point is the @Deprecated com.javazilla.bukkitfabric.BukkitFabricMod
 │   ├── CardboardConfig.java          # YAML config system
 │   │
-│   ├── mixin/                        # 226 Mixin classes
+│   ├── mixin/                        # Mixin classes (recursive)
 │   │   ├── CardboardMixinPlugin.java # Mixin lifecycle (config, conflict scan, compatibility)
 │   │   ├── server/                   # Server lifecycle, networking, players
 │   │   ├── world/                    # Entities, items, blocks, inventory
@@ -62,7 +62,7 @@ Cardboard/
 │   │   ├── advancements/             # Advancement events
 │   │   └── stats/                    # Statistics tracking
 │   │
-│   ├── bridge/                       # Interface bridges (96 files)
+│   ├── bridge/                       # Interface bridges
 │   │   └── ...                        # Cross-package access via interfaces
 │   │
 │   ├── compat/                       # Mod compatibility database
@@ -85,8 +85,8 @@ Cardboard/
 │   └── adventure/                    # Adventure text support
 │
 ├── src/main/resources/
-│   ├── bukkitfabric.mixins.json      # Mixin config (226 entries; repo-root copy has 224)
-│   ├── bukkitfabric.accesswidener    # ~918 access widening entries
+│   ├── bukkitfabric.mixins.json      # Mixin config (entry count: see GENERATED-STATS.md)
+│   ├── bukkitfabric.accesswidener    # access widening entries
 │   ├── cardboard/mod-compatibility.yml  # Known mod conflicts DB
 │   └── fabric.mod.json               # Fabric mod metadata
 │
@@ -106,7 +106,7 @@ Cardboard uses the **SpongePowered Mixin** framework to intercept Minecraft meth
 
 | Metric | Value |
 |--------|-------|
-| Mixin config file | `src/main/resources/bukkitfabric.mixins.json` — 226 registered entries (the gitignored repo-root copy has 224) |
+| Mixin config file | `src/main/resources/bukkitfabric.mixins.json` (count it yourself if you need a number — see the note below) |
 | Mapping (development) | Mojang official (`loom.officialMojangMappings()`) |
 | Mapping (runtime) | intermediary (`class_xxx`) — plugins use Spigot/obfuscated/named names, translated by `RemapUtils` |
 
@@ -152,7 +152,7 @@ The `bridge/` package provides interface-only access to Minecraft internals. Rat
 
 ```
 bridge/
-├── <ClassName>Bridge.java        # One interface per Minecraft class (95 bridges + 1 dead leftover)
+├── <ClassName>Bridge.java        # One interface per Minecraft class (+ 1 dead leftover)
 ├── advancements/                 # Advancement progress
 ├── bukkit/                       # Material, Registry, EntityType
 ├── commands/                     # Command source
