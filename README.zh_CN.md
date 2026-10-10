@@ -152,6 +152,51 @@ debug_print_remaputil: false
 
 详细的冲突检测配置说明，请参阅 [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md)。
 
+### 命令
+
+Cardboard 提供 `/cardboard` 命令（别名 `/cb`）作为自身子命令的统一入口，并替换了原版的 `/plugins` 与 `/version` 命令。命令输出支持中英双语——根据玩家客户端语言自动选择，也可由玩家用 `/cardboard lang <zh|en>` 单独切换。
+
+**`/cardboard`**（别名 `/cb`）—— 需要权限 `cardboard.command.admin`：
+
+| 命令 | 说明 |
+|------|------|
+| `/cardboard help` | 显示本帮助 |
+| `/cardboard version` | 显示服务器版本信息 |
+| `/cardboard about` | 显示 Cardboard 项目信息 |
+| `/cardboard tps` | 显示 TPS / MSPT / 内存 / 运行时长 |
+| `/cardboard worlds` | 列出所有世界及玩家数 |
+| `/cardboard mods` | 列出已加载的 Fabric 模组 |
+| `/cardboard plugins [info\|enable\|disable <名称>]` | 查看插件列表（可 info / enable / disable） |
+| `/cardboard debug [list\|<开关>\|all on\|off]` | 调试开关：列出 / 翻转 / 全开全关 |
+| `/cardboard log <trace\|debug\|info\|warn\|error\|fatal\|all\|off>` | 运行时调整根日志级别 |
+| `/cardboard doctor` | 一键健康自检并给出建议 |
+| `/cardboard dump` | 导出诊断快照（含线程栈）到文件 |
+| `/cardboard compat` | 列出模组兼容规则 |
+| `/cardboard reload` | 重新加载 Cardboard 配置 |
+| `/cardboard lang <zh\|en>` | 切换语言：zh \| en（仅影响自己） |
+
+`debug` 接受的调试开关：`verbose`、`events`、`player`、`other`、`remap`、`worldedit`
+（各自对应一个配置键；`list` 会同时显示当前状态与配置键）。
+
+**`/plugins`**（别名 `/pl`）—— 列出列表需要权限 `bukkit.command.plugins`；
+`enable` / `disable` 还需 `cardboard.command.admin`：
+
+| 命令 | 说明 |
+|------|------|
+| `/plugins` | 列出插件（显示"已启用 N / 共 M"及图例：绿色=已启用，红色=未启用） |
+| `/plugins info <名称>` | 查看单个插件的详细信息 |
+| `/plugins enable <名称>` | 运行时启用插件 |
+| `/plugins disable <名称>` | 运行时禁用插件 |
+
+**`/version`**（别名 `ver`、`about`）—— 需要权限 `bukkit.command.version`：
+
+| 命令 | 说明 |
+|------|------|
+| `/version` | 显示服务器（及 Cardboard）版本 |
+| `/version <插件名>` | 显示某个插件的版本信息 |
+
+控制台颜色可通过 `cardboard-config.yml` 中的 `colored-console`（默认 `true`）与 `console-color-pattern` 进行控制。
+
 ## 构建说明
 
 ### 环境要求

@@ -169,6 +169,55 @@ debug_print_remaputil: false
 
 For detailed conflict detection configuration, see [docs/mixin-conflict-detection/user-guide.md](docs/mixin-conflict-detection/user-guide.md).
 
+### Commands
+
+Cardboard provides a `/cardboard` command (alias `/cb`) as the single entry point for its
+own subcommands, plus replacements for the vanilla `/plugins` and `/version` commands.
+Command output is bilingual (Chinese / English) — chosen automatically from the player's
+client locale, or set per-player with `/cardboard lang <zh|en>`.
+
+**`/cardboard`** (alias `/cb`) — requires permission `cardboard.command.admin`:
+
+| Command | Description |
+|---------|-------------|
+| `/cardboard help` | Show this help |
+| `/cardboard version` | Show server version information |
+| `/cardboard about` | Show Cardboard project information |
+| `/cardboard tps` | Show TPS / MSPT / memory / uptime |
+| `/cardboard worlds` | List all worlds and their player counts |
+| `/cardboard mods` | List loaded Fabric mods |
+| `/cardboard plugins [info\|enable\|disable <name>]` | Show plugins (optionally: info / enable / disable) |
+| `/cardboard debug [list\|<flag>\|all on\|off]` | Debug flags: list / toggle / all on\|off |
+| `/cardboard log <trace\|debug\|info\|warn\|error\|fatal\|all\|off>` | Change the root log level at runtime |
+| `/cardboard doctor` | One-shot health check with suggestions |
+| `/cardboard dump` | Write a diagnostic snapshot (incl. thread dump) to a file |
+| `/cardboard compat` | List known mod compatibility rules |
+| `/cardboard reload` | Reload the Cardboard config |
+| `/cardboard lang <zh\|en>` | Switch language: zh \| en (self only) |
+
+Debug flags accepted by `debug`: `verbose`, `events`, `player`, `other`, `remap`, `worldedit`
+(each maps to a config key; `list` shows the current state and the key).
+
+**`/plugins`** (alias `/pl`) — listing requires permission `bukkit.command.plugins`;
+`enable` / `disable` additionally require `cardboard.command.admin`:
+
+| Command | Description |
+|---------|-------------|
+| `/plugins` | List plugins (shows "enabled N / total M" plus a colour legend: green = enabled, red = disabled) |
+| `/plugins info <name>` | Show details for a single plugin |
+| `/plugins enable <name>` | Enable a plugin at runtime |
+| `/plugins disable <name>` | Disable a plugin at runtime |
+
+**`/version`** (aliases `ver`, `about`) — requires permission `bukkit.command.version`:
+
+| Command | Description |
+|---------|-------------|
+| `/version` | Show the server (and Cardboard) version |
+| `/version <plugin name>` | Show version information for a plugin |
+
+Console colours can be controlled with `colored-console` (default `true`) and
+`console-color-pattern` in `cardboard-config.yml`.
+
 ## Building
 
 ### Requirements
