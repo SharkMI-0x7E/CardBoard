@@ -509,7 +509,9 @@ public class PluginClassLoader extends URLClassLoader {
     }
 }
 
-/*package org.bukkit.plugin.java;
+/* LEGACY - not compiled, not used. Everything from this line to the end of the file is an older
+   iteration of this class, kept only for reference. Do not read any of it as live code.
+package org.bukkit.plugin.java;
 
 import java.io.File;
 import java.io.IOException;
@@ -552,7 +554,7 @@ import io.izzel.tools.product.Product2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 */
-/**
+/** LEGACY - not compiled, not used. Older iteration of this class (4 near-identical copies below).
  * A ClassLoader for plugins, to allow shared classes across multiple plugins
  *
  * A ClassLoader for plugins, to allow shared classes across multiple plugins
@@ -1795,7 +1797,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * }
  */
-/*
+/* LEGACY - not compiled, not used. Older iteration of this class. Note this block has no '*'
+   prefix, so it looks like live code at a glance - it is not.
 public final class PluginClassLoader extends URLClassLoader implements RemappingClassLoader {
     public JavaPlugin getPlugin() { return plugin; } // Spigot
     private final JavaPluginLoader loader;
@@ -2017,7 +2020,7 @@ public final class PluginClassLoader extends URLClassLoader implements Remapping
 }
 */
 
-/**
+/** LEGACY - not compiled, not used (older iteration; no '*' prefix, looks like live code).
  * A ClassLoader for plugins, to allow shared classes across multiple plugins
  *
  public class PluginClassLoader extends URLClassLoader implements RemappingClassLoader {
