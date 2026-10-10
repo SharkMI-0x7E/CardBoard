@@ -35,7 +35,7 @@ build/
 repos/tempp/*
 lib/
 
-# AI assistant docs (tracked)
+# AI assistant docs (local only — never push)
 CLAUDE.md
 
 # Build artifacts and auto-generated

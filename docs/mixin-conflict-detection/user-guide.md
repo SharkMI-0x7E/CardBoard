@@ -14,10 +14,10 @@ Mixin 冲突检测工具是 Cardboard 内置的运行时扫描器，用于在服
 | 功能 | 说明 |
 |------|------|
 | 自动扫描 | 启动时扫描所有已加载 Mod 的 Mixin 配置和字节码 |
-| 冲突检测 | 识别 6 种不同类型的 Mixin 冲突（FATAL / HIGH / MEDIUM / LOW） |
+| 冲突检测 | 识别 6 条检测规则（R1–R6），归为 4 个级别（FATAL / HIGH / MEDIUM / LOW） |
 | 报告输出 | 控制台格式化报告 + 可选 JSON 文件 |
 | 自动禁用 | 可配置自动禁用 FATAL 级别冲突的 Mixin |
-| 兼容规则库 | 与 Phase 2 的 `mod-compatibility.yml` 手动规则互补 |
+| 兼容规则库 | 与 `mod-compatibility.yml` 手动规则互补 |
 
 ### 工作原理
 
