@@ -169,9 +169,10 @@ public class CardboardMixinPlugin implements IMixinConfigPlugin {
     }
 
     /**
-     * Re-runs the runtime Mixin conflict scan on demand (used by
-     * {@code /cardboard conflicts}). The scan is comparatively heavy, so it is
-     * only triggered explicitly; startup reuses the same path.
+     * Re-runs the runtime Mixin conflict scan on demand. Currently has no command
+     * caller (the {@code /cardboard conflicts} subcommand was removed); kept as a
+     * public entry point. The scan is comparatively heavy, so it is only
+     * triggered explicitly; startup reuses the same path.
      *
      * @return the fresh report, or {@code null} if the scan failed
      */
