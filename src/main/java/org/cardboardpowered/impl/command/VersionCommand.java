@@ -18,10 +18,6 @@
  */
 package org.cardboardpowered.impl.command;
 
-import com.javazilla.bukkitfabric.Utils;
-
-import net.fabricmc.loader.api.FabricLoader;
-
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -39,13 +35,15 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.util.StringUtil;
+import org.cardboardpowered.util.Messages;
+
+import net.fabricmc.loader.api.FabricLoader;
 
 public class VersionCommand extends Command {
 
@@ -68,8 +66,7 @@ public class VersionCommand extends Command {
             String ver = FabricLoader.getInstance().getModContainer("cardboard").get().getMetadata().getVersion().getFriendlyString();
             if (ver.contains("version")) ver = CraftServer.INSTANCE.getShortVersion(); // Dev ENV
 
-            String message = "This server is running " + ChatColor.GOLD + Bukkit.getName() + ChatColor.RESET + " version " + ver + ChatColor.ITALIC + " (Implementing API version " + Bukkit.getBukkitVersion() + ")";
-            sender.sendMessage(message);
+            sender.sendMessage(Messages.get(sender, "version.line", Bukkit.getName(), ver, Bukkit.getBukkitVersion()));
             sendVersion(sender);
         } else {
             StringBuilder name = new StringBuilder();
@@ -96,8 +93,8 @@ public class VersionCommand extends Command {
             }
 
             if (!found) {
-                sender.sendMessage("This server is not running any plugin by that name.");
-                sender.sendMessage("Use /plugins to get a list of plugins.");
+                sender.sendMessage(Messages.get(sender, "version.plugin-not-found"));
+                sender.sendMessage(Messages.get(sender, "version.use-plugins"));
             }
         }
         return true;
@@ -105,11 +102,12 @@ public class VersionCommand extends Command {
 
     private void describeToSender(Plugin plugin, CommandSender sender) {
         PluginDescriptionFile desc = plugin.getDescription();
-        sender.sendMessage(ChatColor.GREEN + desc.getName() + ChatColor.WHITE + " version " + ChatColor.GREEN + desc.getVersion());
+        sender.sendMessage(Messages.get(sender, "plugins.info.header", desc.getName()));
+        sender.sendMessage(Messages.get(sender, "plugins.info.version", desc.getVersion()));
 
         if (desc.getDescription() != null) sender.sendMessage(desc.getDescription());
-        if (desc.getWebsite() != null)     sender.sendMessage("Website: " + ChatColor.GREEN + desc.getWebsite());
-        if (!desc.getAuthors().isEmpty())  sender.sendMessage((desc.getAuthors().size() == 1 ? ("Author: ") : ("Authors: ")) + getAuthors(desc));
+        if (desc.getWebsite() != null)     sender.sendMessage(Messages.get(sender, "plugins.info.website", desc.getWebsite()));
+        if (!desc.getAuthors().isEmpty())  sender.sendMessage(Messages.get(sender, "plugins.info.authors", getAuthors(desc)));
     }
 
     private String getAuthors(final PluginDescriptionFile desc) {
@@ -118,11 +116,11 @@ public class VersionCommand extends Command {
 
         for (int i = 0; i < authors.size(); i++) {
             if (result.length() > 0) {
-                result.append(ChatColor.WHITE);
+                result.append(org.bukkit.ChatColor.WHITE);
                 result.append(i < authors.size() - 1 ? ", " : " and ");
             }
 
-            result.append(ChatColor.GREEN);
+            result.append(org.bukkit.ChatColor.GREEN);
             result.append(authors.get(i));
         }
 
@@ -149,7 +147,8 @@ public class VersionCommand extends Command {
 
     private final ReentrantLock versionLock = new ReentrantLock();
     private boolean hasVersion = false;
-    private String versionMessage = null;
+    private String versionKey = null;
+    private Object[] versionArgs = new Object[0];
     private final Set<CommandSender> versionWaiters = new HashSet<>();
     private boolean versionTaskStarted = false;
     private long lastCheck = 0;
@@ -160,18 +159,18 @@ public class VersionCommand extends Command {
                 lastCheck = System.currentTimeMillis();
                 hasVersion = false;
             } else {
-                sender.sendMessage(versionMessage);
+                sender.sendMessage(Messages.get(sender, versionKey, versionArgs));
                 return;
             }
         }
         versionLock.lock();
         try {
             if (hasVersion) {
-                sender.sendMessage(versionMessage);
+                sender.sendMessage(Messages.get(sender, versionKey, versionArgs));
                 return;
             }
             versionWaiters.add(sender);
-            sender.sendMessage("Checking version, please wait...");
+            sender.sendMessage(Messages.get(sender, "version.checking"));
             if (!versionTaskStarted) {
                 versionTaskStarted = true;
                 Thread versionThread = new Thread(this::obtainVersion, "Cardboard Version Check");
@@ -184,30 +183,45 @@ public class VersionCommand extends Command {
     }
 
     private void obtainVersion() {
-        String version = Bukkit.getVersion();
-        if (version == null) version = "Custom";
+        try {
+            String version = Bukkit.getVersion();
+            if (version == null) version = "Custom";
 
-        if (version.startsWith("git-Cardboard-")) {
-            int cbVersions = check();
-            setVersionMessage(cbVersions == 0 ? "You are running the latest version" : "You are " + cbVersions + " version(s) behind");
-        } else setVersionMessage("Unknown version, custom build?");
+            if (version.startsWith("git-Cardboard-")) {
+                int cbVersions = check();
+                if (cbVersions == 0) {
+                    setVersion("version.latest");
+                } else if (cbVersions > 0) {
+                    setVersion("version.behind", cbVersions);
+                } else {
+                    // negative sentinel = check failed / unknown commit / custom build
+                    setVersion("version.custom");
+                }
+            } else {
+                setVersion("version.custom");
+            }
+        } catch (Throwable t) {
+            // never leave waiters stuck on "checking..."
+            setVersion("version.custom");
+        }
     }
 
-    private void setVersionMessage(String msg) {
+    private void setVersion(String key, Object... args) {
         lastCheck = System.currentTimeMillis();
-        versionMessage = msg;
+        versionKey = key;
+        versionArgs = args;
         versionLock.lock();
         try {
             hasVersion = true;
             versionTaskStarted = false;
             for (CommandSender sender : versionWaiters)
-                sender.sendMessage(versionMessage);
+                sender.sendMessage(Messages.get(sender, versionKey, versionArgs));
             versionWaiters.clear();
         } finally {
             versionLock.unlock();
         }
     }
-    
+
     public static String getGitHash() {
         try {
             Class<?> version = Class.forName("org.cardboardpowered.GitVersion");
@@ -216,7 +230,7 @@ public class VersionCommand extends Command {
             return "-unknown-";
         }
     }
-    
+
     public static boolean isDirty() {
         try {
             Class<?> version = Class.forName("org.cardboardpowered.GitVersion");

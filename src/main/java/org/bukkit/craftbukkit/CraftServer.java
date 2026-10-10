@@ -1983,6 +1983,18 @@ public class CraftServer implements Server {
         return commandMap;
     }
 
+    /**
+     * Rebuilds the Brigadier command tree from the Bukkit command map and
+     * re-sends it to every online player.
+     *
+     * <p>Needed after plugin commands are added or removed at runtime
+     * (e.g. {@code /cardboard plugins disable}), otherwise clients keep a stale
+     * command tree until they relog.
+     */
+    public void resyncCommands() {
+        syncCommands();
+    }
+
     // Because PlayerManager is broken
     public List<String> getOperatorList() throws IOException {
         File f = new File("ops.json");
@@ -2091,11 +2103,13 @@ public class CraftServer implements Server {
 
     // PaperAPI - start
     public long[] getTickTimes() {
-        return new long[] {(long) server.tickCount};
+        // Real per-tick durations (recent 100 ticks, nanoseconds).
+        return server.getTickTimesNanos();
     }
 
     public double getAverageTickTime() {
-        return server.tickCount;
+        // Real average tick time, in milliseconds.
+        return server.getAverageTickTimeNanos() / 1_000_000.0;
     }
 
     @Override
@@ -2161,7 +2175,9 @@ public class CraftServer implements Server {
 
     @Override
     public double[] getTPS() {
-        return new double[] {server.tickCount};
+        double mspt = getAverageTickTime();
+        double tps = mspt <= 0 ? 20.0 : Math.min(20.0, 1000.0 / mspt);
+        return new double[] {tps, tps, tps};
     }
 
     @Override

@@ -109,10 +109,12 @@ public class CardboardConfig {
 						"# Console Logging - ",
 						"# \tLog Prefix: Add a prefix to loggers with the plugins's ID like in Paper (ex: '[Essentials]')",
 						"# \tColor Strip: will strip all Bukkit ChatColor info from Console text",
+						"# \tColored Console: colorize Cardboard's own log lines on the terminal (not written to latest.log)",
+						"# \tColor Pattern: log4j2 pattern for the colored console line; 'default' = built-in multi-color layout",
 						"# (If BetterFabricConsole is present, these will override to false & false)"
 				)
-				.keys("prefix-loggers", "should-strip-console-color")
-				.values("true", "false")
+				.keys("prefix-loggers", "should-strip-console-color", "colored-console", "console-color-pattern")
+				.values("true", "false", "true", "default")
 			)
 			.addSection(new ConfigSection("debug-stuff")
 				.comments(
@@ -213,6 +215,8 @@ public class CardboardConfig {
 	public static boolean addModsCommand = true;
 	public static boolean addPluginPrefixToLogger = true;
 	public static boolean shouldStripConsoleColor = false;
+	public static boolean coloredConsole = true;
+	public static String consoleColorPattern = "default";
 	public static boolean autoConflictResolution = true;
 	public static boolean runtimeConflictScan = false;
 	public static boolean conflictScanJsonOutput = false;
@@ -243,6 +247,7 @@ public class CardboardConfig {
 		REGISTRY_COMMAND_FIX = config.getBoolean("registry-command-fix");
 
         ArrayList<String> disables = (ArrayList<String>)config.getObject("mixin-force-disable");
+        disabledMixins.clear(); // avoid unbounded growth when config is reloaded
         disabledMixins.addAll(disables);
         
         try {
@@ -254,6 +259,8 @@ public class CardboardConfig {
         addModsCommand = config.getOrDefault("add-mods-command", true);
         addPluginPrefixToLogger = config.getOrDefault("prefix-plugin-logger", true);
         shouldStripConsoleColor = config.getOrDefault("should-strip-console-color", false);
+        coloredConsole = config.getOrDefault("colored-console", true);
+        consoleColorPattern = config.getOrDefault("console-color-pattern", "default");
         autoConflictResolution = config.getOrDefault("auto_conflict_resolution", true);
         runtimeConflictScan = config.getOrDefault("runtime_conflict_scan", false);
         conflictScanJsonOutput = config.getOrDefault("conflict_scan_json_output", false);

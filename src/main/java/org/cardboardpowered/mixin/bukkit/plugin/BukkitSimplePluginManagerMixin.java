@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.Command;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.command.PluginCommandYamlParser;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.event.*;
@@ -576,6 +577,31 @@ public class BukkitSimplePluginManagerMixin {
                 }
             } catch (Throwable ex) {
                 server.getLogger().log(Level.SEVERE, "Error occurred (in the plugin loader) while removing chunk tickets for " + plugin.getDescription().getFullName() + " (Is it up to date?)", ex);
+            }
+
+            try {
+                // Without this, disabling a plugin leaves its commands behind as
+                // "zombie" commands still visible/usable until restart. Mirrors
+                // SimpleCommandMap.clearCommands(): drop every known-command key
+                // pointing at a command owned by this plugin, then reset it.
+                if (commandMap != null) {
+                    Map<String, Command> known = commandMap.getKnownCommands();
+                    List<String> stale = new ArrayList<>();
+                    for (Map.Entry<String, Command> entry : known.entrySet()) {
+                        Command cmd = entry.getValue();
+                        if (cmd instanceof PluginCommand pluginCommand && pluginCommand.getPlugin() == plugin) {
+                            stale.add(entry.getKey());
+                        }
+                    }
+                    for (String key : stale) {
+                        Command cmd = known.remove(key);
+                        if (cmd != null) {
+                            cmd.unregister(commandMap);
+                        }
+                    }
+                }
+            } catch (Throwable ex) {
+                server.getLogger().log(Level.SEVERE, "Error occurred (in the plugin loader) while unregistering commands for " + plugin.getDescription().getFullName() + " (Is it up to date?)", ex);
             }
         }
 		

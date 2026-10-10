@@ -116,6 +116,8 @@ public class CardboardMod implements ModInitializer {
             LOGGER.info("Cardboard " + mc + details);
         }
 
+        ConsoleColorizer.installCardboardLoggerColor();
+
         CardboardEventManager.INSTANCE.callCardboardEvents();
     }
 

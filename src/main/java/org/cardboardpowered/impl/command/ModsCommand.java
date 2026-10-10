@@ -24,12 +24,14 @@ import net.fabricmc.loader.api.ModContainer;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.cardboardpowered.util.Messages;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Provides a /fabricmods command
+ * Lists the loaded Fabric mods. Reached as {@code /cardboard mods}; the old
+ * standalone {@code /fabricmods} command is no longer registered.
  */
 public class ModsCommand extends Command {
 
@@ -37,36 +39,43 @@ public class ModsCommand extends Command {
         super(name);
 
         this.description = "Gets the version of this server including any plugins in use";
-        this.usageMessage = "/fabricmods";
-        
+        this.usageMessage = "/cardboard mods";
+
         List<String> aka = Arrays.asList("mymods", "mods");
-        
+
         this.setAliases(aka);
         this.setPermission("cardboard.command.mods");
     }
 
     @Override
     public boolean execute(CommandSender sender, String currentAlias, String[] args) {
-        if (sender.hasPermission("cardboard.command.mods")) {
-            String mods = "";
-            int count = 0;
-            for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-                String name = mod.getMetadata().getName();
+        if (!sender.hasPermission("cardboard.command.mods")) {
+            sender.sendMessage(Messages.get(sender, "cmd.no-permission"));
+            return true;
+        }
 
-                if (name.startsWith("Fabric") && name.endsWith(")")) continue; // Don't list all modules of FAPI
-                if (name.startsWith("Fabric API Base")) name = "Fabric API";
-                if (name.startsWith("OpenJDK") || name.startsWith("SpecialSource")) continue;
-                if (name.startsWith("Fabric Convention Tags") || name.startsWith("MixinExtras")) continue;
-                if (name.contains("-bundle")) continue;
+        String mods = "";
+        int count = 0;
+        for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
+            String name = mod.getMetadata().getName();
 
-                if (!mods.contains(name)) {
-                	mods += ", " + ChatColor.GREEN + name + ChatColor.WHITE;
-                	count += 1;
-                }
+            if (name.startsWith("Fabric") && name.endsWith(")")) continue; // Don't list all modules of FAPI
+            if (name.startsWith("Fabric API Base")) name = "Fabric API";
+            if (name.startsWith("OpenJDK") || name.startsWith("SpecialSource")) continue;
+            if (name.startsWith("Fabric Convention Tags") || name.startsWith("MixinExtras")) continue;
+            if (name.contains("-bundle")) continue;
+
+            if (!mods.contains(name)) {
+                mods += ", " + ChatColor.GREEN + name + ChatColor.WHITE;
+                count += 1;
             }
-            sender.sendMessage("Mods (" + count + "): " + mods.substring(2));
+        }
+
+        sender.sendMessage(Messages.get(sender, "mods.title", count));
+        if (count == 0) {
+            sender.sendMessage(Messages.get(sender, "mods.empty"));
         } else {
-            sender.sendMessage("No Permission for command! Missing permission: cardboard.command.mods");
+            sender.sendMessage("  " + mods.substring(2));
         }
         return true;
     }

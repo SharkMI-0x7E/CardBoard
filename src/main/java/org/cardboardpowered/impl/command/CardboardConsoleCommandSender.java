@@ -34,7 +34,6 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.cardboardpowered.CardboardConfig;
-import org.cardboardpowered.CardboardLogger;
 
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -54,11 +53,13 @@ public class CardboardConsoleCommandSender implements ConsoleCommandSender, Comm
 
     @Override
     public void sendMessage(String msg) {
-        // BukkitLogger.getLogger().info(msg);
-    	if (CardboardConfig.shouldStripConsoleColor) {
-    		CardboardLogger.getSLF4J().info( ChatColor.stripColor(msg) );
-    	}
-    	CardboardLogger.getSLF4J().info(msg);
+        if (CardboardConfig.shouldStripConsoleColor) {
+            msg = ChatColor.stripColor(msg);
+        }
+        // Route console output through Bukkit's logger (name "Bukkit"), NOT
+        // Cardboard's, so the console colorizer does not tint ordinary command
+        // output such as "Unknown command".
+        Bukkit.getLogger().info(msg);
     }
 
     @Override
