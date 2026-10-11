@@ -230,7 +230,7 @@ public class MyMappingResolver implements MappingResolver {
             descInFrom = tree.mapDesc(methodDesc, tree.getNamespaceId(descNamespace), tree.getNamespaceId(namespace));
         }
 
-        var cls = tree.getClass(ownerClass, tree.getNamespaceId(namespace));
+        var cls = tree.getClass(replaceDotsWithSlashes(ownerClass), tree.getNamespaceId(namespace));
         if (cls == null) return methodName;
 
         var method = cls.getMethod(methodName, descInFrom, tree.getNamespaceId(namespace));
@@ -259,7 +259,7 @@ public class MyMappingResolver implements MappingResolver {
             descInFrom = tree.mapDesc(methodDesc, tree.getNamespaceId(descNamespace), tree.getNamespaceId(namespace));
         }
 
-        var cls = tree.getClass(ownerClass, tree.getNamespaceId(namespace));
+        var cls = tree.getClass(replaceDotsWithSlashes(ownerClass), tree.getNamespaceId(namespace));
         if (cls == null) {
         	
         	return methodName;
