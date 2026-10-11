@@ -116,37 +116,17 @@ public abstract class DedicatedServerMixin extends MCServerMixin implements Dedi
 			lingering.add(t.getName());
 		}
 		if (!lingering.isEmpty()) {
-			BukkitLogger.getLogger().warning("Shutdown report [mercy-watchdog build]: " + lingering.size()
+			BukkitLogger.getLogger().warning("Shutdown report: " + lingering.size()
 					+ " non-daemon thread(s) still alive at shutdown: " + lingering);
 		}
-		// Arm a daemon "mercy watchdog" instead of calling System.exit():
-		//  * a clean shutdown needs no help - the JVM exits on its own and this daemon thread simply
-		//    dies with it (daemon threads never keep the JVM alive);
-		//  * if anything holds the JVM back (lingering non-daemon threads - ours or a third party's -
-		//    or a shutdown hook that blocks), halt unconditionally after a grace period.
-		// We deliberately do NOT call System.exit() here: it runs shutdown hooks while holding the
-		// Shutdown.class monitor, so if one hook blocks, EVERY later exit attempt - including Ctrl+C,
-		// which also goes through System.exit() - blocks on that same monitor, and the process can
-		// only be killed with "kill -9". halt() runs no hooks and cannot be blocked.
+		// Force the exit unconditionally. This MATCHES UPSTREAM Cardboard's killProcess(),
+		// which also calls halt(0) right here (a fork once removed it by mistake - see BUG-019).
+		// World saving has already finished (stopServer ran before onServerExit), so halting now
+		// cannot lose data. halt() runs no shutdown hooks and cannot be blocked by a stuck hook.
+		// We deliberately do NOT use System.exit(): it runs shutdown hooks while holding the
+		// Shutdown.class monitor, so a blocking hook would also block Ctrl+C, leaving only "kill -9".
 		// See docs/ai/entries/BUG-019-non-daemon-pool-thread-blocks-jvm-exit.md
-		// How long to wait before forcing the exit depends on whether anything can still happen:
-		//  * a surviving non-daemon thread means the JVM will NEVER initiate shutdown on its own,
-		//    so no shutdown hook can be running either and waiting accomplishes nothing;
-		//  * if nothing survives, let the normal path (and any shutdown hooks) finish - only keep a
-		//    safety net for the case where something else blocks.
-		final long graceMillis = lingering.isEmpty() ? 30000L : 2000L;
-		Thread mercy = new Thread(() -> {
-			try {
-				Thread.sleep(graceMillis);
-			} catch (InterruptedException ignored) {
-				return;
-			}
-			BukkitLogger.getLogger().warning("JVM still alive " + (graceMillis / 1000L)
-					+ "s after shutdown - forcing exit (halt).");
-			Runtime.getRuntime().halt(0);
-		}, "Cardboard Shutdown Watchdog");
-		mercy.setDaemon(true);
-		mercy.start();
+		Runtime.getRuntime().halt(0);
 	}
 
 	/**
