@@ -18,11 +18,15 @@
 package org.cardboardpowered.util.nms;
 
 /**
- * Tiny member-name resolver: translates "old" (named/official) member names
- * into the runtime intermediary names (field_xxx / method_xxx) used by the
- * reobfuscated server. Used by Denizen-style plugins that reflect on internal
- * server classes with pre-reobf names (map from reobf.tiny).
+ * Tiny member-name resolver: translates "old" (named/official) member names into the
+ * runtime intermediary names (field_xxx / method_xxx) used by the reobfuscated server.
  * Lazy, thread-safe, no-op when the tiny file is unavailable.
+ *
+ * ⚠️ CURRENTLY UNUSED. Its only caller (DenizenReflectionCompat's mixins) is ineffective
+ * and has been unregistered - see BUG-012. Kept as reusable groundwork for the generic
+ * "runtime member-name translation" work (plans/runtime-member-name-translation.md, the
+ * same problem as BUG-005 / BUG-009). Compare with RemapUtils / MyMappingResolver before
+ * wiring it up - pick one, do not keep two.
  */
 public final class MemberNameResolver {
 

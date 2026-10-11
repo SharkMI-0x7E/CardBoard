@@ -29,15 +29,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.cardboardpowered.util.nms.MemberNameResolver;
 
 /**
- * Denizen's reflection helpers hard-code pre-reobf member names (named / officially
- * obfuscated), while the runtime server uses intermediary names (field_xxx /
- * method_xxx) and intermediary class names. The NMS implementation fails as:
- *   - Reflection field missing: Tried to read field 'title' of class 'class_1703'
- *   - NoSuchMethodException: class_9296.a()
- *   - Reflection class missing: ResolvableProfile$Partial
- * These mixins translate the requested names to runtime names using the bundled
- * reobf.tiny (see MemberNameResolver) so the plugin's reflection calls succeed.
- * All handlers keep the original behavior when no translation applies.
+ * ⚠️ INEFFECTIVE - DO NOT RELY ON THIS, AND DO NOT TRY TO "FIX" THESE MIXINS. See BUG-012.
+ *
+ * These mixins target Denizen classes ("com.denizenscript.denizencore..."), but Mixin can
+ * only patch classes on the SERVER classpath. Denizen's classes are loaded later by the
+ * plugin's own PluginClassLoader, so the targets are never found and Mixin silently skips
+ * them ("@Mixin target ... was not found"). This code therefore NEVER RUNS, and has been
+ * UNREGISTERED from bukkitfabric.mixins.json.
+ *
+ * The original intent - translating pre-reobf member names (named / officially obfuscated)
+ * to runtime intermediary names (field_xxx / method_xxx) - is still a real gap, but it must
+ * be solved generically, not with a per-plugin mixin. Track it in
+ * plans/runtime-member-name-translation.md (same problem as BUG-005 / BUG-009).
+ * MemberNameResolver (the tiny-map resolver this used) is kept as reusable groundwork.
  */
 public final class DenizenReflectionCompat {
 
