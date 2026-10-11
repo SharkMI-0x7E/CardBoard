@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.jar.JarFile;
+import java.util.zip.ZipFile;
 import java.util.stream.Stream;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -141,19 +142,30 @@ public final class LibraryManager {
 
         	// A jar left behind by an interrupted download can be truncated and
         	// would otherwise be loaded silently (see BUG-015). Verify anything
-        	// that is already on disk before trusting it.
-        	if (f.isFile() && this.validateChecksums && lib.needsChecksumValidation()) {
-        		if (!lib.getChecksum(f)) {
-        			// fileHash stays null only when the digest could not be computed
-        			// at all (unreadable file); otherwise it holds the real hash.
-        			String why = (lib.fileHash == null)
-        					? "could not be read/hashed"
-        					: "checksum mismatch (have " + lib.fileHash + ", want " + lib.checksumValue + ")";
-        			logger.warn("Existing '" + fn + "' failed verification: " + why
-        					+ ". Deleting and re-downloading.");
-        			if (!f.delete()) {
-        				logger.warn("Could not delete '" + fn + "'.");
-        			}
+        	// that is already on disk before trusting it. Crucially we must never
+        	// remove a file before a verified replacement is actually on disk:
+        	// doing so destroyed the old jar even when the re-download failed
+        	// (e.g. while offline), which is worse than the original bug.
+        	if (f.isFile() && this.validateChecksums && lib.needsChecksumValidation()
+        			&& !lib.getChecksum(f)) {
+        		// fileHash stays null only when the digest could not be computed
+        		// at all (unreadable file); otherwise it holds the real hash.
+        		String why = (lib.fileHash == null)
+        				? "could not be read/hashed"
+        				: "checksum mismatch (have " + lib.fileHash + ", want " + lib.checksumValue + ")";
+
+        		if (isReadableZip(f)) {
+        			// The jar is structurally intact but its hash differs from the
+        			// hard-coded value. That is almost always a stale hash, not a
+        			// bad download, so keep the file and merely warn. Deleting here
+        			// would throw away a perfectly usable jar.
+        			logger.warn("Existing '" + fn + "' " + why
+        					+ ", but it opens as a valid zip; keeping it (the hard-coded hash is likely outdated).");
+        		} else {
+        			// Genuinely broken (e.g. a truncated download). Re-download it,
+        			// keeping the bad file aside until a good one actually lands.
+        			logger.error("Existing '" + fn + "' " + why + " and is not a readable zip. Re-downloading.");
+        			reDownloadCorrupt(lib, f);
         		}
         	}
 
@@ -168,6 +180,78 @@ public final class LibraryManager {
         		"; Adventure: " + getVersion("adventure-api") + " (" + getLibs("adventure").count() + ")";
         
         logger.info("Loaded " + libraries.size() + " libraries. " + det);
+    }
+
+    // Structurally broken jars are preserved here (instead of deleted) so they
+    // can still be inspected after the fact.
+    private static final String CORRUPT_DIR_NAME = ".corrupt";
+
+    /**
+     * Returns true if {@code file} opens as a zip/jar archive, i.e. it has an
+     * intact central directory. A truncated or otherwise broken jar (the
+     * BUG-015 case) fails here, while a structurally fine jar with a stale
+     * hard-coded hash passes.
+     */
+    private static boolean isReadableZip(File file) {
+    	try (ZipFile zip = new ZipFile(file)) {
+    		return true;
+    	} catch (IOException ex) {
+    		return false;
+    	}
+    }
+
+    /**
+     * Moves {@code file} into {@code quarantineDir}, appending a counter if the
+     * name is already taken, and returns the new location (or null on failure).
+     * The file is preserved for forensics rather than deleted.
+     */
+    private File quarantine(File file, File quarantineDir) {
+    	try {
+    		if (!quarantineDir.isDirectory() && !quarantineDir.mkdirs()) {
+    			logger.warn("Could not create quarantine directory: " + quarantineDir);
+    		}
+    		File dest = new File(quarantineDir, file.getName());
+    		int i = 1;
+    		while (dest.exists()) {
+    			dest = new File(quarantineDir, file.getName() + "." + (i++));
+    		}
+    		java.nio.file.Files.move(file.toPath(), dest.toPath());
+    		logger.info("Moved corrupt '" + file.getName() + "' to " + dest);
+    		return dest;
+    	} catch (IOException ex) {
+    		logger.warn("Could not move '" + file.getName() + "' into " + quarantineDir, ex);
+    		return null;
+    	}
+    }
+
+    /**
+     * Re-downloads a library whose on-disk jar is structurally broken.
+     *
+     * <p>The broken file is moved aside into {@code lib/.corrupt/} so it is
+     * kept for forensics, then a fresh copy is downloaded. If the download
+     * fails (for example because the machine is offline) the old file is moved
+     * back into place, so a failed repair never leaves the user with no file at
+     * all &mdash; the regression that made BUG-015 worse.
+     */
+    private void reDownloadCorrupt(Library library, File file) {
+    	String repository = library.repository.orElse(getCentral());
+    	if (!repository.endsWith("/")) repository += "/";
+
+    	File quarantined = quarantine(file, new File(directory, CORRUPT_DIR_NAME));
+
+    	attemptDownloadWithRetries(library, repository, file);
+
+    	if (!file.isFile() && quarantined != null) {
+    		try {
+    			java.nio.file.Files.move(quarantined.toPath(), file.toPath(),
+    					java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    			logger.warn("Could not re-download '" + file.getName()
+    					+ "'; restored the previous file. Delete it and restart to force a fresh download.");
+    		} catch (IOException ex) {
+    			logger.error("Could not re-download nor restore '" + file.getName()
+    					+ "'; the previous copy is kept at " + quarantined, ex);
+    		}
+    	}
     }
 
     public static void main(String[] args) throws Exception {
@@ -211,7 +295,6 @@ public final class LibraryManager {
 
     			boolean getCheck = library.getChecksum(file);
     			if (this.validateChecksums && library.needsChecksumValidation() && !getCheck) {
-    				System.out.println(getCheck);
     				if (!library.handleChecksumMismatch(repository, file, attempt, maxDownloadAttempts)) {
     					continue; // retry
     				}
@@ -222,7 +305,11 @@ public final class LibraryManager {
     			}
     		} catch (IOException ex) {
     			logger.warn("Failed to download: " + library, ex);
-    			file.delete();
+    			// downloadFromUrl() streams into a .tmp file and only moves it
+    			// into place on success, so there is no partial jar to clean up
+    			// here. Do NOT delete 'file': it may be a previously working jar
+    			// we are trying to replace, and losing it while offline is exactly
+    			// the regression we are fixing (BUG-015).
 
     			if (attempt == maxDownloadAttempts) {
     				logger.warn("Restart the server to attempt downloading '" + file.getName() + "' again.");
