@@ -74,3 +74,6 @@ plans/
 # Files unpacked from plugin jars during debugging (do not upload)
 /bukkitfabric.mixins.json
 /plugin.yml
+
+# Uploaded plugin jars kept for local debugging (never push to GitHub)
+/Denizen/
