@@ -11,7 +11,15 @@ public class GlobalConfiguration {
     public int version = 30;
 
     public static GlobalConfiguration get() {
-        return instance;
+        GlobalConfiguration current = instance;
+        if (current == null) {
+            // Paper loads this from paper-global.yml during startup; Cardboard has no such
+            // loader, so fall back to a defaults instance instead of returning null - callers
+            // like CraftScoreboardManager dereference get() unconditionally.
+            current = new GlobalConfiguration();
+            instance = current;
+        }
+        return current;
     }
 
     static void set(GlobalConfiguration instance) {
