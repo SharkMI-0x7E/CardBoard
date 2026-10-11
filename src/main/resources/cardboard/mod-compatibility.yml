@@ -20,7 +20,7 @@ known-conflicts:
     status: COMPATIBLE
     disabled-mixins: []
     priority-overrides: {}
-    notes: ServerStatusPacketListenerImplMixin uses @ModifyArg, preserves other mods changes
+    notes: ServerStatusPacketListenerImplMixin uses @ModifyArg (require = 0) and only rebuilds the ServerStatus when a plugin changes the MOTD/max players via ServerListPingEvent; otherwise the original status is returned untouched, so MiniMOTD's MOTD and favicon are preserved. Cardboard no longer forces its own server icon (vanilla already loads server-icon.png).
 
   # Fabric API - Required dependency for most Fabric mods
   - mod-id: fabric-api

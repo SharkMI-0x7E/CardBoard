@@ -59,12 +59,18 @@ public class ServerStatusPacketListenerImplMixin {
      * <p>This method uses {@link ModifyArg} instead of {@code @Overwrite} to avoid
      * conflicts with MiniMOTD and other mods that also modify the server status.
      * By using {@code @ModifyArg} with {@code require = 0}, Cardboard gracefully
-     * handles cases where another mod has already {@code @Overwrite}n the target method.
-     * If no custom MOTD or icon is set, the original {@link ServerStatus} is returned
-     * unchanged to preserve other mods' modifications.</p>
+     * handles cases where another mod has already {@code @Overwrite}n the target method.</p>
+     *
+     * <p>Cardboard only rebuilds the {@link ServerStatus} when a plugin actually
+     * changed a value through the event. Otherwise the exact object built by
+     * vanilla + other mods is returned untouched, so their changes (e.g. MiniMOTD's
+     * MOTD) survive regardless of {@code @ModifyArg} chaining order. A custom server
+     * icon is deliberately not a reason to rebuild: vanilla already loads
+     * {@code server-icon.png} into {@code originalStatus.favicon()}, and rebuilding
+     * just to force the same icon would overwrite another mod's description.</p>
      *
      * @param originalStatus the server status built by vanilla + other mods
-     * @return the modified server status, or original if no custom changes needed
+     * @return the modified server status, or the untouched original if no plugin change
      * @see CardboardServerListPingEvent
      * @since 1.21.11
      */
@@ -84,16 +90,21 @@ public class ServerStatusPacketListenerImplMixin {
         CardboardServerListPingEvent event = new CardboardServerListPingEvent(this.connection, server);
         CraftServer.INSTANCE.getPluginManager().callEvent(event);
 
-        // Check if plugin set custom MOTD
-        boolean motdChanged = false;
-        boolean hasCustomIcon = event.icon != null && event.icon.value != null;
+        // The event is seeded with the server's current values (see the
+        // CardboardServerListPingEvent constructor), so any difference means a plugin
+        // actually changed the value through ServerListPingEvent.
+        boolean motdChanged = !event.getMotd().equals(server.getMotd());
+        boolean maxPlayersChanged = event.getMaxPlayers() != server.getPlayerList().getMaxPlayers();
         if (MOTD_DEBUG) {
-            LOGGER.info("[MOTD-DEBUG] motdChanged={}, hasCustomIcon={}, event.motd='{}'", motdChanged, hasCustomIcon, event.getMotd());
+            LOGGER.info("[MOTD-DEBUG] motdChanged={}, maxPlayersChanged={}, event.motd='{}'", motdChanged, maxPlayersChanged, event.getMotd());
         }
-        // If no custom icon or MOTD, return original Status to preserve other mods' changes
-        if (!hasCustomIcon && !motdChanged) {
+
+        // Nothing for Cardboard to apply: return the exact ServerStatus we received.
+        // Rebuilding here is what used to clobber other mods (e.g. MiniMOTD) depending
+        // on @ModifyArg chaining order.
+        if (!motdChanged && !maxPlayersChanged) {
             if (MOTD_DEBUG) {
-                LOGGER.info("[MOTD-DEBUG] Returning originalStatus (no custom changes)");
+                LOGGER.info("[MOTD-DEBUG] Returning originalStatus (no plugin change)");
             }
             return originalStatus;
         }
@@ -108,20 +119,20 @@ public class ServerStatusPacketListenerImplMixin {
         List<NameAndId> profiles2 = (server.hidesOnlinePlayers()) ? Collections.emptyList() : profiles;
         ServerStatus.Players samp = new ServerStatus.Players(event.getMaxPlayers(), profiles.size(), profiles2);
 
-        // Use originalStatus description by default (preserves MiniMOTD changes)
-        // Only replace if plugin explicitly set a custom MOTD
-        Component motdComponent = originalStatus.description();
-        if (motdChanged) {
-            motdComponent = CraftChatMessage.fromString(event.getMotd(), true)[0];
-        }
+        // Keep the description received from other mods unless a plugin replaced it.
+        Component motdComponent = motdChanged
+                ? CraftChatMessage.fromString(event.getMotd(), true)[0]
+                : originalStatus.description();
         if (MOTD_DEBUG) {
-            LOGGER.info("[MOTD-DEBUG] Returning new ServerStatus, MOTD='{}', hasCustomIcon={}", motdComponent.getString(), hasCustomIcon);
+            LOGGER.info("[MOTD-DEBUG] Returning new ServerStatus, MOTD='{}'", motdComponent.getString());
         }
         return new ServerStatus(
                 motdComponent,
                 Optional.of(samp),
                 originalStatus.version().or(() -> Optional.of(new ServerStatus.Version(server.getServerModName() + " " + server.getServerVersion(), SharedConstants.getCurrentVersion().protocolVersion()))),
-                hasCustomIcon ? Optional.of(new ServerStatus.Favicon(event.icon.value)) : originalStatus.favicon(),
+                // Preserve the favicon (vanilla already applied server-icon.png, and other
+                // mods may have replaced it) instead of forcing Cardboard's own icon.
+                originalStatus.favicon(),
                 originalStatus.enforcesSecureChat()
         );
     }
