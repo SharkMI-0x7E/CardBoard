@@ -198,18 +198,72 @@ public class RemapUtils implements IRemapUtils {
         // some missing
         jarMapping.classes.put("net/minecraft/nbt/ListTag", "net/minecraft/class_2499");
         // NOTE: runtime namespace (confirmed at boot) is INTERMEDIARY, so alias targets must be
-        // the current intermediate names (class_7225$class_7874 = HolderLookup$Provider, etc.).
-        jarMapping.classes.put("net/minecraft/class_7225$a", "net/minecraft/class_7225$class_7874");
-        jarMapping.classes.put("net/minecraft/class_7225$Provider", "net/minecraft/class_7225$class_7874");
+        // the current intermediate names.
+        //
+        // Composed inner-class name fixes. Plugins reference Spigot-namespace inner classes
+        // (e.g. "...HolderLookup$a", "...CriterionTriggerImpossible$a"). BannerJarRemapper maps
+        // the OUTER part to its modern intermediary name but keeps the old "$suffix", composing
+        // a name that no longer exists after Yarn's inner-class renames (class_2062$a is really
+        // class_2062$class_2063 now). The second remap pass rewrites these composed names to the
+        // real ones, but only when reachable through byNMSSrcName - hence registerClassMapping()
+        // below instead of classes.put(). Entries derived by crossing bukkit-1.21.11-cl.csrg
+        // (spigot -> obf) with the official -> intermediary table. This scheme previously covered
+        // class_7225$a (HolderLookup) and class_3231$a (Citizens ServerEntity$Synchronizer), and
+        // now covers the rest of the references used by Denizen's nms handlers.
+        jarMapping.registerClassMapping("net/minecraft/class_7225$a", "net/minecraft/class_7225$class_7874");
+        jarMapping.registerClassMapping("net/minecraft/class_7225$Provider", "net/minecraft/class_7225$class_7874");
+        jarMapping.registerClassMapping("net/minecraft/class_3231$a", "net/minecraft/class_3231$class_12004");
+        jarMapping.registerClassMapping("net/minecraft/class_2062$a", "net/minecraft/class_2062$class_2063");
+        jarMapping.registerClassMapping("net/minecraft/class_12079$b", "net/minecraft/class_12079$class_10726");
+        jarMapping.registerClassMapping("net/minecraft/class_6880$c", "net/minecraft/class_6880$class_6883");
+        jarMapping.registerClassMapping("net/minecraft/class_6885$a", "net/minecraft/class_6885$class_6886");
+        jarMapping.registerClassMapping("net/minecraft/class_9323$a", "net/minecraft/class_9323$class_9324");
+        jarMapping.registerClassMapping("net/minecraft/class_2556$a", "net/minecraft/class_2556$class_7602");
+        jarMapping.registerClassMapping("net/minecraft/class_7822$a", "net/minecraft/class_7822$class_7823");
+        jarMapping.registerClassMapping("net/minecraft/class_7608$a", "net/minecraft/class_7608$class_7824");
+        jarMapping.registerClassMapping("net/minecraft/class_2856$a", "net/minecraft/class_2856$class_2857");
+        jarMapping.registerClassMapping("net/minecraft/class_8710$b", "net/minecraft/class_8710$class_9154");
+        jarMapping.registerClassMapping("net/minecraft/class_2703$a", "net/minecraft/class_2703$class_5893");
+        jarMapping.registerClassMapping("net/minecraft/class_2703$b", "net/minecraft/class_2703$class_2705");
+        jarMapping.registerClassMapping("net/minecraft/class_2668$a", "net/minecraft/class_2668$class_5402");
+        jarMapping.registerClassMapping("net/minecraft/class_2945$a", "net/minecraft/class_2945$class_9222");
+        jarMapping.registerClassMapping("net/minecraft/class_2945$b", "net/minecraft/class_2945$class_2946");
+        jarMapping.registerClassMapping("net/minecraft/class_2945$c", "net/minecraft/class_2945$class_7834");
+        jarMapping.registerClassMapping("net/minecraft/class_9383$a", "net/minecraft/class_9383$class_9385");
+        jarMapping.registerClassMapping("net/minecraft/class_6864$a", "net/minecraft/class_6864$class_5748");
+        jarMapping.registerClassMapping("net/minecraft/class_8942$a", "net/minecraft/class_8942$class_8943");
+        jarMapping.registerClassMapping("net/minecraft/class_12199$a", "net/minecraft/class_12199$class_12200");
+        jarMapping.registerClassMapping("net/minecraft/class_1324$a", "net/minecraft/class_1324$class_11345");
+        jarMapping.registerClassMapping("net/minecraft/class_9069$a", "net/minecraft/class_9069$class_9070");
+        jarMapping.registerClassMapping("net/minecraft/class_10291$b", "net/minecraft/class_10291$class_10293");
+        jarMapping.registerClassMapping("net/minecraft/class_1887$b", "net/minecraft/class_1887$class_9426");
+        jarMapping.registerClassMapping("net/minecraft/class_1952$a", "net/minecraft/class_1952$class_6542");
+        jarMapping.registerClassMapping("net/minecraft/class_5483$c", "net/minecraft/class_5483$class_1964");
+        jarMapping.registerClassMapping("net/minecraft/class_11368$a", "net/minecraft/class_11368$class_11369");
+        jarMapping.registerClassMapping("net/minecraft/class_11372$a", "net/minecraft/class_11372$class_11373");
+        jarMapping.registerClassMapping("net/minecraft/class_5217$a", "net/minecraft/class_5217$class_12064");
+        jarMapping.registerClassMapping("net/minecraft/class_8567$a", "net/minecraft/class_8567$class_8568");
 
-        // Citizens NMS detection: ServerEntity$Synchronizer (renamed inner class)
-        jarMapping.classes.put("net/minecraft/class_3231$a", "net/minecraft/class_3231$class_12004");
+        // CraftBukkit map classes: implemented as org.cardboardpowered.impl.map.*, but plugins
+        // reference them under the CraftBukkit names in both the versioned (v1_21_R7) and plain
+        // forms. Register the redirects so class constants and reflective lookups (e.g. Denizen
+        // resolving CraftMapCanvas.getBuffer and CraftMapView.worldMap) resolve to the Impl
+        // classes. CraftMapRenderer is intentionally not aliased: its constructor differs from
+        // the CraftBukkit signature and no plugin references it directly.
+        jarMapping.registerClassMapping("org/bukkit/craftbukkit/map/CraftMapCanvas", "org/cardboardpowered/impl/map/MapCanvasImpl");
+        jarMapping.registerClassMapping("org/bukkit/craftbukkit/map/CraftMapView", "org/cardboardpowered/impl/map/MapViewImpl");
+        jarMapping.registerClassMapping("org/bukkit/craftbukkit/map/RenderData", "org/cardboardpowered/impl/map/RenderData");
+        jarMapping.registerClassMapping("org/bukkit/craftbukkit/" + NMS_VERSION + "/map/CraftMapCanvas", "org/cardboardpowered/impl/map/MapCanvasImpl");
+        jarMapping.registerClassMapping("org/bukkit/craftbukkit/" + NMS_VERSION + "/map/CraftMapView", "org/cardboardpowered/impl/map/MapViewImpl");
+        jarMapping.registerClassMapping("org/bukkit/craftbukkit/" + NMS_VERSION + "/map/RenderData", "org/cardboardpowered/impl/map/RenderData");
+
+        
+
+        
 
         jarMapping.classes.put("net/minecraft/server/dedicated/DedicatedServer", "net/minecraft/class_3176");
         
-        jarMapping.registerClassMapping("net/minecraft/class_7225$Provider", "net/minecraft/class_7225$class_7874");
         
-        // HashMap<String, String> cm = new HashMap<>();
 
         String namespace = mr.getCurrentRuntimeNamespace();
 
