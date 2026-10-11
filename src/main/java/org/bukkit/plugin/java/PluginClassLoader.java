@@ -349,6 +349,10 @@ public class PluginClassLoader extends URLClassLoader {
                 try (InputStream in = libJar.getInputStream(entry)) {
                     bytes = in.readAllBytes();
                 }
+                // Same reflection-only rewrite as the Fix B branch in remappedFindClass:
+                // dependency jars loaded from plugins/libraries/ skip the remap pipeline,
+                // but their reflection call sites still need the ProxyClass forwarding.
+                bytes = RemapUtils.reflectRewriteOnly(bytes);
                 File jarFile = new File(libJar.getName());
                 CodeSource source = new CodeSource(jarFile.toURI().toURL(), new CodeSigner[0]);
                 return defineClass(name, bytes, 0, bytes.length, source);
@@ -362,6 +366,9 @@ public class PluginClassLoader extends URLClassLoader {
 
     private Class<?> remappedFindClass(String name) {
         Class<?> result = null;
+        // Untouched bytes from the library-only branch; used to retry defineClass with the
+        // original bytecode if the JVM rejects the reflection-rewritten version (below).
+        byte[] libraryFallback = null;
 
         try {
             // Load the resource to the name
@@ -376,10 +383,19 @@ public class PluginClassLoader extends URLClassLoader {
                     }
                     if (isLibraryOnlyClass(name, bytecode)) {
                         // Fix B: pure third-party library classes (no references to any server
-                        // class) are loaded as-is, skipping the remap pipeline. The pipeline is
-                        // built on an old SpecialSource/ASM stack that can choke on modern
-                        // (Java 21+) bytecode, silently producing ClassNotFoundException (e.g.
-                        // Citizens' ch.ethz.globis.phtree.PhTreeHelper).
+                        // class) skip the remap pipeline. The pipeline is built on an old
+                        // SpecialSource/ASM stack that can choke on modern (Java 21+) bytecode,
+                        // silently producing ClassNotFoundException (e.g. Citizens'
+                        // ch.ethz.globis.phtree.PhTreeHelper).
+                        //
+                        // They are not loaded fully untouched, though: reflection call sites
+                        // (Class.forName/getDeclaredField/getDeclaredMethod/...) still get the
+                        // ProxyClass rewrite. Library classes perform reflection too (e.g.
+                        // denizencore's ReflectionHelper), and without this step their member
+                        // lookups never reach the name translator. This pass is self-contained
+                        // and falls back to the untouched bytes on any failure.
+                        libraryFallback = bytecode;
+                        bytecode = RemapUtils.reflectRewriteOnly(bytecode);
                     } else {
                         bytecode = RemapUtilProvider.get().getJarRemapper().remapClassFile(new ByteArrayInputStream(bytecode), RuntimeRepo.getInstance());
                         
@@ -402,7 +418,19 @@ public class PluginClassLoader extends URLClassLoader {
                     fixPackage(manifest, url, name);
 
                     CodeSource codeSource = new CodeSource(jarURL, new CodeSigner[0]);
-                    result = this.defineClass(name, bytecode, 0, bytecode.length, codeSource);
+                    try {
+                        result = this.defineClass(name, bytecode, 0, bytecode.length, codeSource);
+                    } catch (LinkageError e) {
+                        // The reflection-only rewrite is new for library classes - keep the
+                        // "worst case = untouched bytes" contract airtight at defineClass too.
+                        // If the JVM rejects the rewritten class and we still hold the original
+                        // bytes, retry with those. (Same array reference means the rewrite
+                        // already fell back to the original bytes - just rethrow.)
+                        if (libraryFallback == null || libraryFallback == bytecode) {
+                            throw e;
+                        }
+                        result = this.defineClass(name, libraryFallback, 0, libraryFallback.length, codeSource);
+                    }
                     if (result != null) {
                         // Resolve it - sets the class loader of the class
                         this.resolveClass(result);
@@ -418,8 +446,9 @@ public class PluginClassLoader extends URLClassLoader {
     }
 
     // Fix B: a class is "library-only" when it references no server-side type
-    // (Minecraft/Bukkit/Spigot internals). Such classes are loaded untouched so they
-    // bypass the remap pipeline, whose legacy ASM stack can reject modern bytecode.
+    // (Minecraft/Bukkit/Spigot internals). Such classes bypass the full remap pipeline,
+    // whose legacy ASM stack can reject modern bytecode; they still receive the
+    // reflection-only rewrite (see the reflectRewriteOnly call sites in this file).
     private static boolean isLibraryOnlyClass(String name, byte[] bytecode) {
         if (name.startsWith("net.minecraft.") || name.startsWith("org.bukkit.") || name.startsWith("org.spigotmc.")) {
             return false;

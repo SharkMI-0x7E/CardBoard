@@ -89,6 +89,9 @@ public class RemapUtils implements IRemapUtils {
     public static String NMS_VERSION = "v1_21_R7"; // "v1_21_R3"; // "v1_20_R4";
     
     private static MyMappingResolver myMappingResolver;
+
+    /** Reflection-only rewriter; used by {@link #reflectRewriteOnly} for library classes. */
+    private static volatile ReflectRemapper reflectiveRemapper;
     
     private static HashMap<String, String> cspigot2fabric = new HashMap<>();
     
@@ -266,7 +269,8 @@ public class RemapUtils implements IRemapUtils {
         jarMapping.setFallbackInheritanceProvider(provider);
         jarRemapper = new BannerJarRemapper(jarMapping);
         remappers.add(jarRemapper);
-        remappers.add(new ReflectRemapper());
+        reflectiveRemapper = new ReflectRemapper();
+        remappers.add(reflectiveRemapper);
         jarMapping.initFastMethodMapping(jarRemapper);
         ReflectMethodRemapper.init();
 
@@ -326,6 +330,45 @@ public class RemapUtils implements IRemapUtils {
         classNode.accept(writer);
         return writer.toByteArray();
 
+    }
+
+    /**
+     * Rewrites ONLY the reflection call sites of the given bytecode - the same
+     * {@code ReflectRemapper} pass that {@link #remapFindClass} runs, minus the jar
+     * remapper. Used for "library-only" plugin classes: they carry no internal-form
+     * server-type references (so the jar remapper has nothing to do anyway, and is
+     * deliberately skipped for safety with modern bytecode), but they may still perform
+     * reflection - e.g. denizencore's ReflectionHelper - and those call sites must reach
+     * ProxyClass/ProxyMethodHandlesLookup just like regular plugin classes do.
+     *
+     * <p>Never throws: any parsing/rewriting failure returns the input unchanged, so a
+     * problematic class is loaded exactly as before instead of failing to load.
+     */
+    public static byte[] reflectRewriteOnly(byte[] bs) {
+        ReflectRemapper remapper = reflectiveRemapper;
+        if (remapper == null) {
+            return bs; // init() has not run yet - keep legacy behavior
+        }
+        try {
+            ClassReader reader = new ClassReader(bs);
+            ClassNode classNode = new ClassNode();
+            reader.accept(classNode, ClassReader.EXPAND_FRAMES);
+
+            ClassNode container = new ClassNode();
+            ClassRemapper classRemapper;
+            if (remapper instanceof ClassRemapperSupplier) {
+                classRemapper = ((ClassRemapperSupplier) remapper).getClassRemapper(container);
+            } else {
+                classRemapper = new ClassRemapper(container, remapper);
+            }
+            classNode.accept(classRemapper);
+
+            ClassWriter writer = new ClassWriter(0);
+            container.accept(writer);
+            return writer.toByteArray();
+        } catch (Throwable t) {
+            return bs;
+        }
     }
 
     public static MappingResolver mr = FabricLoader.getInstance().getMappingResolver(); 
