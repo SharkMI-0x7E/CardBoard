@@ -1,14 +1,16 @@
 <div align="center">
 
-<img width="130" src="https://cardboardpowered.org/assets/cardboard-box.png">
+![](https://cardboardpowered.org/assets/cardboard-box.png)
 
 # Cardboard (SharkMI Fork)
 
 **在 Fabric 服务器上运行 Bukkit / Spigot / Paper 插件**
 
-[![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
-[![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)](https://fabricmc.net/)
-[![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
+![License](https://img.shields.io/badge/License-GPL--3.0-orange)
+
+![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)
+
+![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat\&logo=github\&color=yellow)
 
 [English](README.md)
 
@@ -16,7 +18,7 @@
 
 > **个人维护分支。**
 >
-> 基于 [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard)，由 [SharkMI](https://github.com/SharkMI-0x7E) 为自己的服务器维护并原样发布。
+> 基于 [CardboardPowered/cardboard](https://github.com/CardboardPowered/cardboard)，由 [SharkMI](https://github.com/SharkMI-0x7E) 为自己的服务器维护并原样发布。  
 > 目标版本为 **Minecraft 1.21.11**，包含尚未合并到上游的兼容性修复。
 >
 > 更新跟随我自己服务器的需求，以尽力而为的方式推进——不承诺长期维护，不承诺覆盖所有插件与模组，不承诺跟随上游同步。这是个人自用的业余项目，不是有支持承诺的产品。
@@ -60,7 +62,7 @@
 
 ## AI 辅助开发声明
 
-本项目是 **重度 AI 辅助开发**。除继承自上游 [Cardboard](https://github.com/CardboardPowered/cardboard) 的原有代码外，
+本项目是 **重度 AI 辅助开发**。除继承自上游 [Cardboard](https://github.com/CardboardPowered/cardboard) 的原有代码外，  
 **本仓库中新增的代码绝大部分由 AI 编写**。代码在发布前经过构建与冒烟测试，但未经全面的人工审查。
 
 主要使用的 AI 工具：
@@ -90,21 +92,19 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
 
 ### 前置要求
 
-| 软件 | 版本要求 |
-|------|----------|
-| Java | 21+ |
-| Fabric Loader | 0.18+ |
-| Minecraft | 1.21.11 |
+| 软件            | 版本要求    |
+| ------------- | ------- |
+| Java          | 21+     |
+| Fabric Loader | 0.18+   |
+| Minecraft     | 1.21.11 |
 
 ### 安装步骤
 
 1. **安装 Fabric Server**
    - 从 [Fabric 官网](https://fabricmc.net/use/installer/) 下载并安装服务端
    - 或使用 [Fabric Server Installer](https://fabricmc.net/use/server/)
-
 2. **下载 Cardboard**
    - 从 [GitHub Releases](../../releases) 或 [Modrinth](https://modrinth.com/mod/cardboard-sharkmi-fork) 获取最新 jar
-
 3. **放入 mods 文件夹**
    ```
    server/
@@ -114,7 +114,6 @@ Cardboard 是一个 **Bukkit/Spigot/Paper API 的 Fabric 实现**。它允许你
    ├── eula.txt
    └── server.properties
    ```
-
 4. **启动服务器**
    - 首次启动会自动生成配置文件
    - 插件放入 `plugins/` 文件夹
@@ -158,42 +157,42 @@ Cardboard 提供 `/cardboard` 命令（别名 `/cb`）作为自身子命令的�
 
 **`/cardboard`**（别名 `/cb`）—— 需要权限 `cardboard.command.admin`：
 
-| 命令 | 说明 |
-|------|------|
-| `/cardboard help` | 显示本帮助 |
-| `/cardboard version` | 显示服务器版本信息 |
-| `/cardboard about` | 显示 Cardboard 项目信息 |
-| `/cardboard tps` | 显示 TPS / MSPT / 内存 / 运行时长 |
-| `/cardboard worlds` | 列出所有世界及玩家数 |
-| `/cardboard mods` | 列出已加载的 Fabric 模组 |
-| `/cardboard plugins [info\|enable\|disable <名称>]` | 查看插件列表（可 info / enable / disable） |
-| `/cardboard debug [list\|<开关>\|all on\|off]` | 调试开关：列出 / 翻转 / 全开全关 |
-| `/cardboard log <trace\|debug\|info\|warn\|error\|fatal\|all\|off>` | 运行时调整根日志级别 |
-| `/cardboard doctor` | 一键健康自检并给出建议 |
-| `/cardboard dump` | 导出诊断快照（含线程栈）到文件 |
-| `/cardboard compat` | 列出模组兼容规则 |
-| `/cardboard reload` | 重新加载 Cardboard 配置 |
-| `/cardboard lang <zh\|en>` | 切换语言：zh \| en（仅影响自己） |
+| 命令                                                                  | 说明                                |
+| ------------------------------------------------------------------- | --------------------------------- |
+| `/cardboard help`                                                   | 显示本帮助                             |
+| `/cardboard version`                                                | 显示服务器版本信息                         |
+| `/cardboard about`                                                  | 显示 Cardboard 项目信息                 |
+| `/cardboard tps`                                                    | 显示 TPS / MSPT / 内存 / 运行时长         |
+| `/cardboard worlds`                                                 | 列出所有世界及玩家数                        |
+| `/cardboard mods`                                                   | 列出已加载的 Fabric 模组                  |
+| `/cardboard plugins [info\|enable\|disable <名称>]`                   | 查看插件列表（可 info / enable / disable） |
+| `/cardboard debug [list\|<开关>\|all on\|off]`                        | 调试开关：列出 / 翻转 / 全开全关               |
+| `/cardboard log <trace\|debug\|info\|warn\|error\|fatal\|all\|off>` | 运行时调整根日志级别                        |
+| `/cardboard doctor`                                                 | 一键健康自检并给出建议                       |
+| `/cardboard dump`                                                   | 导出诊断快照（含线程栈）到文件                   |
+| `/cardboard compat`                                                 | 列出模组兼容规则                          |
+| `/cardboard reload`                                                 | 重新加载 Cardboard 配置                 |
+| `/cardboard lang <zh\|en>`                                          | 切换语言：zh | en（仅影响自己）               |
 
-`debug` 接受的调试开关：`verbose`、`events`、`player`、`other`、`remap`、`worldedit`
+`debug` 接受的调试开关：`verbose`、`events`、`player`、`other`、`remap`、`worldedit`  
 （各自对应一个配置键；`list` 会同时显示当前状态与配置键）。
 
-**`/plugins`**（别名 `/pl`）—— 列出列表需要权限 `bukkit.command.plugins`；
+**`/plugins`**（别名 `/pl`）—— 列出列表需要权限 `bukkit.command.plugins`；  
 `enable` / `disable` 还需 `cardboard.command.admin`：
 
-| 命令 | 说明 |
-|------|------|
-| `/plugins` | 列出插件（显示"已启用 N / 共 M"及图例：绿色=已启用，红色=未启用） |
-| `/plugins info <名称>` | 查看单个插件的详细信息 |
-| `/plugins enable <名称>` | 运行时启用插件 |
-| `/plugins disable <名称>` | 运行时禁用插件 |
+| 命令                      | 说明                                     |
+| ----------------------- | -------------------------------------- |
+| `/plugins`              | 列出插件（显示"已启用 N / 共 M"及图例：绿色=已启用，红色=未启用） |
+| `/plugins info <名称>`    | 查看单个插件的详细信息                            |
+| `/plugins enable <名称>`  | 运行时启用插件                                |
+| `/plugins disable <名称>` | 运行时禁用插件                                |
 
 **`/version`**（别名 `ver`、`about`）—— 需要权限 `bukkit.command.version`：
 
-| 命令 | 说明 |
-|------|------|
-| `/version` | 显示服务器（及 Cardboard）版本 |
-| `/version <插件名>` | 显示某个插件的版本信息 |
+| 命令               | 说明                   |
+| ---------------- | -------------------- |
+| `/version`       | 显示服务器（及 Cardboard）版本 |
+| `/version <插件名>` | 显示某个插件的版本信息          |
 
 控制台颜色可通过 `cardboard-config.yml` 中的 `colored-console`（默认 `true`）与 `console-color-pattern` 进行控制。
 
@@ -223,9 +222,9 @@ Cardboard 提供 `/cardboard` 命令（别名 `/cb`）作为自身子命令的�
 
 本 Fork **仅支持 Minecraft 1.21.11** —— 更高或更低的版本均不支持。
 
-| Minecraft 版本 | Fabric 版本 | 分支 | 状态 |
-|---------------|-------------|------|------|
-| 1.21.11 | 0.18+ | main | 活跃维护 |
+| Minecraft 版本 | Fabric 版本 | 分支   | 状态   |
+| ------------ | --------- | ---- | ---- |
+| 1.21.11      | 0.18+     | main | 活跃维护 |
 
 ## Java 21 启动参数
 
@@ -272,7 +271,7 @@ java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 
 这是个人项目，投入的时间有限，贡献会被认真看待，但处理速度无法保证。
 
-欢迎提交 Bug 报告与 Pull Request —— 构建命令、提交规范、Mixin 规则与 PR 清单见
+欢迎提交 Bug 报告与 Pull Request —— 构建命令、提交规范、Mixin 规则与 PR 清单见  
 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 - **提交 Bug**：在 [Issues](../../issues) 中附上服务器日志（`latest.log`）、Cardboard 版本与复现步骤。
@@ -293,12 +292,12 @@ java $JAVA_OPTS -jar fabric-server-launch.jar nogui
 
 - [BukkitTeam](https://bukkit.org/)、[Spigot](https://spigotmc.org/) 和 [Paper](https://papermc.io/) 的 API 工作
 - [Glowstone](https://glowstone.net) 的库加载器
-- [md_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib（Techcable & Orion）](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
+- [md\_5's SpecialSource](https://github.com/md-5/SpecialSource)、[SrgLib（Techcable & Orion）](https://github.com/OrionMinecraft/SrgLib)、[MinecraftMapping](https://github.com/phase/MinecraftMapping/)
 - 所有 [Cardboard 贡献者](https://github.com/CardboardPowered/cardboard/graphs/contributors)
 - 所有 [SharkMI Fork 贡献者](https://github.com/SharkMI-0x7E/CardBoard/graphs/contributors)
 - [Trae SOLO](https://www.trae.ai/)、[CodeBuddy](https://codebuddy.cn/)、[OpenCode](https://github.com/opencode-ai/opencode) 与 [DeepSeek Harness](https://www.deepseek.com/harness/) 辅助代码编写
 
 ## 许可证
 
-本项目使用 **GPL-3.0** 许可证。详见 [LICENSE](LICENSE) 文件。
+本项目使用 **GPL-3.0** 许可证。详见 [LICENSE](LICENSE) 文件。  
 SrgLib 使用 MIT 许可证。
