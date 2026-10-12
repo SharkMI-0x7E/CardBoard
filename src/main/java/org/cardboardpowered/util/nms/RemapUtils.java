@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -89,6 +90,23 @@ public class RemapUtils implements IRemapUtils {
     public static String NMS_VERSION = "v1_21_R7"; // "v1_21_R3"; // "v1_20_R4";
     
     private static MyMappingResolver myMappingResolver;
+
+    /**
+     * intermediary(internal, slashes) -> named(internal, slashes). Used when
+     * resolving field names: the field table is keyed by named-namespace
+     * owners, while runtime classes expose intermediary names.
+     */
+    private static final HashMap<String, String> namedByIntermediary = new HashMap<>();
+
+    /** intermediary(internal, slashes) -> official short name (e.g. czs). */
+    private static final HashMap<String, String> officialByIntermediary = new HashMap<>();
+
+    /**
+     * "official short name/official field name" -> intermediary field name.
+     * Fallback for plugins that address fields by obfuscated names
+     * (Denizen's NMS helpers do).
+     */
+    private static final HashMap<String, String> officialFieldToIntermediary = new HashMap<>();
 
     /** Reflection-only rewriter; used by {@link #reflectRewriteOnly} for library classes. */
     private static volatile ReflectRemapper reflectiveRemapper;
@@ -175,6 +193,9 @@ public class RemapUtils implements IRemapUtils {
 			LOGGER.info("RemapUtils: MyMappingResolver Namespace: " + myMappingResolver.getCurrentRuntimeNamespace());
 			
 			output(path);
+
+			// Build name-lookup tables used by plugin-reflection field remapping.
+			buildPluginNameTables(path);
 			
 			myMappingResolver.tree.getClasses().forEach(clm -> {
 				String a = clm.getName("named");
@@ -243,6 +264,7 @@ public class RemapUtils implements IRemapUtils {
         jarMapping.registerClassMapping("net/minecraft/class_11372$a", "net/minecraft/class_11372$class_11373");
         jarMapping.registerClassMapping("net/minecraft/class_5217$a", "net/minecraft/class_5217$class_12064");
         jarMapping.registerClassMapping("net/minecraft/class_8567$a", "net/minecraft/class_8567$class_8568");
+
 
         // CraftBukkit map classes: implemented as org.cardboardpowered.impl.map.*, but plugins
         // reference them under the CraftBukkit names in both the versioned (v1_21_R7) and plain
@@ -542,6 +564,15 @@ public class RemapUtils implements IRemapUtils {
 
     @Override
     public String reverseMap(Class<?> clazz) {
+        // Field mapping needs the "named" owner: the field table (testsrg.srg)
+        // is keyed by named-namespace, slash-separated names. The library's
+        // byMCPName lookup uses a different key shape and misses for dotted
+        // runtime names, so consult our own table first.
+        String internal = clazz.getName().replace('.', '/');
+        String named = namedByIntermediary.get(internal);
+        if (named != null) {
+            return named;
+        }
         ClassMapping mapping = jarMapping.byMCPName.get(clazz.getName());
         return mapping == null ? ASMUtils.toInternalName(clazz) : mapping.getNmsSrcName();
     }
@@ -759,9 +790,17 @@ public class RemapUtils implements IRemapUtils {
     	}
     	
     	String revType = reverseMap(type);
-        String key = revType + "/" + fieldName;
+        String key = revType.replace('.', '/') + "/" + fieldName;
 
         String mapped = jarMapping.fields.get(key);
+        if (mapped == null) {
+            // Denizen's NMS helpers address some fields by their obfuscated
+            // (official) names; resolve those through the official field table.
+            String official = officialByIntermediary.get(type.getName().replace('.', '/'));
+            if (official != null) {
+                mapped = officialFieldToIntermediary.get(official + "/" + fieldName);
+            }
+        }
         if (mapped == null) {
             Class<?> superClass = type.getSuperclass();
             if (superClass != null) {
@@ -866,5 +905,37 @@ public class RemapUtils implements IRemapUtils {
 	@Override
 	public boolean shouldExtraDebugLog() {
 		return CardboardConfig.DEBUG_VERBOSE_CALLS;
+	}
+
+	/**
+	 * Builds name-lookup tables used by plugin-reflection field remapping:
+	 * intermediary -> named (field-table owners are named-namespace),
+	 * intermediary -> official, and official-field -> intermediary
+	 * (fallback for plugins that pass obfuscated field names).
+	 */
+	private static void buildPluginNameTables(Path reobfTiny) {
+		try (BufferedReader br = Files.newBufferedReader(reobfTiny, StandardCharsets.UTF_8)) {
+			String official = null;
+			String line;
+			while ((line = br.readLine()) != null) {
+				if (line.startsWith("c\t")) {
+					String[] p = line.split("\t");
+					if (p.length >= 4 && !p[1].isEmpty()) {
+						official = p[1];
+						String inter = p[2].replace('.', '/');
+						namedByIntermediary.put(inter, p[3].replace('.', '/'));
+						officialByIntermediary.put(inter, official);
+					}
+				} else if (line.startsWith("\tf\t") && official != null) {
+					String[] p = line.split("\t");
+					// ["", "f", desc, officialName, intermediaryName, namedName]
+					if (p.length >= 5) {
+						officialFieldToIntermediary.put(official + "/" + p[3], p[4]);
+					}
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.error("Failed to build plugin name tables from reobf.tiny: " + e);
+		}
 	}
 }
