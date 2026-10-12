@@ -57,6 +57,9 @@ public class ReflectionMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+        // Resolve composed inner-class names (e.g. class_6880$c) up front so
+        // class lookups and inheritance walks below work on real names.
+        owner = RemapUtils.toCanonicalName(owner);
         if (CardboardConfig.DEBUG_VERBOSE_CALLS) {
         	if (!owner.startsWith("java/")) {
         		CardboardMod.LOGGER.info(owner + " / " + name);
@@ -335,6 +338,9 @@ public class ReflectionMethodVisitor extends MethodVisitor {
     
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+        // Resolve composed inner-class names (e.g. class_6880$c) up front so
+        // class lookups and inheritance walks below work on real names.
+        owner = RemapUtils.toCanonicalName(owner);
         if (CardboardConfig.DEBUG_VERBOSE_CALLS) {
         	if (!owner.startsWith("java/")) {
         		CardboardMod.LOGGER.info(owner + " / " + name);

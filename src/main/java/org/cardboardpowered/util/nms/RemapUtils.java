@@ -265,6 +265,8 @@ public class RemapUtils implements IRemapUtils {
         jarMapping.registerClassMapping("net/minecraft/class_5217$a", "net/minecraft/class_5217$class_12064");
         jarMapping.registerClassMapping("net/minecraft/class_8567$a", "net/minecraft/class_8567$class_8568");
 
+        // Generated composed-name aliases (data: mappings/inner-name-aliases.txt).
+        loadInnerNameAliases();
 
         // CraftBukkit map classes: implemented as org.cardboardpowered.impl.map.*, but plugins
         // reference them under the CraftBukkit names in both the versioned (v1_21_R7) and plain
@@ -937,5 +939,61 @@ public class RemapUtils implements IRemapUtils {
 		} catch (IOException e) {
 			LOGGER.error("Failed to build plugin name tables from reobf.tiny: " + e);
 		}
+	}
+
+	/**
+	 * Registers the generated composed inner-class name aliases
+	 * (e.g. class_6880$c -> class_6880$class_6883). Data file:
+	 * src/main/resources/mappings/inner-name-aliases.txt.
+	 */
+	private static void loadInnerNameAliases() {
+		try (InputStream in = RemapUtils.class.getClassLoader()
+				.getResourceAsStream("mappings/inner-name-aliases.txt")) {
+			if (in == null) {
+				LOGGER.error("mappings/inner-name-aliases.txt not found; composed inner names will not resolve");
+				return;
+			}
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+				String line;
+				int count = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.isEmpty() || line.startsWith("#")) {
+						continue;
+					}
+					String[] p = line.split("\\s+");
+					if (p.length != 2) {
+						continue;
+					}
+					jarMapping.registerClassMapping(p[0], p[1]);
+					count++;
+				}
+				LOGGER.info("Registered " + count + " inner-name aliases");
+			}
+		} catch (IOException e) {
+			LOGGER.error("Failed to load inner-name aliases: " + e);
+		}
+	}
+
+	/**
+	 * Resolves a (possibly composed) intermediary class name to its real name
+	 * via the registered aliases (e.g. class_6880$c -> class_6880$class_6883).
+	 * Returns the input unchanged when it is already canonical or unknown.
+	 */
+	public static String toCanonicalName(String internalName) {
+		if (internalName == null || internalName.startsWith("java/")) {
+			return internalName;
+		}
+		ClassMapping cm = jarMapping.byNMSSrcName.get(internalName);
+		if (cm == null) {
+			cm = jarMapping.byNMSSrcName.get(internalName.replace('/', '.'));
+		}
+		if (cm != null) {
+			String target = cm.getMcpSrcName();
+			if (target != null && !target.equals(internalName)) {
+				return target;
+			}
+		}
+		return internalName;
 	}
 }
