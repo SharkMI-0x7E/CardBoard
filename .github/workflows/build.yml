@@ -45,13 +45,17 @@ jobs:
         run: ./gradlew test
 
       - name: Build Fat Jar
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test -Pcardboard.build=${{ github.run_number }}
+        # The workflow run number doubles as the CI build number (bN), the same
+        # idea as Citizens' Jenkins build numbers. Produces e.g.
+        # CardBoard-Fork-SharkMI-1.21.11-2026.10.1+b146.jar
+        # See docs/ai/CONTEXT/BUILD-NUMBER.md.
 
       - name: Upload Build Artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: cardboard-jar
+          name: cardboard-b${{ github.run_number }}
           path: |
             build/libs/CardBoard-Fork-SharkMI-*.jar
             !build/libs/*-sources.jar
@@ -59,11 +63,11 @@ jobs:
             !build/libs/*-slim.jar
           retention-days: 14
 
-      # Publishes the jar to a fixed, login-free download link:
-      #   https://github.com/SharkMI-0x7E/CardBoard/releases/download/ci-build/<file>.jar
-      # Updated on every push to main (--clobber replaces the old asset).
+      # Publishes the latest jar (named with the CI build number, e.g. ...+b146.jar)
+      # to the "ci-build" release, so the site can offer a one-tap download and
+      # the release page always shows exactly one, clearly labelled build.
       # Tag "ci-build" deliberately does not match the "v*" release workflow.
-      - name: Publish fixed-download-link CI build
+      - name: Publish latest CI build (ci-build release)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,7 +76,11 @@ jobs:
             gh release create ci-build \
               --prerelease \
               --title "CI Build (latest main)" \
-              --notes "Automatic build of the latest main branch. Updated on every push to main. Grab the jar below (also keeps the version in its file name)."
+              --notes "Automatic build of the latest main branch. The jar name carries the CI build number (bN), the same idea as Citizens' Jenkins builds. Only the newest build is kept here; older ones live in the Actions tab."
+          # keep exactly one jar: drop the previous build's assets first
+          gh release view ci-build --json assets --jq '.assets[].name' | while read -r name; do
+            if [ -n "$name" ]; then gh release delete-asset ci-build "$name" -y; fi
+          done
           for f in build/libs/CardBoard-Fork-SharkMI-*.jar; do
             case "$f" in
               *-sources.jar|*-dev.jar|*-slim.jar) continue;;
