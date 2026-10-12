@@ -755,7 +755,7 @@ public class RemapUtils implements IRemapUtils {
      * Find matching declared method of a class.
      */
     public String find_meth(String obfClaz, Class<?> type, String name, Class<?>... parameterTypes) {
-    	System.out.println("FINDING MATCH FOR: " + obfClaz + "." + name);
+    	LOGGER.debug("find_meth: " + obfClaz + "." + name);
     	for (Method m : type.getDeclaredMethods()) {
     		int pc = m.getParameterCount();
     		

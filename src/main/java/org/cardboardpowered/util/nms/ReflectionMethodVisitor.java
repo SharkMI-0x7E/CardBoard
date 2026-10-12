@@ -141,8 +141,7 @@ public class ReflectionMethodVisitor extends MethodVisitor {
         	    	}
         			
         		} catch (ClassNotFoundException e) {
-        			CardboardMod.LOGGER.finest("MISSING CLASS MAPPING FOR: " + owner);
-        			System.out.println(e.getMessage());
+        			CardboardMod.LOGGER.warning("Missing class mapping for '" + owner + "' (member '" + name + "')");
         		} catch (Exception e) {
         			// Oh no!
         			e.printStackTrace();
@@ -252,8 +251,7 @@ public class ReflectionMethodVisitor extends MethodVisitor {
     	    	}
     			
     		} catch (ClassNotFoundException e) {
-    			CardboardMod.LOGGER.finest("MISSING CLASS MAPPING FOR: " + owner);
-    			System.out.println("ClassNotFound: " + e.getMessage());
+    			CardboardMod.LOGGER.warning("Missing class mapping for '" + owner + "' (member '" + name + "')");
     		} catch (Exception e) {
     			// Oh no!
     			e.printStackTrace();
@@ -466,8 +464,7 @@ public class ReflectionMethodVisitor extends MethodVisitor {
 	        			res = do_map(supn, name, desc);
         			}
         		} catch (ClassNotFoundException e) {
-        			CardboardMod.LOGGER.finest("MISSING CLASS MAPPING FOR: " + owner);
-        			System.out.println(e.getMessage());
+        			CardboardMod.LOGGER.warning("Missing class mapping for '" + owner + "' (member '" + name + "')");
         		} catch (Exception e) {
         			// Oh no!
         			e.printStackTrace();
