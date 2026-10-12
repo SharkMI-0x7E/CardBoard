@@ -77,3 +77,4 @@ plans/
 
 # Uploaded plugin jars kept for local debugging (never push to GitHub)
 /Denizen/
+/Citizens2/
