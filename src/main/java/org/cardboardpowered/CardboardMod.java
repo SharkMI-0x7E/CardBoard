@@ -59,7 +59,6 @@ import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -106,11 +105,12 @@ public class CardboardMod implements ModInitializer {
         paperVersion = LibraryManager.INSTANCE.getPaperVersion();
         String details = " - Paper-API " + paperVersion + ". " + "Registered '" + r + "' iCommon events.";
 
-        // Check for FabricBetterConsole
+        // Check for FabricBetterConsole. It renders Minecraft section codes in its
+        // console output, so tag this line with legacy color codes directly -
+        // the style of a styled Component is lost in Component#getString().
         if (CardboardConfig.isBetterConsole()) {
-            Component message = Component.literal("Cardboard " + mc)
-                    .withStyle(ChatFormatting.GOLD).append(details);
-            LOGGER.info(message.getString());
+            LOGGER.info(ChatFormatting.GOLD + "Cardboard " + mc
+                    + ChatFormatting.GRAY + details);
         } else {
 
             LOGGER.info("Cardboard " + mc + details);

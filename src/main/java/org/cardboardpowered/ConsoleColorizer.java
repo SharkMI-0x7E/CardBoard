@@ -25,6 +25,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
@@ -40,8 +43,12 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
  * lines are not printed twice, and the file appender(s) are re-attached
  * explicitly so file logging keeps working.
  *
- * <p>If better-fabric-console is present, this does nothing - that mod owns the
- * console look and Cardboard steps aside.
+ * <p>Coexists with better-fabric-console: this appender only serves the
+ * non-additive "Cardboard" logger, so it never fights BFC over the root console.
+ * BFC keeps rendering everything else; Cardboard's own lines keep this style on
+ * a direct System.out channel. (Previously the feature was skipped entirely under
+ * BFC, which made Cardboard's lines invisible on terminals where BFC's JLine
+ * console did not render them.)
  */
 public final class ConsoleColorizer {
 
@@ -71,7 +78,7 @@ public final class ConsoleColorizer {
     }
 
     public static void installCardboardLoggerColor() {
-        if (CardboardConfig.isBetterConsole() || !CardboardConfig.coloredConsole) {
+        if (!CardboardConfig.coloredConsole) {
             return;
         }
         try {
@@ -98,14 +105,18 @@ public final class ConsoleColorizer {
             logger.addAppender(colored, Level.ALL, null);
 
             // additivity=false cuts the logger off from root's appenders, so
-            // re-attach every non-console appender (file / rolling / async ...)
-            // to keep log files working. Console is handled by our colored appender.
+            // re-attach the file-style appenders to keep logs/latest.log working.
+            // Only file appenders are re-attached: under better-fabric-console (and
+            // similar console mods) the console appender is a non-standard type that
+            // writes to a shared JLine terminal with prompt redraw - attaching it
+            // here would double-print Cardboard's lines and fight that mod's prompt.
             for (Map.Entry<String, Appender> entry : cfg.getAppenders().entrySet()) {
                 Appender appender = entry.getValue();
-                if (appender instanceof ConsoleAppender) {
-                    continue;
+                if (appender instanceof FileAppender
+                        || appender instanceof RollingFileAppender
+                        || appender instanceof RollingRandomAccessFileAppender) {
+                    logger.addAppender(appender, Level.ALL, null);
                 }
-                logger.addAppender(appender, Level.ALL, null);
             }
 
             cfg.addLogger("Cardboard", logger);

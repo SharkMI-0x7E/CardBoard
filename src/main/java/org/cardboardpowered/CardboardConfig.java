@@ -111,7 +111,7 @@ public class CardboardConfig {
 						"# \tColor Strip: will strip all Bukkit ChatColor info from Console text",
 						"# \tColored Console: colorize Cardboard's own log lines on the terminal (not written to latest.log)",
 						"# \tColor Pattern: log4j2 pattern for the colored console line; 'default' = built-in multi-color layout",
-						"# (If BetterFabricConsole is present, these will override to false & false)"
+						"# (Colored console works alongside BetterFabricConsole; the logger prefix stays off when it is present)"
 				)
 				.keys("prefix-loggers", "should-strip-console-color", "colored-console", "console-color-pattern")
 				.values("true", "false", "true", "default")
