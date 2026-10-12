@@ -909,11 +909,32 @@
   function fetchPage(page) {
     var url = API + '/actions/runs?branch=main&per_page=100&page=' + page;
     return fetch(url).then(function(r){
-      if (!r.ok) throw new Error('http ' + r.status);
+      if (!r.ok) {
+        var err = new Error('HTTP ' + r.status);
+        err.status = r.status;
+        err.rateLimit = (r.status === 403 || r.status === 429);
+        throw err;
+      }
       return r.json();
     }).then(function(d){
       return d.workflow_runs || [];
     });
+  }
+
+  /* ── 致命错误展示（带真实报错 + 重试）── */
+  function showFatal(msg, detail) {
+    var dlInfo = document.getElementById('dlInfo');
+    if (dlInfo) dlInfo.textContent = msg;
+    var list = document.getElementById('list');
+    if (!list) return;
+    list.innerHTML =
+      '<div class="empty-state">' +
+        esc(msg) +
+        (detail ? '<br><span style="opacity:.7;font-size:12px">' + esc(detail) + '</span>' : '') +
+        '<br><button class="mini" id="retryBtn" style="margin-top:12px">重试</button>' +
+      '</div>';
+    var rb = document.getElementById('retryBtn');
+    if (rb) rb.addEventListener('click', function(){ location.reload(); });
   }
 
   loadMoreBtn.addEventListener('click', function(){
@@ -1166,10 +1187,15 @@
         updateViewRange();
       });
     })
-    .catch(function(){
-      document.getElementById('dlInfo').textContent = '无法读取构建数据，请前往 Actions 页面';
-      document.getElementById('list').innerHTML =
-        '<div class="empty-state">加载失败，请稍后重试</div>';
+    .catch(function(e){
+      var rateLimit = e && e.rateLimit;
+      var msg = rateLimit
+        ? 'GitHub API 限流（未登录每小时 60 次）'
+        : '无法读取构建数据';
+      var detail = rateLimit
+        ? '状态码 ' + ((e && e.status) || '?') + ' · 多为频繁刷新触发，稍候重试即可'
+        : '原因：' + ((e && e.message) || '未知');
+      showFatal(msg, detail);
     });
 
   /* 页签切换回来时自动刷一次 */
