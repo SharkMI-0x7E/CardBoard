@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+# Needed so the fixed "ci-build" release can be created/updated by the publish step.
+permissions:
+  contents: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -54,6 +58,27 @@ jobs:
             !build/libs/*-dev.jar
             !build/libs/*-slim.jar
           retention-days: 14
+
+      # Publishes the jar to a fixed, login-free download link:
+      #   https://github.com/SharkMI-0x7E/CardBoard/releases/download/ci-build/<file>.jar
+      # Updated on every push to main (--clobber replaces the old asset).
+      # Tag "ci-build" deliberately does not match the "v*" release workflow.
+      - name: Publish fixed-download-link CI build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view ci-build >/dev/null 2>&1 || \
+            gh release create ci-build \
+              --prerelease \
+              --title "CI Build (latest main)" \
+              --notes "Automatic build of the latest main branch. Updated on every push to main. Grab the jar below (also keeps the version in its file name)."
+          for f in build/libs/CardBoard-Fork-SharkMI-*.jar; do
+            case "$f" in
+              *-sources.jar|*-dev.jar|*-slim.jar) continue;;
+            esac
+            gh release upload ci-build "$f" --clobber
+          done
 
       - name: Upload Test Reports
         if: failure()
