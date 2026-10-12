@@ -1,136 +1,1186 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CardBoard Fork (SharkMI) · CI Builds</title>
+<title>CardBoard Fork · 构建</title>
 <style>
   :root {
-    --bg: #0d1117; --panel: #161b22; --border: #30363d;
-    --text: #e6edf3; --muted: #8b949e; --accent: #2f81f7;
-    --ok: #3fb950; --bad: #f85149; --wait: #d29922;
+    --bg: #fff; --panel: #f6f8fa;
+    --border: #d8dee4; --border-soft: #eaeef2;
+    --text: #1f2328; --muted: #59636e;
+    --accent: #0969da; --ok: #1a7f37; --bad: #cf222e; --wait: #9a6700;
+    --empty: #e6eaee; --weekend: #fafbfc;
+    --tooltip-bg: rgba(31, 35, 40, .95);
+    --tooltip-text: #fff;
+    --tooltip-meta: #8b949e;
+    --chart-x-fade: linear-gradient(180deg, transparent, #fff 40%);
+    --scroll-thumb: #d0d7de;
+    --scroll-thumb-hover: #afb8c1;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  [data-theme="dark"] {
+    --bg: #0d1117; --panel: #161b22;
+    --border: #30363d; --border-soft: #21262d;
+    --text: #e6edf3; --muted: #8b949e;
+    --accent: #2f81f7; --ok: #3fb950; --bad: #f85149; --wait: #d29922;
+    --empty: #21262d; --weekend: #10161d;
+    --tooltip-bg: rgba(230, 237, 243, .95);
+    --tooltip-text: #0d1117;
+    --tooltip-meta: #59636e;
+    --chart-x-fade: linear-gradient(180deg, transparent, #0d1117 40%);
+    --scroll-thumb: #30363d;
+    --scroll-thumb-hover: #484f58;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
-    font: 15px/1.6 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background .15s, color .15s;
   }
-  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 60px; }
-  h1 { font-size: 26px; margin: 0 0 4px; }
-  h1 span { color: var(--muted); font-weight: 500; }
-  .sub { color: var(--muted); margin: 0 0 28px; }
-  h2 { font-size: 16px; margin: 32px 0 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 14px; margin-bottom: 22px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  header h1 span { color: var(--muted); font-weight: 400; }
+  header .sub { color: var(--muted); font-size: 12.5px; }
+  header nav { margin-left: auto; display: flex; gap: 14px; font-size: 13px; align-items: center; }
+  .theme-btn {
+    width: 30px; height: 30px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text);
+    border-radius: 6px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .theme-btn:hover { background: var(--panel); }
+  .badge {
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 9px; color: var(--muted);
+  }
+  .theme-btn svg { width: 15px; height: 15px; }
+  .theme-btn .icon-sun { display: none; }
+  [data-theme="dark"] .theme-btn .icon-sun { display: block; }
+  [data-theme="dark"] .theme-btn .icon-moon { display: none; }
+
+  .dl {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 20px; margin-bottom: 22px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
   .btn {
-    display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
-    font-weight: 600; padding: 12px 22px; border-radius: 8px; font-size: 16px;
+    background: var(--ok); color: #fff; font-weight: 600;
+    padding: 9px 18px; border-radius: 6px; font-size: 14px;
+    display: inline-block; white-space: nowrap;
   }
-  .btn:hover { filter: brightness(1.1); }
-  .btn.disabled { background: #21262d; color: var(--muted); pointer-events: none; }
-  .meta { color: var(--muted); font-size: 13px; margin: 10px 0 0; word-break: break-all; }
-  ul.runs { list-style: none; padding: 0; margin: 0; }
-  .run { display: flex; gap: 10px; align-items: baseline; padding: 9px 4px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
-  .run:last-child { border-bottom: 0; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; align-self: center; background: var(--wait); }
-  .run.ok .dot { background: var(--ok); }
-  .run.bad .dot { background: var(--bad); }
-  .msg { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sha, .time { color: var(--muted); font-family: ui-monospace, Consolas, monospace; font-size: 12px; flex: none; }
-  .run a { color: var(--accent); text-decoration: none; font-size: 12px; flex: none; }
-  footer { margin-top: 40px; color: var(--muted); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; }
-  footer a { color: var(--accent); text-decoration: none; }
-  .note { color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+  .btn:hover { filter: brightness(1.08); text-decoration: none; }
+  .btn.off { background: #d0d7de; color: #59636e; pointer-events: none; }
+  [data-theme="dark"] .btn.off { background: #30363d; color: #8b949e; }
+  .dl .info { color: var(--muted); font-size: 13px; }
+  .dl .info b { color: var(--text); font-weight: 600; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px; margin-bottom: 22px;
+  }
+  .stat {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 13px 16px;
+  }
+  .stat .k { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .stat .v { font-size: 20px; font-weight: 600; font-family: var(--mono); }
+  .stat .v.ok { color: var(--ok); }
+  .stat .v.bad { color: var(--bad); }
+  .stat .sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+  .stat .sub.ok { color: var(--ok); }
+  .stat .sub.bad { color: var(--bad); }
+
+  .filters {
+    display: flex; gap: 6px; margin-bottom: 16px;
+  }
+  .chip {
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    border-radius: 6px; padding: 5px 12px; font-size: 12.5px;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip:hover { background: var(--panel); }
+  .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chip b { font-family: var(--mono); font-size: 11.5px; font-weight: 500; opacity: .8; }
+
+  /* ── chart ── */
+  .chart-wrap { margin-bottom: 28px; position: relative; }
+  .chart-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; gap: 10px; flex-wrap: wrap;
+  }
+  .chart-head .title { font-size: 13px; color: var(--text); font-weight: 600; }
+  .chart-head .title b { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .chart-nav { display: flex; gap: 6px; align-items: center; }
+  .view-range {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+    margin-right: 4px;
+  }
+  .mini {
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); border-radius: 5px;
+    padding: 4px 10px; font-size: 11.5px; cursor: pointer;
+    font-family: inherit;
+  }
+  .mini:hover { background: var(--panel); }
+  .mini:disabled { opacity: .4; cursor: default; }
+
+  .chart-frame {
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    background: var(--bg);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .months {
+    height: 26px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border-soft);
+    position: relative;
+    overflow: hidden;
+  }
+  .months-inner { height: 100%; position: relative; }
+  .month-cell {
+    position: absolute; top: 0; height: 100%;
+    border-right: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 8px;
+    font-size: 11.5px; color: var(--muted);
+    font-family: var(--mono);
+    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .month-cell:last-child { border-right: 0; }
+  .month-cell b { color: var(--text); font-weight: 600; }
+
+  .chart-flex { display: flex; height: 290px; position: relative; }
+  .chart-y {
+    flex: 0 0 42px;
+    position: relative;
+    background: var(--bg);
+    border-right: 1px solid var(--border-soft);
+  }
+  .chart-y .tick {
+    position: absolute; right: 8px;
+    font-size: 11px; color: var(--muted);
+    font-family: var(--mono); line-height: 1;
+    transform: translateY(-50%);
+  }
+  .chart-scroll {
+    flex: 1; overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+    cursor: grab;
+    position: relative;
+    background: var(--bg);
+  }
+  .chart-scroll.dragging { cursor: grabbing; }
+  .chart-scroll.dragging * { cursor: grabbing !important; }
+  .chart-scroll::-webkit-scrollbar { height: 8px; }
+  .chart-scroll::-webkit-scrollbar-track { background: transparent; }
+  .chart-scroll::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb); border-radius: 4px;
+  }
+  .chart-scroll::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+
+  .chart-inner { height: 100%; position: relative; }
+  .weekends, .month-lines, .grid-lines {
+    position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+    pointer-events: none;
+  }
+  .weekends .wk {
+    position: absolute; top: 0; bottom: 0;
+    background: var(--weekend);
+  }
+  .month-lines .ml {
+    position: absolute; top: 0; bottom: 0;
+    width: 1px; background: var(--border-soft);
+  }
+  .grid-lines .gl {
+    position: absolute; left: 0; right: 0;
+    height: 1px; background: var(--border-soft);
+  }
+
+  .chart-bars {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    display: flex; align-items: flex-end;
+    gap: 3px; padding: 0 6px;
+  }
+  .day {
+    flex: 0 0 14px; height: 100%;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+    z-index: 2;
+  }
+  .day.empty .base {
+    width: 100%; height: 2px;
+    background: var(--empty); border-radius: 1px;
+  }
+  .day .bar {
+    width: 100%;
+    background: var(--ok);
+    border-radius: 3px 3px 0 0;
+    min-height: 4px;
+    cursor: pointer;
+    transition: filter .1s;
+    position: relative;
+  }
+  .day .bar.bad { background: var(--bad); }
+  .day .bar.wait { background: var(--wait); }
+  .day .bar:hover { filter: brightness(1.12); }
+  .day .bar.slow::before {
+    content: '';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 5px solid var(--wait);
+  }
+  .day.today .bar::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; left: 0; right: 0;
+    height: 2px; background: var(--accent);
+  }
+
+  .chart-x {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 22px;
+    background: var(--chart-x-fade);
+    pointer-events: none;
+  }
+  .chart-x .lab {
+    position: absolute; top: 4px;
+    font-size: 11px; color: var(--muted);
+    font-family: var(--mono);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .chart-tip {
+    position: absolute; z-index: 100;
+    background: var(--tooltip-bg); color: var(--tooltip-text);
+    border-radius: 5px; padding: 9px 11px;
+    font-size: 12px; line-height: 1.5;
+    pointer-events: none; opacity: 0;
+    white-space: nowrap;
+    font-family: var(--mono);
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
+    max-width: 320px;
+  }
+  .chart-tip.show { opacity: 1; }
+  .tip-title { font-weight: 600; margin-bottom: 4px; font-size: 12.5px; }
+  .tip-status { font-weight: 600; }
+  .tip-status.ok { color: #3fb950; }
+  .tip-status.bad { color: #f85149; }
+  .tip-status.wait { color: #d29922; }
+  .tip-sep { color: var(--tooltip-meta); margin: 0 5px; }
+  .tip-meta { color: var(--tooltip-meta); font-size: 11px; margin-top: 4px; }
+  .tip-fail {
+    color: #f85149; font-size: 11px; margin-top: 4px;
+    white-space: normal; max-width: 280px;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .chart-foot {
+    margin-top: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; font-size: 12px; color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .chart-foot .hint { font-family: var(--mono); font-size: 11.5px; }
+  .legend-inline { display: flex; gap: 12px; align-items: center; }
+  .legend-inline span { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; }
+  .ldot { width: 8px; height: 8px; border-radius: 2px; }
+  .ltri {
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 5px solid var(--wait);
+  }
+
+  /* ── builds list ── */
+  .builds { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .builds .head, .builds .row {
+    display: grid;
+    grid-template-columns: 16px 52px 1fr 72px 58px 96px 52px;
+    gap: 12px; padding: 9px 16px;
+    align-items: center; font-size: 13px;
+  }
+  .builds .head {
+    background: var(--panel); color: var(--muted);
+    font-size: 12px; border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .builds .row { border-bottom: 1px solid var(--border-soft); }
+  .builds .row:last-child { border-bottom: 0; }
+  .builds .row:hover { background: var(--panel); }
+  .builds .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .builds .row.ok .dot { background: var(--ok); }
+  .builds .row.bad .dot { background: var(--bad); }
+  .builds .num { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .builds .msg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .builds .author {
+    font-size: 12px; color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .builds .sha { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .builds .time { font-size: 12px; color: var(--muted); }
+  .builds .dur { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+  .empty-state {
+    padding: 40px 20px; text-align: center;
+    color: var(--muted); font-size: 13px;
+  }
+
+  footer { margin-top: 28px; color: var(--muted); font-size: 12px; }
+  footer a { margin-right: 14px; }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .builds .head, .builds .row {
+      grid-template-columns: 16px 46px 1fr 88px 46px;
+    }
+    .builds .author, .builds .sha { display: none; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>CardBoard Fork <span>· SharkMI</span></h1>
-  <p class="sub">Bukkit/Spigot plugins on a Fabric server · Minecraft 1.21.11 · personal fork, builds here are test builds</p>
+<div class="wrap">
+  <header>
+    <h1>CardBoard Fork <span>/ SharkMI</span></h1>
+    <span class="sub">Fabric 1.21.11</span>
+    <span class="badge" id="buildBadge" style="display:none"></span>
+    <nav>
+      <a id="n1" href="#">GitHub</a>
+      <a id="n2" href="#">Releases</a>
+      <a id="n3" href="#">Actions</a>
+      <button class="theme-btn" id="themeBtn" aria-label="切换主题">
+        <svg class="icon-moon" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Z"/>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM8 0a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 13ZM2.343 2.343a.75.75 0 0 1 1.061 0l.707.707a.75.75 0 0 1-1.06 1.06l-.708-.707a.75.75 0 0 1 0-1.06Zm9.546 9.546a.75.75 0 0 1 1.06 0l.708.708a.75.75 0 1 1-1.06 1.06l-.708-.707a.75.75 0 0 1 0-1.06ZM0 8a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 0 8Zm13 0a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 13 8ZM2.343 13.657a.75.75 0 0 1 0-1.061l.707-.707a.75.75 0 0 1 1.06 1.06l-.707.708a.75.75 0 0 1-1.06 0Zm9.546-9.546a.75.75 0 0 1 0-1.06l.708-.708a.75.75 0 1 1 1.06 1.06l-.707.708a.75.75 0 0 1-1.061 0Z"/>
+        </svg>
+      </button>
+    </nav>
+  </header>
 
-  <section class="card">
-    <a id="downloadBtn" class="btn disabled" href="#">Latest CI build</a>
-    <p id="downloadMeta" class="meta">resolving latest build…</p>
-    <p class="note">Every push to <code>main</code> is built automatically and published to this fixed link.</p>
-  </section>
+  <div class="dl">
+    <a id="dlBtn" class="btn off" href="#">加载中</a>
+    <span id="dlInfo" class="info"></span>
+    <button class="mini" id="copyLink" style="display:none">复制直链</button>
+  </div>
 
-  <h2>Recent builds</h2>
-  <section class="card">
-    <ul id="runs" class="runs"><li class="run"><span class="dot"></span><span class="msg">loading…</span></li></ul>
-  </section>
+  <div class="stats">
+    <div class="stat">
+      <div class="k">最近一次</div>
+      <div class="v" id="s1">—</div>
+      <div class="sub" id="s1sub"></div>
+    </div>
+    <div class="stat"><div class="k">上次成功</div><div class="v" id="s2">—</div></div>
+    <div class="stat"><div class="k">近期成功率</div><div class="v" id="s3">—</div></div>
+    <div class="stat"><div class="k">总构建次数</div><div class="v" id="s4">—</div></div>
+  </div>
+
+  <div class="filters">
+    <button class="chip active" data-filter="all">全部 <b id="cntAll">0</b></button>
+    <button class="chip" data-filter="ok">成功 <b id="cntOk">0</b></button>
+    <button class="chip" data-filter="bad">失败 <b id="cntBad">0</b></button>
+  </div>
+
+  <div class="chart-wrap" id="chartWrap">
+    <div class="chart-head">
+      <div class="title">构建次数<b id="chartRange">—</b></div>
+      <div class="chart-nav">
+        <span class="view-range" id="viewRange"></span>
+        <button class="mini" id="goFirst" title="跳到最早">← 最早</button>
+        <button class="mini" id="goLatest" title="跳到最新">最新 →</button>
+      </div>
+    </div>
+
+    <div class="chart-frame">
+      <div class="months"><div class="months-inner" id="monthsInner"></div></div>
+      <div class="chart-flex">
+        <div class="chart-y" id="chartY"></div>
+        <div class="chart-scroll" id="chartScroll">
+          <div class="chart-inner" id="chartInner">
+            <div class="weekends" id="weekends"></div>
+            <div class="month-lines" id="monthLines"></div>
+            <div class="grid-lines" id="gridLines"></div>
+            <div class="chart-bars" id="chartBars"></div>
+            <div class="chart-x" id="chartX"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-tip" id="chartTip"></div>
+    <div class="chart-foot">
+      <span class="hint" id="chartHint">滚轮或按住拖动查看更早的构建</span>
+      <div class="legend-inline">
+        <span><i class="ldot" style="background:var(--ok)"></i>成功</span>
+        <span><i class="ldot" style="background:var(--bad)"></i>失败</span>
+        <span><i class="ldot" style="background:var(--empty)"></i>无提交</span>
+      </div>
+      <button class="mini" id="loadMore" style="display:none">加载更早</button>
+    </div>
+  </div>
+
+  <div class="builds">
+    <div class="head">
+      <span></span><span>构建</span><span>提交</span><span>作者</span>
+      <span>SHA</span><span>时间</span><span>耗时</span>
+    </div>
+    <div id="list"></div>
+  </div>
 
   <footer>
-    <a id="repoLink" href="#">GitHub repository</a>
-    <a id="releasesLink" href="#">Releases</a>
-    <a id="actionsLink" href="#">All builds (Actions)</a>
+    <a id="f1" href="#">GitHub</a>
+    <a id="f2" href="#">Actions</a>
+    个人维护分支，构建为测试用途
   </footer>
-</main>
+</div>
 
 <script>
 (function () {
   var REPO = 'SharkMI-0x7E/CardBoard';
   var API = 'https://api.github.com/repos/' + REPO;
+  var GH = 'https://github.com/' + REPO;
 
-  document.getElementById('repoLink').href = 'https://github.com/' + REPO;
-  document.getElementById('releasesLink').href = 'https://github.com/' + REPO + '/releases';
-  document.getElementById('actionsLink').href = 'https://github.com/' + REPO + '/actions';
+  document.getElementById('n1').href = GH;
+  document.getElementById('f1').href = GH;
+  document.getElementById('n2').href = GH + '/releases';
+  document.getElementById('n3').href = GH + '/actions';
+  document.getElementById('f2').href = GH + '/actions';
+
+  /* ── 主题 ── */
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem('cb-theme'); } catch (e) {}
+    if (saved === 'dark' || saved === 'light') { applyTheme(saved); return; }
+    var prefersDark = window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+  initTheme();
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    var next = cur === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('cb-theme', next); } catch (e) {}
+  });
 
   function esc(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-
-  function relTime(iso) {
-    var t = new Date(iso).getTime();
-    var d = Math.max(0, Date.now() - t) / 1000;
-    if (d < 3600) return Math.round(d / 60) + 'm ago';
-    if (d < 86400) return Math.round(d / 3600) + 'h ago';
-    return Math.round(d / 86400) + 'd ago';
-  }
-
-  fetch(API + '/releases/tags/ci-build')
-    .then(function (r) { if (!r.ok) throw new Error('no ci-build release yet'); return r.json(); })
-    .then(function (d) {
-      var jar = (d.assets || []).filter(function (a) { return /\.jar$/.test(a.name); })[0];
-      if (!jar) throw new Error('no jar asset yet');
-      var btn = document.getElementById('downloadBtn');
-      btn.href = jar.browser_download_url;
-      btn.classList.remove('disabled');
-      btn.textContent = 'Download latest CI build';
-      document.getElementById('downloadMeta').textContent =
-        jar.name + ' · ' + (jar.size / 1048576).toFixed(1) + ' MB · updated ' + relTime(d.updated_at);
-    })
-    .catch(function () {
-      document.getElementById('downloadMeta').textContent =
-        'No CI build published yet — it is created automatically by the first push to main.';
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
+  }
+  function rel(iso) {
+    var d = Math.max(0, Date.now() - new Date(iso).getTime()) / 1000;
+    if (d < 60) return Math.round(d) + 's';
+    if (d < 3600) return Math.round(d/60) + 'm';
+    if (d < 86400) return Math.round(d/3600) + 'h';
+    return Math.round(d/86400) + 'd';
+  }
+  function durSec(run) {
+    if (!run.created_at || !run.updated_at) return null;
+    var s = (new Date(run.updated_at) - new Date(run.created_at)) / 1000;
+    if (s < 0 || s > 21600) return null;
+    return Math.round(s);
+  }
+  function fmtDur(s) {
+    if (s == null) return '—';
+    if (s < 60) return s + 's';
+    var m = Math.floor(s / 60), r = s % 60;
+    return r ? m + 'm' + r + 's' : m + 'm';
+  }
+  function cls(run) {
+    if (run.status !== 'completed') return 'wait';
+    return run.conclusion === 'success' ? 'ok' : 'bad';
+  }
+  function statusText(run) {
+    if (run.status !== 'completed') return run.status === 'in_progress' ? '进行中' : '等待中';
+    if (run.conclusion === 'success') return '成功';
+    if (run.conclusion === 'failure') return '失败';
+    return run.conclusion;
+  }
+  function dayKey(d) {
+    return d.getFullYear() + '-' +
+           String(d.getMonth()+1).padStart(2,'0') + '-' +
+           String(d.getDate()).padStart(2,'0');
+  }
+  function dayLabel(d) { return (d.getMonth()+1) + '/' + d.getDate(); }
+  function fullDate(d) {
+    return d.getFullYear() + '-' +
+           String(d.getMonth()+1).padStart(2,'0') + '-' +
+           String(d.getDate()).padStart(2,'0');
+  }
+  function niceCeilCount(v) {
+    if (v <= 5) return 5;
+    if (v <= 10) return 10;
+    if (v <= 15) return 15;
+    if (v <= 20) return 20;
+    return Math.ceil(v / 10) * 10;
+  }
+  function authorName(run) {
+    if (!run.head_commit || !run.head_commit.author) return '';
+    return run.head_commit.author.name || run.head_commit.author.username || '';
+  }
 
-  fetch(API + '/actions/runs?branch=main&per_page=12')
-    .then(function (r) { return r.json(); })
-    .then(function (d) {
-      var ul = document.getElementById('runs');
-      ul.innerHTML = '';
-      (d.workflow_runs || []).forEach(function (run) {
-        var cls = run.status !== 'completed' ? '' : (run.conclusion === 'success' ? 'ok' : 'bad');
-        var msg = ((run.head_commit && run.head_commit.message) || '').split('\n')[0];
-        var li = document.createElement('li');
-        li.className = 'run ' + cls;
-        li.innerHTML =
-          '<span class="dot"></span>' +
-          '<span class="msg">' + esc(msg) + '</span>' +
-          '<span class="sha">' + esc(run.head_sha.slice(0, 7)) + '</span>' +
-          '<span class="time">' + relTime(run.created_at) + '</span>' +
-          '<a href="' + esc(run.html_url) + '">details</a>';
-        ul.appendChild(li);
+  var chartY = document.getElementById('chartY');
+  var chartBars = document.getElementById('chartBars');
+  var chartX = document.getElementById('chartX');
+  var chartTip = document.getElementById('chartTip');
+  var chartWrap = document.getElementById('chartWrap');
+  var chartScroll = document.getElementById('chartScroll');
+  var chartInner = document.getElementById('chartInner');
+  var monthsInner = document.getElementById('monthsInner');
+  var weekends = document.getElementById('weekends');
+  var monthLines = document.getElementById('monthLines');
+  var gridLines = document.getElementById('gridLines');
+  var chartRange = document.getElementById('chartRange');
+  var chartHint = document.getElementById('chartHint');
+  var viewRange = document.getElementById('viewRange');
+  var loadMoreBtn = document.getElementById('loadMore');
+
+  var COL_W = 14, GAP = 3, PAD_X = 6;
+  var allRuns = [];
+  var nextPage = 1;
+  var hasMore = false;
+  var currentSeries = [];
+  var currentFilter = 'all';
+  var slowThreshold = null;
+  var autoTimer = null;
+  var autoStopTimer = null;
+
+  /* ── 失败原因懒加载 ── */
+  var failureCache = {};
+  function fetchFailureReason(run) {
+    if (failureCache[run.id] !== undefined) {
+      return Promise.resolve(failureCache[run.id]);
+    }
+    return fetch(API + '/actions/runs/' + run.id + '/jobs')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if (!d) { failureCache[run.id] = null; return null; }
+        var failed = (d.jobs || []).find(function(j){ return j.conclusion === 'failure'; });
+        if (!failed) { failureCache[run.id] = null; return null; }
+        var badStep = (failed.steps || []).find(function(s){ return s.conclusion === 'failure'; });
+        var reason = badStep
+          ? failed.name + ' → ' + badStep.name
+          : failed.name;
+        failureCache[run.id] = reason;
+        return reason;
+      })
+      .catch(function(){ failureCache[run.id] = null; return null; });
+  }
+
+  /* ── tooltip ── */
+  function hideTip() { chartTip.classList.remove('show'); }
+
+  function showTip(el, day) {
+    var c = day.status;
+    var tipStatus = c === 'ok' ? '成功' : c === 'bad' ? '失败' : '进行中';
+    var head = '<div class="tip-title">' + fullDate(day.date) + '</div>';
+    var statLine = day.count + ' 次构建<span class="tip-sep">·</span>' +
+      '<span class="tip-status ' + c + '">' + tipStatus + '</span>';
+    var body = statLine;
+
+    chartTip.innerHTML = head + body + '<div class="tip-fail" id="tipFail"></div>';
+    chartTip.classList.add('show');
+    positionTip(el);
+
+    /* 失败原因懒加载 */
+    if (c === 'bad' && day.runs[0]) {
+      fetchFailureReason(day.runs[0]).then(function(reason){
+        var el2 = document.getElementById('tipFail');
+        if (!el2) return;
+        if (reason) {
+          el2.textContent = '✗ ' + reason;
+        } else {
+          el2.style.display = 'none';
+        }
+        positionTip(el);
       });
-      if (!ul.children.length) {
-        ul.innerHTML = '<li class="run"><span class="dot"></span><span class="msg">no runs yet</span></li>';
-      }
-    })
-    .catch(function () {
-      document.getElementById('runs').innerHTML =
-        '<li class="run"><span class="dot"></span><span class="msg">could not load builds (GitHub API rate limit?)</span></li>';
+    } else {
+      var el3 = document.getElementById('tipFail');
+      if (el3) el3.style.display = 'none';
+    }
+  }
+
+  function positionTip(el) {
+    var tipW = chartTip.offsetWidth;
+    var wrapRect = chartWrap.getBoundingClientRect();
+    var elRect = el.getBoundingClientRect();
+    var left = elRect.left - wrapRect.left + elRect.width / 2 - tipW / 2;
+    left = Math.max(4, Math.min(wrapRect.width - tipW - 4, left));
+    var top = elRect.top - wrapRect.top - chartTip.offsetHeight - 8;
+    if (top < 4) top = elRect.bottom - wrapRect.top + 8;
+    chartTip.style.left = left + 'px';
+    chartTip.style.top = top + 'px';
+  }
+
+  /* ── 按天分组 ── */
+  function groupByDay(runs) {
+    var map = {};
+    runs.forEach(function(r){
+      var d = new Date(r.created_at);
+      var local = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      var k = dayKey(local);
+      if (!map[k]) map[k] = { date: local, runs: [], key: k };
+      map[k].runs.push(r);
     });
+    var result = Object.keys(map).map(function(k){
+      var day = map[k];
+      day.runs.sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
+      day.count = day.runs.length;
+      var hasBad = day.runs.some(function(r){ return cls(r) === 'bad'; });
+      var hasWait = day.runs.some(function(r){ return cls(r) === 'wait'; });
+      day.status = hasBad ? 'bad' : hasWait ? 'wait' : 'ok';
+      return day;
+    });
+    result.sort(function(a,b){ return a.date - b.date; });
+    return result;
+  }
+
+  function buildDateRange(days, minDate, maxDate) {
+    var map = {};
+    days.forEach(function(d){ map[d.key] = d; });
+    var result = [];
+    var cur = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
+    var end = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+    while (cur <= end) {
+      var k = dayKey(cur);
+      result.push(map[k] || {
+        date: new Date(cur), key: k, empty: true,
+        runs: [], count: 0, status: null
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
+    return result;
+  }
+
+  function dayX(i) { return PAD_X + i * (COL_W + GAP); }
+  function dayCX(i) { return dayX(i) + COL_W / 2; }
+
+  /* ── 筛选 ── */
+  function filteredRuns() {
+    if (currentFilter === 'all') return allRuns;
+    return allRuns.filter(function(r){ return cls(r) === currentFilter; });
+  }
+
+  /* ── 图表渲染 ── */
+  function renderChart() {
+    var runs = filteredRuns();
+    if (!runs.length) {
+      chartY.innerHTML = '';
+      chartBars.innerHTML = '';
+      chartX.innerHTML = '';
+      monthsInner.innerHTML = '';
+      weekends.innerHTML = '';
+      monthLines.innerHTML = '';
+      gridLines.innerHTML = '';
+      chartInner.style.width = '100%';
+      monthsInner.style.width = '100%';
+      chartRange.textContent = '';
+      chartHint.textContent = '无数据';
+      viewRange.textContent = '';
+      return;
+    }
+
+    var days = groupByDay(runs);
+    var minDate = days[0].date;
+    var maxDate = days[days.length - 1].date;
+    var series = buildDateRange(days, minDate, maxDate);
+    currentSeries = series;
+
+    /* 次数图：不标记慢速 */
+    slowThreshold = null;
+    series.forEach(function(d){ d.isSlow = false; });
+
+    var maxCount = 1;
+    series.forEach(function(d){
+      if (d.count > maxCount) maxCount = d.count;
+    });
+    var max = niceCeilCount(maxCount);
+
+    chartY.innerHTML = '';
+    var fracs = max <= 10 ? [0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1];
+    fracs.forEach(function(frac){
+      var t = document.createElement('div');
+      t.className = 'tick';
+      t.style.top = (100 - frac * 100) + '%';
+      t.textContent = Math.round(max * frac);
+      chartY.appendChild(t);
+    });
+
+    var innerW = PAD_X * 2 + series.length * COL_W + (series.length - 1) * GAP;
+    chartInner.style.width = innerW + 'px';
+    monthsInner.style.width = innerW + 'px';
+
+    gridLines.innerHTML = '';
+    [1/3, 2/3].forEach(function(frac){
+      var gl = document.createElement('div');
+      gl.className = 'gl';
+      gl.style.top = (frac * 100) + '%';
+      gridLines.appendChild(gl);
+    });
+
+    weekends.innerHTML = '';
+    series.forEach(function(day, i){
+      var wd = day.date.getDay();
+      if (wd !== 0 && wd !== 6) return;
+      var wk = document.createElement('div');
+      wk.className = 'wk';
+      wk.style.left = dayX(i) + 'px';
+      wk.style.width = COL_W + 'px';
+      weekends.appendChild(wk);
+    });
+
+    monthLines.innerHTML = '';
+    series.forEach(function(day, i){
+      if (day.date.getDate() !== 1) return;
+      var ml = document.createElement('div');
+      ml.className = 'ml';
+      ml.style.left = (dayX(i) - GAP/2) + 'px';
+      monthLines.appendChild(ml);
+    });
+
+    monthsInner.innerHTML = '';
+    var months = [];
+    series.forEach(function(day, i){
+      var key = day.date.getFullYear() + '-' + day.date.getMonth();
+      var last = months[months.length - 1];
+      if (last && last.key === key) { last.end = i; }
+      else { months.push({ key: key, start: i, end: i, date: day.date }); }
+    });
+    months.forEach(function(m){
+      var cell = document.createElement('div');
+      cell.className = 'month-cell';
+      var left = dayX(m.start) - GAP/2;
+      var right = dayX(m.end) + COL_W + GAP/2;
+      cell.style.left = left + 'px';
+      cell.style.width = (right - left) + 'px';
+      cell.innerHTML = '<b>' + m.date.getFullYear() + '</b>年' +
+        '<b>' + (m.date.getMonth()+1) + '</b>月';
+      monthsInner.appendChild(cell);
+    });
+
+    chartBars.innerHTML = '';
+    var todayKey = dayKey(new Date());
+    series.forEach(function(day, i){
+      var cell = document.createElement('div');
+      cell.className = 'day' + (day.empty ? ' empty' : '') +
+                       (day.key === todayKey ? ' today' : '');
+      if (day.empty) {
+        var base = document.createElement('div');
+        base.className = 'base';
+        cell.appendChild(base);
+      } else {
+        var bar = document.createElement('div');
+        bar.className = 'bar ' + day.status;
+        bar.style.height = Math.max(4, (day.count || 0) / max * 100) + '%';
+        (function(d, el){
+          el.addEventListener('mouseenter', function(){ showTip(el, d); });
+          el.addEventListener('mouseleave', hideTip);
+          if (d.runs[0]) {
+            el.addEventListener('click', function(){ window.open(d.runs[0].html_url, '_blank'); });
+          }
+        })(day, bar);
+        cell.appendChild(bar);
+      }
+      chartBars.appendChild(cell);
+    });
+
+    chartX.innerHTML = '';
+    series.forEach(function(day, i){
+      var isFirst = i === 0;
+      var isLast  = i === series.length - 1;
+      var isMonthStart = day.date.getDate() === 1;
+      if (!(isFirst || isLast || isMonthStart)) return;
+      var lab = document.createElement('div');
+      lab.className = 'lab';
+      lab.textContent = dayLabel(day.date);
+      lab.style.left = dayCX(i) + 'px';
+      chartX.appendChild(lab);
+    });
+
+    chartRange.textContent = ' · ' + dayLabel(series[0].date) + ' – ' +
+      dayLabel(series[series.length-1].date);
+
+    var activeDays = series.filter(function(d){ return !d.empty; }).length;
+    var emptyDays = series.length - activeDays;
+    chartHint.textContent = activeDays + ' 个构建日' +
+      (emptyDays ? ' · ' + emptyDays + ' 天空白' : '') +
+      ' · 共 ' + series.length + ' 天';
+
+    updateViewRange();
+  }
+
+  function updateViewRange() {
+    if (!currentSeries.length) return;
+    var scrollLeft = chartScroll.scrollLeft;
+    var viewW = chartScroll.clientWidth;
+    var scrollW = chartScroll.scrollWidth;
+    if (scrollW <= viewW) { viewRange.textContent = ''; return; }
+    function xToIdx(x) {
+      return Math.max(0, Math.min(currentSeries.length - 1,
+        Math.round((x - PAD_X - COL_W / 2) / (COL_W + GAP))));
+    }
+    var leftIdx = xToIdx(scrollLeft);
+    var rightIdx = xToIdx(scrollLeft + viewW);
+    viewRange.textContent = dayLabel(currentSeries[leftIdx].date) + ' – ' +
+      dayLabel(currentSeries[rightIdx].date);
+  }
+
+  /* ── 滚动 & 拖动 ── */
+  var dragging = false, dragStartX = 0, dragStartScroll = 0, moved = false;
+
+  chartScroll.addEventListener('mousedown', function(e){
+    if (e.button !== 0) return;
+    dragging = true; moved = false;
+    dragStartX = e.pageX;
+    dragStartScroll = chartScroll.scrollLeft;
+    chartScroll.classList.add('dragging');
+  });
+  document.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    var dx = e.pageX - dragStartX;
+    if (Math.abs(dx) > 3) moved = true;
+    chartScroll.scrollLeft = dragStartScroll - dx;
+    updateViewRange();
+  });
+  document.addEventListener('mouseup', function(){
+    if (!dragging) return;
+    dragging = false;
+    chartScroll.classList.remove('dragging');
+  });
+  chartScroll.addEventListener('click', function(e){
+    if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+  }, true);
+
+  chartScroll.addEventListener('wheel', function(e){
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      chartScroll.scrollLeft += e.deltaY;
+      updateViewRange();
+    }
+  }, { passive: false });
+
+  chartScroll.addEventListener('scroll', function(){
+    monthsInner.style.transform = 'translateX(' + (-chartScroll.scrollLeft) + 'px)';
+    updateViewRange();
+  });
+
+  document.getElementById('goFirst').addEventListener('click', function(){
+    chartScroll.scrollTo({ left: 0, behavior: 'smooth' });
+  });
+  document.getElementById('goLatest').addEventListener('click', function(){
+    chartScroll.scrollTo({ left: chartScroll.scrollWidth, behavior: 'smooth' });
+  });
+
+  /* ── 数据抓取 ── */
+  function fetchPage(page) {
+    var url = API + '/actions/runs?branch=main&per_page=100&page=' + page;
+    return fetch(url).then(function(r){
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }).then(function(d){
+      return d.workflow_runs || [];
+    });
+  }
+
+  loadMoreBtn.addEventListener('click', function(){
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.textContent = '加载中…';
+    var prevLeft = chartScroll.scrollLeft;
+    var prevWidth = chartScroll.scrollWidth;
+    fetchPage(nextPage).then(function(runs){
+      allRuns = allRuns.concat(runs);
+      nextPage++;
+      hasMore = runs.length === 100;
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = '加载更早';
+      if (!hasMore) loadMoreBtn.style.display = 'none';
+      renderAll();
+      var newWidth = chartScroll.scrollWidth;
+      chartScroll.scrollLeft = prevLeft + (newWidth - prevWidth);
+    }).catch(function(){
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = '加载失败，重试';
+    });
+  });
+
+  /* ── 统计卡片 ── */
+  function renderStats() {
+    var done = allRuns.filter(function(r){ return r.status === 'completed'; });
+    var ok = allRuns.filter(function(r){ return r.conclusion === 'success'; });
+    var bad = allRuns.filter(function(r){ return r.conclusion === 'failure'; });
+    var latest = allRuns[0];
+
+    if (latest) {
+      var s1 = document.getElementById('s1');
+      s1.textContent = statusText(latest);
+      s1.className = 'v ' + cls(latest);
+
+      /* 连续状态 */
+      var streak = 1;
+      var baseCls = cls(latest);
+      if (baseCls === 'ok' || baseCls === 'bad') {
+        for (var i = 1; i < allRuns.length; i++) {
+          if (cls(allRuns[i]) === baseCls) streak++;
+          else break;
+        }
+      }
+      var sub = document.getElementById('s1sub');
+      if (streak >= 2 && (baseCls === 'ok' || baseCls === 'bad')) {
+        sub.textContent = '连续 ' + streak + ' 次' +
+          (baseCls === 'ok' ? '成功' : '失败');
+        sub.className = 'sub ' + baseCls;
+      } else {
+        sub.textContent = '';
+        sub.className = 'sub';
+      }
+    }
+
+    if (ok[0]) {
+      var s2 = document.getElementById('s2');
+      s2.textContent = '#' + ok[0].run_number;
+      s2.className = 'v ok';
+      var badge = document.getElementById('buildBadge');
+      badge.style.display = '';
+      badge.textContent = 'b' + ok[0].run_number;
+      badge.title = '最新可下载构建号（ci-build）';
+    }
+    if (done.length) {
+      var rate = Math.round(ok.length / done.length * 100);
+      var s3 = document.getElementById('s3');
+      s3.textContent = rate + '%';
+      s3.className = 'v ' + (rate >= 80 ? 'ok' : 'bad');
+    }
+    document.getElementById('s4').textContent = allRuns.length;
+
+    /* 筛选计数 */
+    document.getElementById('cntAll').textContent = allRuns.length;
+    document.getElementById('cntOk').textContent = ok.length;
+    document.getElementById('cntBad').textContent = bad.length;
+
+    return ok[0];
+  }
+
+  /* ── 下载（直链 jar + 复制）── */
+  function renderDownload(lastOk) {
+    var btn = document.getElementById('dlBtn');
+    var info = document.getElementById('dlInfo');
+    var copyBtn = document.getElementById('copyLink');
+    if (!lastOk) {
+      btn.textContent = '暂无成功构建';
+      info.textContent = '推送到 main 后自动构建';
+      copyBtn.style.display = 'none';
+      return;
+    }
+    btn.className = 'btn';
+    btn.textContent = '下载 #' + lastOk.run_number;
+
+    fetch(API + '/releases/tags/ci-build')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(rel){
+        var asset = rel && (rel.assets || [])[0];
+        var jarUrl, jarName, jarSize;
+        if (asset) {
+          jarUrl = asset.browser_download_url;
+          jarName = asset.name;
+          jarSize = (asset.size / 1048576).toFixed(1) + ' MB';
+        } else {
+          jarUrl = lastOk.html_url;
+          jarName = '构建 #' + lastOk.run_number;
+          jarSize = '';
+        }
+        btn.href = jarUrl;
+        info.innerHTML = '<b>' + esc(jarName) + '</b>' +
+          (jarSize ? ' · ' + jarSize : '') + ' · ' +
+          rel(lastOk.created_at) + '前 · 直链（非 zip）';
+        if (jarUrl !== lastOk.html_url) {
+          copyBtn.style.display = '';
+          copyBtn.onclick = function(){ copyToClipboard(jarUrl, copyBtn); };
+        } else {
+          copyBtn.style.display = 'none';
+        }
+      })
+      .catch(function(){
+        btn.href = lastOk.html_url;
+        info.textContent = rel(lastOk.created_at) + '前';
+        copyBtn.style.display = 'none';
+      });
+  }
+
+  function copyToClipboard(text, btn) {
+    var restore = function(){ btn.textContent = '复制直链'; };
+    var ok = function(){
+      btn.textContent = '已复制 ✓';
+      setTimeout(restore, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function(){ fallbackCopy(text); ok(); });
+    } else {
+      fallbackCopy(text); ok();
+    }
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  /* ── 列表 ── */
+  function renderList() {
+    var list = document.getElementById('list');
+    var runs = filteredRuns();
+    if (!runs.length) {
+      list.innerHTML = '<div class="empty-state">当前筛选下无构建记录</div>';
+      return;
+    }
+    list.innerHTML = '';
+    runs.slice(0, 20).forEach(function(run){
+      var msg = ((run.head_commit && run.head_commit.message) || '(无提交信息)').split('\n')[0];
+      var author = authorName(run);
+      var row = document.createElement('div');
+      row.className = 'row ' + cls(run);
+      var dt = new Date(run.created_at);
+      function p2(n){ return String(n).padStart(2, '0'); }
+      var full = dt.getFullYear() + '-' + p2(dt.getMonth()+1) + '-' + p2(dt.getDate()) +
+        ' ' + p2(dt.getHours()) + ':' + p2(dt.getMinutes());
+      var shortDT = (dt.getMonth()+1) + '/' + dt.getDate() + ' ' +
+        p2(dt.getHours()) + ':' + p2(dt.getMinutes());
+      row.innerHTML =
+        '<span class="dot"></span>' +
+        '<span class="num">#' + esc(run.run_number) + '</span>' +
+        '<span class="msg" title="' + esc(msg) + '">' + esc(msg) + '</span>' +
+        '<span class="author" title="' + esc(author) + '">' + esc(author) + '</span>' +
+        '<span class="sha">' + esc((run.head_sha || '').slice(0,7)) + '</span>' +
+        '<span class="time" title="' + esc(full) + '">' + shortDT + '</span>' +
+        '<span class="dur">' + fmtDur(durSec(run)) + '</span>';
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', function(){ window.open(run.html_url, '_blank'); });
+      list.appendChild(row);
+    });
+  }
+
+  /* ── 自动刷新 ── */
+  function maybeAutoRefresh() {
+    if (!allRuns.length) return;
+    var latest = allRuns[0];
+    if (latest.status === 'completed') {
+      stopAutoRefresh();
+      return;
+    }
+    if (autoTimer) return;
+    autoTimer = setInterval(function(){
+      fetchPage(1).then(function(fresh){
+        if (!fresh.length) return;
+        /* 用第一页数据替换最新的部分：保持更早的数据 */
+        var freshIds = {};
+        fresh.forEach(function(r){ freshIds[r.id] = true; });
+        var rest = allRuns.filter(function(r){ return !freshIds[r.id]; });
+        allRuns = fresh.concat(rest);
+        renderAll();
+        if (fresh[0] && fresh[0].status === 'completed') {
+          stopAutoRefresh();
+        }
+      }).catch(function(){});
+    }, 8000);
+    /* 5 分钟后停止轮询，避免无限消耗 API 配额 */
+    autoStopTimer = setTimeout(function(){
+      stopAutoRefresh();
+    }, 5 * 60 * 1000);
+  }
+  function stopAutoRefresh() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    if (autoStopTimer) { clearTimeout(autoStopTimer); autoStopTimer = null; }
+  }
+
+  /* ── 统一渲染 ── */
+  function renderAll() {
+    var lastOk = renderStats();
+    renderDownload(lastOk);
+    renderChart();
+    renderList();
+    maybeAutoRefresh();
+  }
+
+  /* ── 筛选按钮 ── */
+  document.querySelectorAll('.chip').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.chip').forEach(function(b){
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      currentFilter = btn.getAttribute('data-filter');
+      renderChart();
+      renderList();
+    });
+  });
+
+  /* ── 首次加载 ── */
+  fetchPage(1)
+    .then(function(runs){
+      allRuns = runs;
+      nextPage = 2;
+      hasMore = runs.length === 100;
+      if (hasMore) loadMoreBtn.style.display = '';
+      renderAll();
+      requestAnimationFrame(function(){
+        chartScroll.scrollLeft = chartScroll.scrollWidth;
+        monthsInner.style.transform = 'translateX(' + (-chartScroll.scrollLeft) + 'px)';
+        updateViewRange();
+      });
+    })
+    .catch(function(){
+      document.getElementById('dlInfo').textContent = '无法读取构建数据，请前往 Actions 页面';
+      document.getElementById('list').innerHTML =
+        '<div class="empty-state">加载失败，请稍后重试</div>';
+    });
+
+  /* 页签切换回来时自动刷一次 */
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') {
+      fetchPage(1).then(function(fresh){
+        if (!fresh.length) return;
+        var freshIds = {};
+        fresh.forEach(function(r){ freshIds[r.id] = true; });
+        var rest = allRuns.filter(function(r){ return !freshIds[r.id]; });
+        allRuns = fresh.concat(rest);
+        renderAll();
+      }).catch(function(){});
+    }
+  });
 })();
 </script>
 </body>
