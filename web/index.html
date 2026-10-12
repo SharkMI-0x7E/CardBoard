@@ -544,9 +544,13 @@
     if (v <= 20) return 20;
     return Math.ceil(v / 10) * 10;
   }
+  var ownerName = null;  /* 优先显示 GitHub 昵称，失败回退登录名/旧 git 名 */
   function authorName(run) {
-    if (!run.head_commit || !run.head_commit.author) return '';
-    return run.head_commit.author.name || run.head_commit.author.username || '';
+    var a = run.head_commit && run.head_commit.author;
+    if (ownerName) return ownerName;
+    if (a && a.username) return a.username;
+    if (a && a.name) return a.name;
+    return '';
   }
 
   var chartY = document.getElementById('chartY');
@@ -1181,6 +1185,21 @@
       }).catch(function(){});
     }
   });
+
+  /* ── 取 GitHub 昵称（优先于 git 提交里写死的旧作者名）── */
+  function loadOwnerName() {
+    var owner = REPO.split('/')[0];
+    fetch('https://api.github.com/users/' + owner)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(u){
+        if (u && u.name) {
+          ownerName = u.name;
+          if (allRuns.length) renderList();
+        }
+      })
+      .catch(function(){});
+  }
+  loadOwnerName();
 })();
 </script>
 </body>
