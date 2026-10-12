@@ -26,6 +26,7 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.cardboardpowered.bridge.world.item.crafting.RecipeManagerBridge;
 
 import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.flag.FeatureFlags;
 import org.cardboardpowered.bridge.world.item.crafting.RecipeMapBridge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -46,6 +47,16 @@ public abstract class RecipeManagerMixin implements RecipeManagerBridge {
 
     @Shadow
     public abstract void finalizeRecipeLoading(FeatureFlagSet featureFlagSet);
+
+    /**
+     * Compatibility bridge: plugins compiled against the pre-1.21.11 no-arg
+     * signature (e.g. Denizen's script-reload path) call
+     * finalizeRecipeLoading() directly. In 1.21.11 the vanilla method now
+     * takes a FeatureFlagSet, so expose the old signature and delegate to it.
+     */
+    public void finalizeRecipeLoading() {
+        this.finalizeRecipeLoading(FeatureFlags.DEFAULT_FLAGS);
+    }
 
     @Override
 	public  Multimap<RecipeType<?>, RecipeHolder<?>> cb$get_recipesByType() {
@@ -72,7 +83,7 @@ public abstract class RecipeManagerMixin implements RecipeManagerBridge {
         }
     }
 
-    @Inject(method = "finalizeRecipeLoading", at = @At("HEAD"))
+    @Inject(method = "finalizeRecipeLoading(Lnet/minecraft/world/flag/FeatureFlagSet;)V", at = @At("HEAD"))
     public void finalizeRecipeLoadingCraftBukkit(FeatureFlagSet enabledFeatures, CallbackInfo ci) {
         this.featureflagset = enabledFeatures;
         // CraftBukkit end
