@@ -19,6 +19,8 @@
 package org.cardboardpowered.mixin.commands;
 
 import net.minecraft.commands.CommandSource;
+import net.minecraft.server.dedicated.DedicatedServer;
+import org.bukkit.Bukkit;
 import net.minecraft.commands.CommandSourceStack;
 import org.bukkit.command.CommandSender;
 import org.spongepowered.asm.mixin.Mixin;
@@ -42,6 +44,11 @@ public interface CommandSourceMixin extends CommandSourceBridge {
 		}
 			
 		CommandSource output = source.source;
+
+		// Dedicated server console: the Bukkit-side sender is the console sender.
+		if (output instanceof DedicatedServer) {
+			return Bukkit.getServer().getConsoleSender();
+		}
 		
 		// Memic Default Error
 		String msg1 = " does not define or inherit an implementation of the resolved method 'org.bukkit.command.CommandSender";
