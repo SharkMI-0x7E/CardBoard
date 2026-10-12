@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CardBoard Fork (SharkMI) · CI Builds</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #2f81f7;
+    --ok: #3fb950; --bad: #f85149; --wait: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.6 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h1 span { color: var(--muted); font-weight: 500; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  h2 { font-size: 16px; margin: 32px 0 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .btn {
+    display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
+    font-weight: 600; padding: 12px 22px; border-radius: 8px; font-size: 16px;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.disabled { background: #21262d; color: var(--muted); pointer-events: none; }
+  .meta { color: var(--muted); font-size: 13px; margin: 10px 0 0; word-break: break-all; }
+  ul.runs { list-style: none; padding: 0; margin: 0; }
+  .run { display: flex; gap: 10px; align-items: baseline; padding: 9px 4px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  .run:last-child { border-bottom: 0; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; align-self: center; background: var(--wait); }
+  .run.ok .dot { background: var(--ok); }
+  .run.bad .dot { background: var(--bad); }
+  .msg { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sha, .time { color: var(--muted); font-family: ui-monospace, Consolas, monospace; font-size: 12px; flex: none; }
+  .run a { color: var(--accent); text-decoration: none; font-size: 12px; flex: none; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; }
+  footer a { color: var(--accent); text-decoration: none; }
+  .note { color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>CardBoard Fork <span>· SharkMI</span></h1>
+  <p class="sub">Bukkit/Spigot plugins on a Fabric server · Minecraft 1.21.11 · personal fork, builds here are test builds</p>
+
+  <section class="card">
+    <a id="downloadBtn" class="btn disabled" href="#">Latest CI build</a>
+    <p id="downloadMeta" class="meta">resolving latest build…</p>
+    <p class="note">Every push to <code>main</code> is built automatically and published to this fixed link.</p>
+  </section>
+
+  <h2>Recent builds</h2>
+  <section class="card">
+    <ul id="runs" class="runs"><li class="run"><span class="dot"></span><span class="msg">loading…</span></li></ul>
+  </section>
+
+  <footer>
+    <a id="repoLink" href="#">GitHub repository</a>
+    <a id="releasesLink" href="#">Releases</a>
+    <a id="actionsLink" href="#">All builds (Actions)</a>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var REPO = 'SharkMI-0x7E/CardBoard';
+  var API = 'https://api.github.com/repos/' + REPO;
+
+  document.getElementById('repoLink').href = 'https://github.com/' + REPO;
+  document.getElementById('releasesLink').href = 'https://github.com/' + REPO + '/releases';
+  document.getElementById('actionsLink').href = 'https://github.com/' + REPO + '/actions';
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function relTime(iso) {
+    var t = new Date(iso).getTime();
+    var d = Math.max(0, Date.now() - t) / 1000;
+    if (d < 3600) return Math.round(d / 60) + 'm ago';
+    if (d < 86400) return Math.round(d / 3600) + 'h ago';
+    return Math.round(d / 86400) + 'd ago';
+  }
+
+  fetch(API + '/releases/tags/ci-build')
+    .then(function (r) { if (!r.ok) throw new Error('no ci-build release yet'); return r.json(); })
+    .then(function (d) {
+      var jar = (d.assets || []).filter(function (a) { return /\.jar$/.test(a.name); })[0];
+      if (!jar) throw new Error('no jar asset yet');
+      var btn = document.getElementById('downloadBtn');
+      btn.href = jar.browser_download_url;
+      btn.classList.remove('disabled');
+      btn.textContent = 'Download latest CI build';
+      document.getElementById('downloadMeta').textContent =
+        jar.name + ' · ' + (jar.size / 1048576).toFixed(1) + ' MB · updated ' + relTime(d.updated_at);
+    })
+    .catch(function () {
+      document.getElementById('downloadMeta').textContent =
+        'No CI build published yet — it is created automatically by the first push to main.';
+    });
+
+  fetch(API + '/actions/runs?branch=main&per_page=12')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var ul = document.getElementById('runs');
+      ul.innerHTML = '';
+      (d.workflow_runs || []).forEach(function (run) {
+        var cls = run.status !== 'completed' ? '' : (run.conclusion === 'success' ? 'ok' : 'bad');
+        var msg = ((run.head_commit && run.head_commit.message) || '').split('\n')[0];
+        var li = document.createElement('li');
+        li.className = 'run ' + cls;
+        li.innerHTML =
+          '<span class="dot"></span>' +
+          '<span class="msg">' + esc(msg) + '</span>' +
+          '<span class="sha">' + esc(run.head_sha.slice(0, 7)) + '</span>' +
+          '<span class="time">' + relTime(run.created_at) + '</span>' +
+          '<a href="' + esc(run.html_url) + '">details</a>';
+        ul.appendChild(li);
+      });
+      if (!ul.children.length) {
+        ul.innerHTML = '<li class="run"><span class="dot"></span><span class="msg">no runs yet</span></li>';
+      }
+    })
+    .catch(function () {
+      document.getElementById('runs').innerHTML =
+        '<li class="run"><span class="dot"></span><span class="msg">could not load builds (GitHub API rate limit?)</span></li>';
+    });
+})();
+</script>
+</body>
+</html>
