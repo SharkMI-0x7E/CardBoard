@@ -38,7 +38,31 @@ check.dependsOn licenseMain
 //sourceCompatibility = JavaVersion.VERSION_21
 //targetCompatibility = JavaVersion.VERSION_21
 
-version = "${project.minecraft_version}-${project.mod_version}"
+// --- Build number (vN) ------------------------------------------------------
+// The Nth local "change -> build -> hand to testing" delivery round. Stored in
+// .workbuddy/BUILD-NUMBER (local only, never pushed - so CI and fresh clones
+// stay clean). Appended as SemVer build metadata: 1.21.11-2026.10.1+b15
+// (version comparison ignores build metadata, mod resolution is unaffected).
+// -Pcardboard.build=N   explicit number (does not touch the file)
+// -Pcardboard.build=off no suffix (release / clean builds; CI is always off)
+// Full design: docs/ai/CONTEXT/BUILD-NUMBER.md
+def cardboardBuildNumber = null
+if (System.getenv("CI") == null) {
+    def buildProp = project.findProperty("cardboard.build")?.toString()
+    if (buildProp == null) {
+        def buildNumberFile = file(".workbuddy/BUILD-NUMBER")
+        if (buildNumberFile.isFile()) {
+            def n = buildNumberFile.text.trim()
+            if (n ==~ /\d+/ && n != "0") {
+                cardboardBuildNumber = n
+            }
+        }
+    } else if (buildProp ==~ /\d+/ && buildProp != "0") {
+        cardboardBuildNumber = buildProp
+    }
+}
+
+version = "${project.minecraft_version}-${project.mod_version}" + (cardboardBuildNumber != null ? "+b" + cardboardBuildNumber : "")
 group = project.maven_group
 
 base {
@@ -227,11 +251,38 @@ test {
 
 jar {
 	duplicatesStrategy = DuplicatesStrategy.WARN
+    if (cardboardBuildNumber != null) {
+        manifest {
+            attributes("Cardboard-Build-Number": cardboardBuildNumber)
+        }
+    }
     from "LICENSE"
     from {
         (configurations.extraLibs - configurations.removeLibs).filter{ it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
     }
     exclude("**/mojang-translations/")
+}
+
+// Bumps .workbuddy/BUILD-NUMBER for the next delivery build (vN). Debug-only
+// compiles should not bump; run this when a build is about to be handed over.
+// See docs/ai/CONTEXT/BUILD-NUMBER.md.
+tasks.register("bumpBuildNumber") {
+    group = "cardboard"
+    description = "Increments the local delivery build number (.workbuddy/BUILD-NUMBER)."
+    doLast {
+        def f = file(".workbuddy/BUILD-NUMBER")
+        def n = 0
+        if (f.isFile()) {
+            def t = f.text.trim()
+            if (t ==~ /\d+/) {
+                n = t as int
+            }
+        }
+        n = n + 1
+        f.parentFile.mkdirs()
+        f.text = n.toString()
+        println("Build number is now: " + n + " (next build: ...+b" + n + ".jar)")
+    }
 }
 
 shadowJar {
