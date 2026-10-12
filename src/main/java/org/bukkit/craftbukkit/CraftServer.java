@@ -1927,8 +1927,12 @@ public class CraftServer implements Server {
     */
 
     public List<String> tabComplete(CommandSender sender, String message, ServerLevel world, Vec3 position, boolean forceCommand) {
-        if (!(sender instanceof Player))
-            return ImmutableList.of();
+        if (!(sender instanceof Player)) {
+            // Non-player senders (the server console, e.g. better-fabric-console's
+            // console thread) can tab-complete commands too; chat completion stays
+            // player-only. TabCompleteEvent is player-scoped, so it is skipped here.
+            return tabCompleteCommand(sender, message, world, position);
+        }
 
         Player player = (Player) sender;
         List<String> offers = (message.startsWith("/") || forceCommand) ? tabCompleteCommand(player, message, world, position) : tabCompleteChat(player, message);
@@ -1939,17 +1943,17 @@ public class CraftServer implements Server {
         return tabEvent.isCancelled() ? Collections.emptyList() : tabEvent.getCompletions();
     }
 
-    public List<String> tabCompleteCommand(Player player, String message, ServerLevel world, Vec3 pos) {
+    public List<String> tabCompleteCommand(CommandSender sender, String message, ServerLevel world, Vec3 pos) {
         List<String> completions = null;
         try {
             if (message.startsWith("/"))
                 message = message.substring(1);
 
-            completions = (pos == null) ? getCommandMap().tabComplete(player, message) :
-                    getCommandMap().tabComplete(player, message, new Location(((LevelBridge)(Object)world).cardboard$getWorld(), pos.x, pos.y, pos.z));
+            completions = (pos == null) ? getCommandMap().tabComplete(sender, message) :
+                    getCommandMap().tabComplete(sender, message, new Location(((LevelBridge)(Object)world).cardboard$getWorld(), pos.x, pos.y, pos.z));
         } catch (CommandException ex) {
-            player.sendMessage(ChatColor.RED + "An internal error occurred while attempting to tab-complete this command");
-            getLogger().log(Level.SEVERE, "Exception when " + player.getName() + " attempted to tab complete " + message, ex);
+            sender.sendMessage(ChatColor.RED + "An internal error occurred while attempting to tab-complete this command");
+            getLogger().log(Level.SEVERE, "Exception when " + sender.getName() + " attempted to tab complete " + message, ex);
         }
 
         return completions == null ? ImmutableList.<String>of() : completions;
