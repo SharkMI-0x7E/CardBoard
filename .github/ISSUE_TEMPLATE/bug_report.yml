@@ -50,6 +50,21 @@ body:
       required: false
 
   - type: textarea
+    id: plugins
+    attributes:
+      label: Bukkit Plugins Installed
+      description: >
+        List all Bukkit/Spigot/Paper plugins in your `plugins/` folder (file names are enough).
+        Cardboard translates class and member names between plugins and the server, so the plugin
+        list matters just as much as the mod list when diagnosing issues - please do not skip it.
+      placeholder: |
+        - Denizen-1.3.4-b7311-DEV.jar
+        - Citizens-2.0.43-SNAPSHOT.jar
+        - (write "none" if there are no plugins)
+    validations:
+      required: true
+
+  - type: textarea
     id: steps_to_reproduce
     attributes:
       label: Steps to Reproduce
@@ -99,4 +114,6 @@ body:
         - label: I have included the complete `latest.log` or crash report
           required: true
         - label: I have listed ALL mods in my mods folder
+          required: true
+        - label: I have listed ALL plugins in my plugins folder
           required: true
