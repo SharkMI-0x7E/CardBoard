@@ -43,22 +43,29 @@ check.dependsOn licenseMain
 // .workbuddy/BUILD-NUMBER (local only, never pushed - so CI and fresh clones
 // stay clean). Appended as SemVer build metadata: 1.21.11-2026.10.1+b15
 // (version comparison ignores build metadata, mod resolution is unaffected).
-// -Pcardboard.build=N   explicit number (does not touch the file)
-// -Pcardboard.build=off no suffix (release / clean builds; CI is always off)
+// -Pcardboard.build=N   explicit number (does not touch the file; CI passes its
+//                       workflow run number this way - the equivalent of a
+//                       Jenkins build number, e.g. +b146)
+// -Pcardboard.build=off no suffix (release / clean builds)
 // Full design: docs/ai/CONTEXT/BUILD-NUMBER.md
 def cardboardBuildNumber = null
-if (System.getenv("CI") == null) {
-    def buildProp = project.findProperty("cardboard.build")?.toString()
-    if (buildProp == null) {
-        def buildNumberFile = file(".workbuddy/BUILD-NUMBER")
-        if (buildNumberFile.isFile()) {
-            def n = buildNumberFile.text.trim()
-            if (n ==~ /\d+/ && n != "0") {
-                cardboardBuildNumber = n
-            }
-        }
-    } else if (buildProp ==~ /\d+/ && buildProp != "0") {
+def buildProp = project.findProperty("cardboard.build")?.toString()
+if (buildProp != null) {
+    // Explicit override wins everywhere. CI passes its workflow run number here
+    // (the equivalent of Citizens' Jenkins build numbers); local dev can pass a
+    // number too, and "-Pcardboard.build=off" disables the suffix.
+    if (buildProp ==~ /\d+/ && buildProp != "0") {
         cardboardBuildNumber = buildProp
+    }
+} else if (System.getenv("CI") == null) {
+    // Local machines read the delivery number file. CI without an explicit
+    // number stays clean (there is no such file on CI).
+    def buildNumberFile = file(".workbuddy/BUILD-NUMBER")
+    if (buildNumberFile.isFile()) {
+        def n = buildNumberFile.text.trim()
+        if (n ==~ /\d+/ && n != "0") {
+            cardboardBuildNumber = n
+        }
     }
 }
 
