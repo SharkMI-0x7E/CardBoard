@@ -9,6 +9,7 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange)](LICENSE)
 [![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)](https://fabricmc.net/)
 [![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat&logo=github&color=yellow)](../../stargazers)
+[![Build](https://github.com/SharkMI-0x7E/CardBoard/actions/workflows/build.yml/badge.svg)](https://github.com/SharkMI-0x7E/CardBoard/actions/workflows/build.yml)
 
 [中文](README.zh_CN.md)
 

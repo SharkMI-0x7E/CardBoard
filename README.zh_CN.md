@@ -11,6 +11,7 @@
 ![Fabric](https://img.shields.io/badge/Fabric-0.18%2B-%23dacfa4)
 
 ![Stars](https://img.shields.io/github/stars/SharkMI-0x7E/CardBoard?style=flat\&logo=github\&color=yellow)
+![Build](https://github.com/SharkMI-0x7E/CardBoard/actions/workflows/build.yml/badge.svg)
 
 [English](README.md)
 
