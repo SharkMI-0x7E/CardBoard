@@ -219,6 +219,24 @@ Cardboard 提供 `/cardboard` 命令（别名 `/cb`）作为自身子命令的�
 
 编译产物位于 `build/libs/` 目录下。
 
+---
+
+## 构建看板
+
+每次推送到 `main` 都会触发 CI 构建（[build.yml](../../actions/workflows/build.yml)），
+产出的 jar 文件名带有 CI 运行号，例如
+`CardBoard-Fork-SharkMI-1.21.11-2026.10.1+b82.jar` —— 其中的 `+b82` 即构建号（`bN`），
+思路与 Citizens 的 Jenkins 构建号一致。
+
+最新一次成功构建的 jar 会发布到 `ci-build` release，并有一个轻量看板展示构建历史、
+按天的构建次数统计与一键下载：
+
+- **看板：** https://sharkmi-0x7e.github.io/CardBoard/
+- **最新 jar：** [ci-build release](../../releases/tag/ci-build)
+
+看板直接由浏览器调用 GitHub Actions API（未登录），因此受 GitHub 公开限流约束
+（每 IP 每小时 60 次）——若提示限流，稍等片刻刷新即可。
+
 ## 版本支持
 
 本 Fork **仅支持 Minecraft 1.21.11** —— 更高或更低的版本均不支持。

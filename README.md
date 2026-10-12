@@ -241,6 +241,25 @@ Console colours can be controlled with `colored-console` (default `true`) and
 
 Build artifacts are located in `build/libs/`.
 
+---
+
+## Build Dashboard
+
+Every push to `main` triggers a CI build ([build.yml](../../actions/workflows/build.yml)) that
+produces a jar named with the CI run number, e.g.
+`CardBoard-Fork-SharkMI-1.21.11-2026.10.1+b82.jar` — the `+b82` is the build number
+(`bN`), the same idea as Citizens' Jenkins build numbers.
+
+The latest successful jar is published to the `ci-build` release, and a small dashboard
+shows build history, per-day build counts, and a one-tap download:
+
+- **Dashboard:** https://sharkmi-0x7e.github.io/CardBoard/
+- **Latest jar:** [ci-build release](../../releases/tag/ci-build)
+
+The dashboard reads the GitHub Actions API directly from the browser. It is unauthenticated,
+so it is subject to GitHub's public rate limit (60 requests/hour per IP) — if it shows a
+rate-limit error, just wait a bit and refresh.
+
 ## Version Support
 
 This fork targets **Minecraft 1.21.11 only** — no older or newer versions are supported.
