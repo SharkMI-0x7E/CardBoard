@@ -228,7 +228,7 @@ public abstract class EntityMixin implements CommandSourceBridge, EntityBridge {
                 b = Pose.FALL_FLYING;
                 break;
             case LONG_JUMPING:
-                // TODO 1.17ify
+                b = Pose.LONG_JUMPING;
                 break;
             case SLEEPING:
                 b = Pose.SLEEPING;
