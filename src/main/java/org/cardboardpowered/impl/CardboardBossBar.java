@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import net.minecraft.network.protocol.game.ClientboundBossEventPacket;
 import net.minecraft.server.bossevents.CustomBossEvent;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -130,8 +131,11 @@ public class CardboardBossBar implements BossBar, KeyedBossBar {
 
     @Override
     public void setTitle(String title) {
-        handle.name = CraftChatMessage.fromString(title, true)[0];
-     // TODO 1.17ify   ((IMixinServerBossBar)handle).sendPacketBF(BossBarS2CPacket.Type.UPDATE_NAME);
+        net.minecraft.network.chat.Component newName = CraftChatMessage.fromString(title, true)[0];
+        if (!java.util.Objects.equals(newName, handle.name)) {
+            handle.name = newName;
+            handle.broadcast(ClientboundBossEventPacket::createUpdateNamePacket);
+        }
     }
 
     @Override
@@ -141,8 +145,11 @@ public class CardboardBossBar implements BossBar, KeyedBossBar {
 
     @Override
     public void setColor(BarColor color) {
-        handle.color = convertColor(color);
-     // TODO 1.17ify   ((IMixinServerBossBar)handle).sendPacketBF(BossBarS2CPacket.Type.UPDATE_STYLE);
+        net.minecraft.world.BossEvent.BossBarColor newColor = convertColor(color);
+        if (newColor != handle.color) {
+            handle.color = newColor;
+            handle.broadcast(ClientboundBossEventPacket::createUpdateStylePacket);
+        }
     }
 
     @Override
@@ -152,8 +159,11 @@ public class CardboardBossBar implements BossBar, KeyedBossBar {
 
     @Override
     public void setStyle(BarStyle style) {
-        handle.overlay = convertStyle(style);
-     // TODO 1.17ify ((IMixinServerBossBar)handle).sendPacketBF(BossBarS2CPacket.Type.UPDATE_STYLE);
+        net.minecraft.world.BossEvent.BossBarOverlay newOverlay = convertStyle(style);
+        if (newOverlay != handle.overlay) {
+            handle.overlay = newOverlay;
+            handle.broadcast(ClientboundBossEventPacket::createUpdateStylePacket);
+        }
     }
 
     @Override
