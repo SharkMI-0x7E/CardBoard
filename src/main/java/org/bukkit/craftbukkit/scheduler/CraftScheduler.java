@@ -358,7 +358,10 @@ public class CraftScheduler implements BukkitScheduler {
                 try {
                     task.run();
                 } catch (final Throwable throwable) {
-                    task.getOwner().getLogger().log(Level.WARNING, "Task #" + task.getTaskId() + " for " + task.getOwner().getDescription().getFullName() + "generated an exception", throwable);
+                    // Log at SEVERE (so the stack is never dropped by WARN-level formatting) and also
+                    // print it to stderr, because some log configs suppress stack traces for WARN.
+                    task.getOwner().getLogger().log(Level.SEVERE, "Task #" + task.getTaskId() + " for " + task.getOwner().getDescription().getFullName() + " generated an exception", throwable);
+                    throwable.printStackTrace();
                 } finally {currentTask = null; }
                 parsePending();
             } else task.getOwner().getLogger().log(Level.SEVERE, "Unexpected Async Task in the Sync Scheduler. Report this to Paper");
