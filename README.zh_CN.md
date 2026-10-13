@@ -237,6 +237,12 @@ Cardboard 提供 `/cardboard` 命令（别名 `/cb`）作为自身子命令的�
 看板直接由浏览器调用 GitHub Actions API（未登录），因此受 GitHub 公开限流约束
 （每 IP 每小时 60 次）——若提示限流，稍等片刻刷新即可。
 
+> **升版本号不等于出 release。** 往 `main` 推提交——包括在 `gradle.properties` 里把
+> `mod_version` 改大——**只会**触发 CI 构建（[build.yml](../../actions/workflows/build.yml)）
+> 并刷新滚动的 `ci-build` 预发布；它**不会**自动生成 GitHub Release，也不会发 Modrinth 版本。
+> 要真正发版，请推送一个 `v*` 开头的 tag（例如 `v2026.10.2`），由
+> [release.yml](../../actions/workflows/release.yml) 接管；或者在 Actions 标签页手动运行发布流程。
+
 ## 版本支持
 
 本 Fork **仅支持 Minecraft 1.21.11** —— 更高或更低的版本均不支持。

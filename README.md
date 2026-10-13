@@ -260,6 +260,14 @@ The dashboard reads the GitHub Actions API directly from the browser. It is unau
 so it is subject to GitHub's public rate limit (60 requests/hour per IP) — if it shows a
 rate-limit error, just wait a bit and refresh.
 
+> **Version bumps are not releases.** Pushing a commit to `main` — including a
+> `mod_version` bump in `gradle.properties` — only triggers the CI build
+> ([build.yml](../../actions/workflows/build.yml)) and refreshes the rolling
+> `ci-build` prerelease. It does **not** create a GitHub Release or a Modrinth
+> version. To cut an actual release, push a tag matching `v*` (e.g. `v2026.10.2`),
+> which triggers [release.yml](../../actions/workflows/release.yml) — or run the
+> release workflow manually from the Actions tab.
+
 ## Version Support
 
 This fork targets **Minecraft 1.21.11 only** — no older or newer versions are supported.
