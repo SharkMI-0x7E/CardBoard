@@ -265,6 +265,12 @@ public class RemapUtils implements IRemapUtils {
         jarMapping.registerClassMapping("net/minecraft/class_5217$a", "net/minecraft/class_5217$class_12064");
         jarMapping.registerClassMapping("net/minecraft/class_8567$a", "net/minecraft/class_8567$class_8568");
 
+        // Citizens 4138 (v1_21_R7) extends net.minecraft.server.level.PlayerChunkMap$EntityTracker,
+        // which Mojang renamed to ChunkMap$TrackedEntity (class_3898$class_3208) in 1.21.x. The
+        // inner suffix "EntityTracker" is preserved through the first remap pass, composing the
+        // dead name class_3898$EntityTracker; rewrite it to the real intermediary inner.
+        jarMapping.registerClassMapping("net/minecraft/class_3898$EntityTracker", "net/minecraft/class_3898$class_3208");
+
         // Generated composed-name aliases (data: mappings/inner-name-aliases.txt).
         loadInnerNameAliases();
 
