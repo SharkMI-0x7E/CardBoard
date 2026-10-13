@@ -211,6 +211,45 @@ public class RemapUtils implements IRemapUtils {
 			e.printStackTrace();
 		}
 
+        // ---------------------------------------------------------------------
+        // Citizens 4138 (v1_21_R7) NMS override alias.
+        //
+        // Citizens compiles its NMS bridge against Spigot, which uses Mojang
+        // package names but OBFUSCATED method names. So EntityNavigation overrides
+        // the abstract navigation factory as:
+        //     protected net.minecraft.world.level.pathfinder.Pathfinder a(int)
+        // i.e. method name `a` (NOT the Mojang name `createPathFinder`), return
+        // type `Pathfinder` (lowercase f, the Spigot/Mojang type name).
+        //
+        // Our method table (testsrg.srg) is keyed by the Mojang method name
+        // `createPathFinder`, so the `a` override never resolves and the abstract
+        // method `method_6336(int)` stays unimplemented -> AbstractMethodError at
+        // class_1408.<init> when an NPC is spawned.
+        //
+        // mapMethodName() builds the lookup key as owner + name + rawDescriptor
+        // (raw = un-remapped, confirmed in ASM ClassRemapper.visitMethod), then
+        // tryClimb() walks the inheritance chain. So we register the alias under
+        // every owner name the climb can surface for this class:
+        //   - NavigationAbstract  (Spigot name Citizens actually references)
+        //   - PathNavigation      (Mojang named, same class)
+        //   - class_1408         (intermediary, same class)
+        // with the raw descriptor (lowercase-f Pathfinder) -> method_6336.
+        // This is a last-resort compatibility shim; more override names from the
+        // navigation/AI subsystem may surface the same way (whack-a-mole).
+        // ---------------------------------------------------------------------
+        {
+            String cpfOwnerSpigot = "net/minecraft/world/entity/ai/navigation/NavigationAbstract";
+            String cpfOwnerMojang = "net/minecraft/world/entity/ai/navigation/PathNavigation";
+            String cpfOwnerInter  = "net/minecraft/class_1408";
+            String cpfName  = "a";
+            String cpfDesc  = "(I)Lnet/minecraft/world/level/pathfinder/Pathfinder;";
+            String cpfTarget = "method_6336";
+            jarMapping.methods.put(cpfOwnerSpigot + cpfName + cpfDesc, cpfTarget);
+            jarMapping.methods.put(cpfOwnerMojang + cpfName + cpfDesc, cpfTarget);
+            jarMapping.methods.put(cpfOwnerInter  + cpfName + cpfDesc, cpfTarget);
+            LOGGER.info("RemapUtils: aliased Citizens navigation factory a(int) -> " + cpfTarget);
+        }
+
         String bukkit_cl_srg = "bukkit-1.21.11-cl.csrg";
         File bukkit_class_mappings_file = exportResource(bukkit_cl_srg, dir);
         
@@ -818,7 +857,11 @@ public class RemapUtils implements IRemapUtils {
 	    			return mmm;
 	    		}
     		} catch (IllegalArgumentException e) {
-    			// noop
+    			// Descriptor generation failed for this candidate; skip it, but
+    			// never swallow silently - a silent version of this catch once
+    			// hid a whole class of generic-parameter methods from official
+    			// name lookups (see the getMethodDescriptor override below).
+    			LOGGER.debug("find_meth: skipping " + m + " for '" + name + "' on " + obfClaz + ": " + e.getMessage());
     		}
     		
     	}
@@ -937,6 +980,35 @@ public class RemapUtils implements IRemapUtils {
             return "L" + clazz.getName().replace('.', '/') + ";";
         }
         throw new IllegalArgumentException("Unsupported class: " + clazz);
+    }
+
+    /**
+     * Builds a method descriptor in the given namespace from the erased
+     * parameter/return classes.
+     *
+     * <p>The upstream default implementation walks
+     * {@link Method#getGenericParameterTypes()} and recurses into generic type
+     * arguments; a single wildcard argument (e.g. {@code Recipe<?>} inside
+     * {@code ResourceKey<Recipe<?>>}) makes it throw
+     * {@link IllegalArgumentException}. {@link #find_meth(String, Class, String, Class[])}
+     * swallows that exception, which silently disables official-name lookups
+     * for every method carrying a generic parameter - e.g.
+     * {@code ServerRecipeBook.addHighlight(ResourceKey)} (official name
+     * {@code e}, intermediary {@code method_64596}), which Denizen resolves.
+     *
+     * <p>JVM descriptors never contain generics, so erasure is exactly what is
+     * needed here. Generic arrays and type variables are erased through their
+     * class/bounds.
+     */
+    @Override
+    public String getMethodDescriptor(Method method, String namespace) {
+        StringBuilder sb = new StringBuilder("(");
+        for (Class<?> parameter : method.getParameterTypes()) {
+            sb.append(getClassDescriptor(parameter, namespace));
+        }
+        sb.append(')');
+        sb.append(getClassDescriptor(method.getReturnType(), namespace));
+        return sb.toString();
     }
 
 	@Override
