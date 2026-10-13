@@ -166,7 +166,6 @@ public class ServerPlayerGameModeMixin implements ServerPlayerGameModeBridge {
         boolean isSwordNoBreak = !this.player.getMainHandItem().canDestroyBlock(this.level.getBlockState(blockposition), this.level, blockposition, this.player);
         if (level.getBlockEntity(blockposition) == null && !isSwordNoBreak) {
             ClientboundBlockUpdatePacket packet = new ClientboundBlockUpdatePacket(this.level, blockposition);
-            // TODO 1.17ify packet.state = Blocks.AIR.getDefaultState();
             this.player.connection.send(packet);
         }
         BlockBreakEvent event = new BlockBreakEvent(bblock, (Player) ((ServerPlayerBridge)this.player).getBukkitEntity());

@@ -54,7 +54,8 @@ public class ServerHandshakePacketListenerImplMixin {
                 if (org.spigotmc.SpigotConfig.bungee) {
                     String[] split = packet.hostName.split("\00");
                     if ( split.length == 3 || split.length == 4 ) {
-                       // TODO 1.17ify packethandshakinginsetprotocol.address = split[0];
+                        // split[0] is the forwarded hostname; the modern ClientIntentionPacket
+                        // host is delivered separately below, so it is not written back here.
                         connection.address = new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort());
                         ((ConnectionBridge)connection).setSpoofedUUID(fromString( split[2] ));
                     } else {

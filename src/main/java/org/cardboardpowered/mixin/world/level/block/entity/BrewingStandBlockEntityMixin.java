@@ -108,21 +108,6 @@ public abstract class BrewingStandBlockEntityMixin implements Container, Contain
         }
     }
 
-    // TODO 1.17ify:
-   /* @Inject(at = @At("HEAD"), method = "craft", cancellable = true)
-    public void doBukkitEvent_BrewEvent(CallbackInfo ci) {
-        InventoryHolder owner = this.getOwner();
-        if (owner != null) {
-            BlockPos pos = ((BrewingStandBlockEntity)(Object)this).getPos();
-            BrewEvent event = new BrewEvent(((IMixinWorld)((BrewingStandBlockEntity)(Object)this).getWorld()).getCraftWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()), (org.bukkit.inventory.BrewerInventory) owner.getInventory(), this.fuel);
-            org.bukkit.Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled()) {
-                ci.cancel();
-                return;
-            }
-        }
-    }*/
-
     @Override public InventoryHolder getOwner() {return null;}
     @Override public Location getLocation() {return null;}
 

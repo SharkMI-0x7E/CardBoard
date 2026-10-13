@@ -39,59 +39,6 @@ import org.bukkit.material.MaterialData;
 
 public abstract class CraftParticle<D> implements Keyed {
 
-	/*
-	 public static ParticleEffect toNMS(Particle bukkit) {
-	        return toNMS(bukkit, null);
-	    }
-
-	    @SuppressWarnings({ "unchecked", "rawtypes" })
-	    public static <T> ParticleEffect toNMS(Particle particle, T obj) {
-	        Particle canonical = particle;
-	        if (aliases.containsKey(particle))
-	            canonical = aliases.get(particle);
-
-	        net.minecraft.particle.ParticleType nms = Registries.PARTICLE_TYPE.get(particles.get(canonical));
-	        Preconditions.checkArgument(nms != null, "No NMS particle %s", particle);
-
-	        if (particle.getDataType().equals(Void.class)) {
-	        	
-	        	// <= 1.20.4 = DefaultParticleType
-	        	// >= 1.20.5 = SimpleParticleType
-	        	
-	            return (SimpleParticleType) nms;
-	        }
-
-	        Preconditions.checkArgument(obj != null, "Particle %s requires data, null provided", particle);
-	        if (particle.getDataType().equals(ItemStack.class)) {
-	            ItemStack itemStack = (ItemStack) obj;
-	            return new ItemStackParticleEffect((net.minecraft.particle.ParticleType<ItemStackParticleEffect>) nms, CraftItemStack.asNMSCopy(itemStack));
-	        }
-	        if (particle.getDataType() == MaterialData.class) {
-	            MaterialData data = (MaterialData) obj;
-	            return new BlockStateParticleEffect((net.minecraft.particle.ParticleType<BlockStateParticleEffect>) nms, CraftMagicNumbers.getBlock(data));
-	        }
-	        if (particle.getDataType() == BlockData.class) {
-	            BlockData data = (BlockData) obj;
-	            return new BlockStateParticleEffect((net.minecraft.particle.ParticleType<BlockStateParticleEffect>) nms, ((CraftBlockData) data).getState());
-	        }
-	        if (particle.getDataType() == Particle.DustOptions.class) {
-	            Particle.DustOptions data = (Particle.DustOptions) obj;
-	            Color color = data.getColor();
-	            
-	            // TODO 1.17ify: return new DustParticleEffect(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, data.getSize());
-	        }
-	        throw new IllegalArgumentException(particle.getDataType().toString());
-	    }
-
-	    public static Particle toBukkit(net.minecraft.particle.ParticleEffect nms) {
-	        return toBukkit(nms.getType());
-	    }
-
-	    @SuppressWarnings("rawtypes")
-	    public static Particle toBukkit(net.minecraft.particle.ParticleType nms) {
-	        return particles.inverse().get(Registries.PARTICLE_TYPE.getId(nms));
-	    }
-*/
 	
     private static final Registry<CraftParticle<?>> CRAFT_PARTICLE_REGISTRY = new CraftParticleRegistry(CraftRegistry.getMinecraftRegistry(Registries.PARTICLE_TYPE));
 

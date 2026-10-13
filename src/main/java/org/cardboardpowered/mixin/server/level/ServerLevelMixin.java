@@ -141,39 +141,6 @@ public class ServerLevelMixin extends LevelMixin implements ServerLevelBridge {
 		return cardboard$levelLoadListener;
 	}
 
-    /**
-     * @reason MapInitalizeEvent
-     * @author BukkitFabricMod
-     */
-    //@Overwrite
-   // public MapState getMapState(String s) {
-        // TODO 1.17ify
-       // return null; return (MapState) CraftServer.INSTANCE.getServer().getOverworld().getPersistentStateManager().get(() -> {
-           /*MapState newMap = new MapState(s);
-            MapInitializeEvent event = new MapInitializeEvent(((IMixinMapState)newMap).getMapViewBF());
-            Bukkit.getServer().getPluginManager().callEvent(event);
-            return newMap;
-        }, s);*/
-  //  }
-
-    // TODO 1.17ify
-   /* @Inject(at = @At("TAIL"), method = "unloadEntity")
-    public void unvalidateEntityBF(Entity entity, CallbackInfo ci) {
-        ((IMixinEntity)entity).setValid(false);
-    } 
-
-    @Inject(at = @At("TAIL"), method = "loadEntityUnchecked")
-    public void validateEntityBF(Entity entity, CallbackInfo ci) {
-        //if (!this.inEntityTick) {
-            IMixinEntity bf = (IMixinEntity) entity;
-            bf.setValid(true);
-            if (null == bf.getOriginBF() && null != bf.getBukkitEntity()) {
-                // Paper's Entity Origin API
-                bf.setOriginBF(bf.getBukkitEntity().getLocation());
-            }
-       // }
-    }*/
-
 	@Inject(method = "setRespawnData", at = @At("HEAD"), cancellable = true)
 	public void setRespawnDataPaper(LevelData.RespawnData respawnData, CallbackInfo ci) {
 		// Paper start

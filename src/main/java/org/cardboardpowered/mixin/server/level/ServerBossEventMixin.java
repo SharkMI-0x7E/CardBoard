@@ -13,26 +13,17 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.cardboardpowered.mixin.server.level;
 
 import net.minecraft.server.level.ServerBossEvent;
-import org.cardboardpowered.bridge.server.level.ServerBossEventBridge;
 import org.spongepowered.asm.mixin.Mixin;
 
+// Placeholder mixin retained for registration compatibility; boss-bar updates
+// are broadcast directly via ServerBossEvent#broadcast in CardboardBossBar.
 @Mixin(ServerBossEvent.class)
-public class ServerBossEventMixin implements ServerBossEventBridge {
-
-   /* @Override
-    public void sendPacketBF(Type updateName) {
-        sendPacket(updateName);
-    }
-
-    @Shadow
-    public void sendPacket(Type updateName) {
-    }*/
-    // TODO 1.17ify
+public class ServerBossEventMixin {
 
 }
