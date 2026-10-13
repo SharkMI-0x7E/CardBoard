@@ -911,18 +911,23 @@ public class BukkitSimplePluginManagerMixin {
         }
 	}
 
+	@Shadow
+	public Set<Permissible> getDefaultPermSubscriptions(boolean op) {
+		return null;
+	}
+
 	/**
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public Set<Permissible> getDefaultPermSubscriptions(boolean op) {
+	@Inject(method = "getDefaultPermSubscriptions(Z)Ljava/util/Set;", at = @At("HEAD"), cancellable = true, remap = false)
+	private void cardboard$getDefaultPermSubscriptions(boolean op, CallbackInfoReturnable<Set<Permissible>> cir) {
         Map<Permissible, Boolean> map = defSubs.get(op);
 
         if (map == null) {
-            return ImmutableSet.of();
+            cir.setReturnValue(ImmutableSet.of());
         } else {
-            return ImmutableSet.copyOf(map.keySet());
+            cir.setReturnValue(ImmutableSet.copyOf(map.keySet()));
         }
 	}
 
@@ -935,14 +940,18 @@ public class BukkitSimplePluginManagerMixin {
 		 return new HashSet<Permission>(permissions.values());
 	}
 
+	@Shadow
+	public boolean useTimings() {
+		return false;
+	}
+
 	/**
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public boolean useTimings() {
-		return false;
-		// return this.paperPluginManager.useTimings();
+	@Inject(method = "useTimings()Z", at = @At("HEAD"), cancellable = true, remap = false)
+	private void cardboard$useTimings(CallbackInfoReturnable<Boolean> cir) {
+		cir.setReturnValue(false);
 	}
 
 	/**
@@ -977,13 +986,11 @@ public class BukkitSimplePluginManagerMixin {
 	 * @reason .
 	 * @author .
 	 */
-	@Overwrite(remap = false)
-	public void addPermissions( List<Permission> perm) {
-		
+	@Inject(method = "addPermissions(Ljava/util/List;)V", at = @At("HEAD"), cancellable = true, remap = false)
+	private void cardboard$addPermissions(List<Permission> perm, CallbackInfo ci) {
 		for (Permission p : perm)
 			this.addPermission(p);
-		
-		//this.paperPluginManager.addPermissions(perm);
+		ci.cancel();
 	}
 
 }
