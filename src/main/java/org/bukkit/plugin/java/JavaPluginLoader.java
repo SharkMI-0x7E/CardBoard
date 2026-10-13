@@ -70,8 +70,14 @@ public final class JavaPluginLoader implements PluginLoader {
         try {
             libraryLoader = new LibraryLoader(server.getLogger());
         } catch (NoClassDefFoundError ex) {
-            // Provided depends were not added back
-            //server.getLogger().warning("Could not initialize LibraryLoader (missing dependencies?)");
+            // Spigot assumed the aether-backed LibraryLoader is always present and
+            // swallowed this error. On Cardboard a missing class here silently
+            // disables plugin.yml "libraries:" for every plugin, so report it
+            // loudly instead. The missing dependencies are shipped via
+            // org.cardboardpowered.library.Libraries; seeing this warning means
+            // that download did not land (e.g. first boot while offline).
+            server.getLogger().warning("Could not initialize LibraryLoader (missing dependency: "
+                    + ex.getMessage() + "); plugin.yml 'libraries:' will be ignored.");
         }
         this.libraryLoader = libraryLoader;
     }

@@ -61,7 +61,43 @@ public class Libraries {
         	Library.of("net.kyori", "adventure-text-serializer-legacy", adventureVersion, "b12eaaac78d2534b9b1556049a8d95a046b0812d") ,
         	Library.of("net.kyori", "adventure-text-serializer-plain", adventureVersion, "82f5d4188f3cb6da9654b4ceea8b4093af5f1243") ,
         	Library.of("net.kyori", "adventure-text-minimessage", adventureVersion, "38f8f778c92f1ea848f79f992c99c4b98f96f23b") ,
-        	Library.of("net.kyori", "option", "1.1.0", "593fecb9c42688eebc7d8da5d6ea127f4d4c92a2")
+        	Library.of("net.kyori", "option", "1.1.0", "593fecb9c42688eebc7d8da5d6ea127f4d4c92a2"),
+
+        	// Maven Resolver (Aether) + friends: required by paper-api's
+        	// org.bukkit.plugin.java.LibraryLoader, which resolves the
+        	// plugin.yml "libraries:" lists. Without these classes on the
+        	// runtime classpath the LibraryLoader constructor throws
+        	// NoClassDefFoundError and the whole "libraries:" feature stays
+        	// silently disabled for every plugin (see BUG-023).
+        	// Versions mirror the dependency tree paper-api 3.9.6 compiles
+        	// against; keep them in sync when paper-api is updated.
+        	// commons-logging is easy to miss: httpclient 4.5.x needs it and
+        	// without it the failure only surfaces at the first real download.
+        	Library.of("org.apache.maven", "maven-resolver-provider", "3.9.6", "848c45d334f6cc5c8dd602b0e58fd4482964eddc"),
+        	Library.of("org.apache.maven", "maven-model", "3.9.6", "ac9a1c8a8cfa36f3a5489837e653ec0cd530d576"),
+        	Library.of("org.apache.maven", "maven-artifact", "3.9.6", "fb0979832c10c1a25d038a33ca862bef055fcdc8"),
+        	Library.of("org.apache.maven", "maven-model-builder", "3.9.6", "983ce00d50a9f78ad1b805e21e4fd71807fa6ebf"),
+        	Library.of("org.apache.maven", "maven-builder-support", "3.9.6", "bcfc9d8175eaba21111edf21e0355a8523461abc"),
+        	Library.of("org.apache.maven", "maven-repository-metadata", "3.9.6", "497cda3149f3c661113f9a663e0270ce2566cc95"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-api", "1.9.18", "0cd5174d6e80175398debe4869d484169c0abbf8"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-spi", "1.9.18", "7fa176b3353ef6d78d02db39e025f3c27a983158"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-util", "1.9.18", "5ae9406f188ae4a999c353fce3fd77273797a216"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-impl", "1.9.18", "e928b128d1e52e6299f94431ce3df74647bc8c26"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-named-locks", "1.9.18", "31f948d89dcb3d9739e70d5e1000ebd68eb4405d"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-connector-basic", "1.9.18", "baac1ca4eb5e5fbdd2df554262a1b97f84ae3cec"),
+        	Library.of("org.apache.maven.resolver", "maven-resolver-transport-http", "1.9.18", "61a5512ff44502a5b22800f097f43281cb934a72"),
+        	Library.of("org.codehaus.plexus", "plexus-utils", "3.5.1", "c6bfb17c97ecc8863e88778ea301be742c62b06d"),
+        	Library.of("org.codehaus.plexus", "plexus-interpolation", "1.26", "25b919c664b79795ccde0ede5cee0fd68b544197"),
+        	Library.of("javax.inject", "javax.inject", "1", "6975da39a7040257bd51d21a231b76c915872d38"),
+        	Library.of("org.eclipse.sisu", "org.eclipse.sisu.inject", "0.9.0.M2", "5ace70e1ea696d156f5034a42a615df13a52003a"),
+        	Library.of("com.google.guava", "guava", "33.3.1-jre", "852f8b363da0111e819460021ca693cacca3e8db"),
+        	Library.of("com.google.guava", "failureaccess", "1.0.2", "c4a06a64e650562f30b7bf9aaec1bfed43aca12b"),
+        	Library.of("org.apache.httpcomponents", "httpclient", "4.5.14", "1194890e6f56ec29177673f2f12d0b8e627dec98"),
+        	Library.of("org.apache.httpcomponents", "httpcore", "4.4.16", "51cf043c87253c9f58b539c9f7e44c8894223850"),
+        	Library.of("commons-logging", "commons-logging", "1.2", "4bfc12adfe4842bf07b657f0369c4cb522955686"),
+        	Library.of("commons-codec", "commons-codec", "1.16.0", "4e3eb3d79888d76b54e28b350915b5dc3919c9de"),
+        	Library.of("org.apache.commons", "commons-lang3", "3.12.0", "c6842c86792ff03b9f1d1fe2aab8dc23aa6c6f0e"),
+        	Library.of("org.slf4j", "slf4j-api", "2.0.17", "d9e58ac9c7779ba3bf8142aff6c830617a7fe60f")
         );
 
         // Set WorldEdit adapter class name here
@@ -73,9 +109,12 @@ public class Libraries {
 
 	/**
 	 * Runs a new LibraryManager with the {@link #getLibraries()} list,
+	 * after making sure a reachable maven mirror is configured.
 	 */
 	public static void loadLibs() {
     	List<Library> libraries = getLibraries();
+
+    	LibraryManager.ensureUsableCentral();
 
     	LibraryManager man = new LibraryManager("lib", true, 2, libraries);
     	man.run();
