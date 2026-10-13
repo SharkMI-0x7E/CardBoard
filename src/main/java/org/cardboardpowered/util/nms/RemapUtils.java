@@ -293,6 +293,45 @@ public class RemapUtils implements IRemapUtils {
 
         addMethodOverrides();
 
+        // Targeted alias for Citizens' official-name direct NMS call (EntityType.r()).
+        //
+        // Ground truth (javap of Citizens-2.0.41-b4138 v1_21_R7.util.CustomEntityRegistry, ctor
+        // line 51): the failing call is
+        //     invokevirtual net/minecraft/world/entity/EntityTypes.r ()Lnet/minecraft/core/Holder$c;
+        // i.e. the NMS bridge is compiled against the SPIGOT namespace, where class_1299 is named
+        // "EntityTypes" (plural) and Holder$Reference is named "Holder$c". Only the method name is
+        // the Mojang official short name "r" (intermediary method_40124).
+        //
+        // The bytecode remapper (BannerJarRemapper.remapClassFile, no pre-processor) feeds the RAW
+        // owner/descriptor into mapMethodName -> tryClimb, which looks up
+        //     "<owner>/<name> <descriptor>"  ->  intermediary
+        // in jarMapping.methods. That table (testsrg.srg, loaded with null transformers) is keyed in
+        // the MOJANG namespace (net/minecraft/world/entity/EntityType + Holder$Reference), so the
+        // Spigot-namespace key misses: the owner still remaps to class_1299 while "r" is left as-is,
+        // producing "class_1299.r()" -> NoSuchMethodError -> Citizens "Loaded 0 NPCs".
+        //
+        // Probe-verified (load testsrg.srg, then mapMethodName): with the RAW Spigot key present the
+        // call resolves to method_40124; without it "r" passes through unchanged. We therefore
+        // register the official-name alias under every namespace form (spigot/mojang/intermediary/
+        // obfuscated owner x descriptor). The lookup is an exact match, so the extra entries are
+        // harmless.
+        // Stop-gap for the systematic official-name gap; a data-driven pass over reobf.tiny is the proper fix.
+        for (String owner : new String[] {
+                "net/minecraft/world/entity/EntityTypes",     // spigot named (plural) - the actual key
+                "net/minecraft/world/entity/EntityType",      // mojang named (singular) - testsrg table form
+                "net/minecraft/class_1299",                    // intermediary
+                "cgu"                                          // obfuscated official
+        }) {
+            for (String desc : new String[] {
+                    "()Lnet/minecraft/core/Holder$c;",          // spigot inner name - the actual key
+                    "()Lnet/minecraft/core/Holder$Reference;",  // mojang named
+                    "()Lnet/minecraft/class_6880$class_6883;",  // intermediary
+                    "()Ljd$c;"                                  // obfuscated official
+            }) {
+                jarMapping.methods.put(owner + "/r " + desc, "method_40124");
+            }
+        }
+
         try {
         	LOGGER.debug("Reading \"" + bukkit_cl_srg + "\".");
 
