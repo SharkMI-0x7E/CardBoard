@@ -256,6 +256,35 @@ test {
     useJUnitPlatform()
 }
 
+// --- Integration tests (manual only; never attached to check/test) --------
+// Tests under src/integrationTest tagged @Tag("integration") require a real
+// Fabric 1.21.11 server and must be launched explicitly by a human:
+//   .\gradlew.bat integrationTest
+sourceSets {
+    integrationTest {
+        java.srcDir 'src/integrationTest/java'
+        resources.srcDir 'src/integrationTest/resources'
+        compileClasspath += sourceSets.main.output + sourceSets.test.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests (@Tag integration). Requires a real Fabric server; never run by default.'
+    group = 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter test
+}
+
 jar {
 	duplicatesStrategy = DuplicatesStrategy.WARN
     if (cardboardBuildNumber != null) {
