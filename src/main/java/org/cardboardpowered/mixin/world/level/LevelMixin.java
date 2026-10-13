@@ -34,7 +34,11 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.entity.LevelEntityGetter;
 import net.minecraft.world.level.storage.WritableLevelData;
 import org.bukkit.craftbukkit.block.CapturedBlockState;
+import org.bukkit.craftbukkit.block.CraftBlock;
+import org.bukkit.craftbukkit.block.CraftBlockState;
 import org.cardboardpowered.impl.world.CraftWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,7 +46,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Mixin(Level.class)
@@ -53,7 +57,8 @@ public abstract class LevelMixin implements LevelBridge {
 
     public boolean captureBlockStates = false;
     public boolean captureTreeGeneration = false;
-    public Map<BlockPos, CapturedBlockState> capturedBlockStates = new HashMap<>();
+    // LinkedHashMap to retain block placement order during tree capture replay.
+    public Map<BlockPos, CraftBlockState> capturedBlockStates = new LinkedHashMap<>();
 
     @Shadow
     public abstract LevelEntityGetter<Entity> getEntities();
@@ -69,7 +74,7 @@ public abstract class LevelMixin implements LevelBridge {
     }
     
     @Override
-    public Map<BlockPos, CapturedBlockState> getCapturedBlockStates_BF() {
+    public Map<BlockPos, CraftBlockState> getCapturedBlockStates_BF() {
         return capturedBlockStates;
     }
 
@@ -101,21 +106,74 @@ public abstract class LevelMixin implements LevelBridge {
         this.bukkit = world;
     }
 
-    @Inject(at = @At("HEAD"), method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z")
-    public void setBlockState1(BlockPos pos, BlockState state, int flags, int maxUpdateDepth, CallbackInfoReturnable<Boolean> cir) {
-        // TODO 1.17ify: if (!ServerWorld.isOutOfBuildLimitVertically(blockposition)) {
-            LevelChunk chunk = getChunkAt(pos);
-            boolean captured = false;
-            if (this.captureBlockStates && !this.capturedBlockStates.containsKey(pos)) {
-                CapturedBlockState blockstate = CapturedBlockState.getTreeBlockState((Level)(Object)this, pos, flags);
-                this.capturedBlockStates.put(pos.immutable(), blockstate);
-                captured = true;
+    // Paper-aligned block-state capture at Level#setBlock head (two branches):
+    //
+    // 1) captureTreeGeneration (CraftWorld#generateTree tree/delegate paths):
+    //    blocks are NEVER written to the live world. Bedrock and end portal/frames
+    //    are protected (Paper's isDestroyable() allowlist), the NEW BlockState is
+    //    stored on a captured snapshot that tree features re-read via getBlockState
+    //    below, and the vanilla method short-circuits with true. Callers replay the
+    //    captured states themselves.
+    //
+    // 2) captureBlockStates alone (ItemStackMixin#useOn -> BlockPlaceEvent):
+    //    a snapshot of the OLD state is recorded but the world IS written; the
+    //    placement event is built from these snapshots after item.useOn returns and
+    //    rolls back when cancelled. The block-entity capture branch from Paper
+    //    (capturedTileEntities) is not ported because nothing here reads it.
+    @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z",
+            at = @At("HEAD"), cancellable = true)
+    public void cardboard$captureSetBlock(BlockPos pos, BlockState state, int flags, int recursionLeft, CallbackInfoReturnable<Boolean> cir) {
+        if (this.captureTreeGeneration) {
+            Level self = (Level) (Object) this;
+            Block existing = self.getBlockState(pos).getBlock();
+            if (existing == Blocks.BEDROCK
+                    || existing == Blocks.END_PORTAL
+                    || existing == Blocks.END_PORTAL_FRAME) {
+                cir.setReturnValue(false);
+                return;
             }
-        //}
+            CraftBlockState blockstate = this.capturedBlockStates.get(pos);
+            if (blockstate == null) {
+                blockstate = CapturedBlockState.getTreeBlockState(self, pos, flags);
+                this.capturedBlockStates.put(pos.immutable(), blockstate);
+            }
+            blockstate.setData(state);
+            blockstate.setFlags(flags);
+            cir.setReturnValue(true);
+        } else if (this.captureBlockStates
+                && !this.capturedBlockStates.containsKey(pos)) {
+            // OLD-state snapshot for BlockPlaceEvent; vanilla setBlock still runs.
+            this.capturedBlockStates.put(pos.immutable(),
+                    (CraftBlockState) CraftBlock.at((Level) (Object) this, pos).getState());
+        }
+    }
+
+    // During tree capture, reads must see the already-proposed NEW states, otherwise
+    // features place blocks against stale world contents.
+    @Inject(method = "getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
+            at = @At("HEAD"), cancellable = true)
+    public void cardboard$captureTreeGenerationGetBlockState(BlockPos pos, CallbackInfoReturnable<BlockState> cir) {
+        if (!this.captureTreeGeneration) {
+            return;
+        }
+        CraftBlockState previous = this.capturedBlockStates.get(pos);
+        if (previous != null) {
+            cir.setReturnValue(previous.getHandle());
+        }
     }
 
     @Override
     public void setCaptureBlockStates_BF(boolean b) {
         this.captureBlockStates = b;
+    }
+
+    @Override
+    public boolean isCaptureTreeGeneration_BF() {
+        return this.captureTreeGeneration;
+    }
+
+    @Override
+    public void setCaptureTreeGeneration_BF(boolean b) {
+        this.captureTreeGeneration = b;
     }
 }

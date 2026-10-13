@@ -186,6 +186,10 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
         return this.generateTree(this.getHandle(), gen, pos, new RandomSourceWrapper(random), treeType);
     }
 
+    // Explicit gap, same root cause as the Predicate overload: the per-block consumer
+    // path needs the BlockStateListPopulator WorldGenLevel to collect/replay proposed
+    // states (still an empty placeholder). It transitively returns false today; do
+    // not report it as working. The non-callback overloads below do place real trees.
     public boolean generateTree(Location location, Random random, TreeType treeType, Consumer<? super BlockState> consumer) {
         return this.generateTree(location, random, treeType, consumer == null ? null : block -> {
             consumer.accept((BlockState)block);
@@ -194,21 +198,13 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
     }
 
     public boolean generateTree(Location location, Random random, TreeType treeType, Predicate<? super BlockState> predicate) {
-        /*
-    	BlockPos pos = CraftLocation.toBlockPosition(location);
-        BlockStateListPopulator populator = new BlockStateListPopulator(this.getHandle());
-        
-        ChunkGenerator gen = ((ServerWorld)this.getHandle()).getChunkManager().getChunkGenerator()
-        boolean result = this.generateTree(populator, gen, pos, new RandomSourceWrapper(random), treeType);
-        populator.refreshTiles();
-        for (BlockState blockState : populator.getList()) {
-            if (predicate != null && !predicate.test((BlockState)blockState)) continue;
-            blockState.update(true, true);
-        }
-        return result;
-        */
-    	// TODO
-    	return false;
+        // Explicit gap: the Predicate overload (and, transitively, the Consumer
+        // overload above) needs a full BlockStateListPopulator WorldGenLevel to
+        // collect/replay proposed states; that populator is still an empty
+        // placeholder. Only the non-callback overloads (Location,TreeType and
+        // Location,Random,TreeType) route through the real Feature.place path.
+        // Do not reintroduce a silent false stub into CraftWorld for these either.
+        return false;
     }
 
     public boolean generateTree(WorldGenLevel access, ChunkGenerator chunkGenerator, BlockPos pos, net.minecraft.util.RandomSource random, TreeType treeType) {
@@ -267,6 +263,10 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
                 break;
             }
             case MEGA_REDWOOD: {
+                gen = TreeFeatures.MEGA_SPRUCE;
+                break;
+            }
+            case MEGA_PINE: {
                 gen = TreeFeatures.MEGA_PINE;
                 break;
             }
@@ -300,6 +300,14 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
             }
             case CHERRY: {
                 gen = TreeFeatures.CHERRY;
+                break;
+            }
+            case PALE_OAK: {
+                gen = TreeFeatures.PALE_OAK;
+                break;
+            }
+            case PALE_OAK_CREAKING: {
+                gen = TreeFeatures.PALE_OAK_CREAKING;
                 break;
             }
             default: {

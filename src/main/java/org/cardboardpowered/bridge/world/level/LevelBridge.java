@@ -7,18 +7,22 @@ package org.cardboardpowered.bridge.world.level;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.entity.LevelEntityGetter;
-import org.bukkit.craftbukkit.block.CapturedBlockState;
+import org.bukkit.craftbukkit.block.CraftBlockState;
 import org.cardboardpowered.impl.world.CraftWorld;
 
 public interface LevelBridge {
 
     CraftWorld cardboard$getWorld();
 
-    Map<BlockPos, CapturedBlockState> getCapturedBlockStates_BF();
+    Map<BlockPos, CraftBlockState> getCapturedBlockStates_BF();
 
     boolean isCaptureBlockStates_BF();
 
     void setCaptureBlockStates_BF(boolean b);
+
+    boolean isCaptureTreeGeneration_BF();
+
+    void setCaptureTreeGeneration_BF(boolean b);
 
     void set_bukkit_world(CraftWorld world);
 

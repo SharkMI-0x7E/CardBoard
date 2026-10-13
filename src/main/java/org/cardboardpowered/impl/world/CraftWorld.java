@@ -305,142 +305,40 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 	
 	
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public boolean generateTree(Location loc, TreeType type) {
-		BlockPos pos = new BlockPos(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-
-        /*ConfiguredFeature gen;
-        switch (type) {
-            case BIG_TREE:
-                gen = ConfiguredFeatures.FANCY_OAK;
-                break;
-            case BIRCH:
-                gen = ConfiguredFeatures.BIRCH;
-                break;
-            case REDWOOD:
-                gen = ConfiguredFeatures.SPRUCE;
-                break;
-            case TALL_REDWOOD:
-                gen = ConfiguredFeatures.TREES_GIANT_SPRUCE;
-                break;
-            case JUNGLE:
-                gen = ConfiguredFeatures.JUNGLE_TREE;
-                break;
-            case SMALL_JUNGLE:
-                gen = ConfiguredFeatures.JUNGLE_TREE_NO_VINE;
-                break;
-            case COCOA_TREE:
-                gen = ConfiguredFeatures.JUNGLE_TREE;
-                break;
-            case JUNGLE_BUSH:
-                gen = ConfiguredFeatures.JUNGLE_BUSH;
-                break;
-            case RED_MUSHROOM:
-                gen = ConfiguredFeatures.HUGE_RED_MUSHROOM;
-                break;
-            case BROWN_MUSHROOM:
-                gen = ConfiguredFeatures.HUGE_BROWN_MUSHROOM;
-                break;
-            case SWAMP:
-                gen = ConfiguredFeatures.TREES_SWAMP;
-                break;
-            case ACACIA:
-                gen = ConfiguredFeatures.ACACIA;
-                break;
-            case DARK_OAK:
-                gen = ConfiguredFeatures.DARK_OAK;
-                break;
-            case MEGA_REDWOOD:
-                gen = ConfiguredFeatures.MEGA_SPRUCE;
-                break;
-            case TALL_BIRCH:
-                gen = ConfiguredFeatures.BIRCH_TALL;
-                break;
-            case CHORUS_PLANT:
-                ChorusFlowerBlock.generate(nms, pos, rand, 8);
-                return true;
-            case CRIMSON_FUNGUS:
-                gen = ConfiguredFeatures.CRIMSON_FUNGI;
-                break;
-            case WARPED_FUNGUS:
-                gen = ConfiguredFeatures.WARPED_FUNGI;
-                break;
-            case TREE:
-            default:
-                gen = ConfiguredFeatures.OAK;
-                break;
-        }*/
-		// TODO 1.18
-
-		return false; // TODO 1.17ify: return gen.feature.generate(nms, nms.getChunkManager().getChunkGenerator(), rand, pos, gen.config);
+		return this.generateTree(loc, CraftWorld.rand, type);
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	// Paper-aligned BlockChangeDelegate path: run the real tree feature against
+	// this ServerLevel with block-state capture enabled (the Level#setBlock inject
+	// records CapturedBlockStates instead of writing blocks), then copy every
+	// captured block into the delegate. The delegate contract is 'write into the
+	// delegate, not the world'; unlike Paper's notifyAndUpdatePhysics path, block
+	// updates/physics are not pushed back into the live world here (Cardboard has no
+	// equivalent notify facility). A delegate that forwards writes back to the
+	// world is responsible for its own physics update.
 	@Override
-	public boolean generateTree(Location loc, TreeType arg1, BlockChangeDelegate arg2) {
-		BlockPos pos = new BlockPos(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-		ConfiguredFeature gen = null;
-        /*switch (arg1) {
-            case ACACIA:
-                gen = ConfiguredFeatures.ACACIA;
-                break;
-            case BIG_TREE:
-                gen = ConfiguredFeatures.FANCY_OAK;
-                break;
-            case BIRCH:
-                gen = ConfiguredFeatures.BIRCH;
-                break;
-            case BROWN_MUSHROOM:
-                gen = ConfiguredFeatures.BROWN_MUSHROOM_NORMAL;
-                break;
-            case CHORUS_PLANT:
-                break;
-            case COCOA_TREE:
-                gen = ConfiguredFeatures.JUNGLE_TREE;
-                break;
-            case CRIMSON_FUNGUS:
-                break;
-            case DARK_OAK:
-                gen = ConfiguredFeatures.DARK_OAK;
-                break;
-            case JUNGLE:
-                gen = ConfiguredFeatures.JUNGLE_TREE;
-                break;
-            case JUNGLE_BUSH:
-                gen = ConfiguredFeatures.JUNGLE_BUSH;
-                break;
-            case MEGA_REDWOOD:
-                gen = ConfiguredFeatures.MEGA_SPRUCE;
-                break;
-            case REDWOOD:
-                gen = ConfiguredFeatures.SPRUCE;
-                break;
-            case RED_MUSHROOM:
-                break;
-            case SMALL_JUNGLE:
-                gen = ConfiguredFeatures.JUNGLE_TREE_NO_VINE;
-                break;
-            case SWAMP:
-                break;
-            case TALL_BIRCH:
-                gen = ConfiguredFeatures.BIRCH_TALL;
-                break;
-            case TALL_REDWOOD:
-                gen = ConfiguredFeatures.TREES_GIANT_SPRUCE;
-                break;
-            case TREE:
-                gen = ConfiguredFeatures.OAK;
-                break;
-            case WARPED_FUNGUS:
-                break;
-            default:
-                gen = ConfiguredFeatures.OAK;
-                break;
-            
-        }*/
-		// TODO 1.18
-		// TODO 1.17ify gen.feature.generate(nms, nms.getChunkManager().getChunkGenerator(), rand, pos, gen.config);
+	public boolean generateTree(Location loc, TreeType type, BlockChangeDelegate delegate) {
+		org.cardboardpowered.bridge.world.level.LevelBridge capture =
+				(org.cardboardpowered.bridge.world.level.LevelBridge) (Object) this.world;
+		capture.setCaptureTreeGeneration_BF(true);
+		capture.setCaptureBlockStates_BF(true);
+		boolean grownTree;
+		try {
+			grownTree = this.generateTree(loc, type);
+		} finally {
+			capture.setCaptureBlockStates_BF(false);
+			capture.setCaptureTreeGeneration_BF(false);
+		}
+		if (grownTree) {
+			for (org.bukkit.block.BlockState blockState : capture.getCapturedBlockStates_BF().values()) {
+				delegate.setBlockData(blockState.getX(), blockState.getY(), blockState.getZ(), blockState.getBlockData());
+			}
+			capture.getCapturedBlockStates_BF().clear();
+			return true;
+		}
+		capture.getCapturedBlockStates_BF().clear();
 		return false;
 	}
 
@@ -1662,8 +1560,11 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 			entity.setPos(x, y, z);
 			entity.snapTo(x, y, z, yaw, pitch);
 		} else if(FallingBlock.class.isAssignableFrom(clazz)) {
-			// TODO 1.18.2
-			// entity = new FallingBlockEntity(nms, x, y, z, nms.getBlockState(new BlockPos(x, y, z)));
+			// Carry the block state at the requested location; spawn(Location, Class) gives
+			// no Material argument. The public constructor creates the entity only - it
+			// does not call level#setBlock/addFreshEntity (unlike FallingBlockEntity#fall),
+			// which are this method's caller's responsibility.
+			entity = new FallingBlockEntity(world, x, y, z, world.getBlockState(BlockPos.containing(x, y, z)));
 		} else if(Projectile.class.isAssignableFrom(clazz)) {
 			if(Snowball.class.isAssignableFrom(clazz)) {
 				entity = net.minecraft.world.entity.EntityType.SNOWBALL.create(world, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
@@ -1947,7 +1848,6 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
 			if(LeashHitch.class.isAssignableFrom(clazz)) {
 				entity = new LeashFenceKnotEntity(world, BlockPos.containing(x, y, z));
-				// TODO 1.17ify entity.teleporting = true;
 			} else {
 				// No valid face found
 				Preconditions.checkArgument(face != BlockFace.SELF, "Cannot spawn hanging entity for %s at %s (no free face)", clazz.getName(), location);
@@ -2051,7 +1951,6 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 		Validate.notNull(material, "Material cannot be null");
 		Validate.isTrue(material.isBlock(), "Material must be a block");
 
-		// TODO 1.18.1 / 1.18.2
 		FallingBlockEntity entity = FallingBlockEntity.fall(world, BlockPos.containing(location.getX(), location.getY(), location.getZ()), CraftMagicNumbers.getBlock(material)
 				.defaultBlockState());
 		// FallingBlockEntity entity = new FallingBlockEntity(nms, location.getX(), location.getY(), location.getZ(), CraftMagicNumbers.getBlock(material).getDefaultState());
@@ -2490,18 +2389,11 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 		return null;
 	}
 
-	@Override
-	public boolean generateTree(@NotNull Location arg0, @NotNull Random arg1, @NotNull TreeType arg2) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean generateTree(@NotNull Location arg0, @NotNull Random arg1, @NotNull TreeType arg2,
-	                            @Nullable java.util.function.Consumer<? super BlockState> arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	// generateTree(Location, TreeType), generateTree(Location, Random, TreeType) and
+	// generateTree(Location, Random, TreeType, Consumer) are inherited from
+	// CraftRegionAccessor (real Feature.place implementation / Predicate overload).
+	// Local @Override stubs returning false used to shadow them and made every tree
+	// call a no-op; they were removed.
 
 	@Override
 	public @NotNull Biome getBiome(@NotNull Location arg0) {
@@ -2674,21 +2566,17 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
 	}
 
-	// 1.18.2 API:
-
-	@Override
-	public boolean generateTree(@NotNull Location arg0, @NotNull Random arg1, @NotNull TreeType arg2,
-	                            @Nullable Predicate<? super BlockState> arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	// generateTree(Location, Random, TreeType, Predicate) is inherited from
+	// CraftRegionAccessor, where it currently returns false by design (requires a
+	// full BlockStateListPopulator WorldGenLevel; tracked as a separate API gap,
+	// not as a false stub in this class).
 
 	@Override
 	public @NotNull Biome getComputedBiome(int arg0, int arg1, int arg2) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public BiomeProvider vanillaBiomeProvider() {
 		ServerChunkCache serverCache = this.getHandle().getChunkSource();
